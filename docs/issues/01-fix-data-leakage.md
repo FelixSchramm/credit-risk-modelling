@@ -35,8 +35,22 @@ nach (Teil-)Ausfall bekannt sind:
 - `out_prncp`, `out_prncp_inv`
 - `recoveries`, `collection_recovery_fee`
 - `last_pymnt_amnt`
+- `last_fico_range_high`, `last_fico_range_low` — der nach Origination laufend
+  aktualisierte FICO-Score; bei ausgefallenen Krediten ist er bereits eingebrochen und
+  damit einer der stärksten Leakage-Treiber in diesem Datensatz. **Nicht** zu verwechseln
+  mit `fico_range_low`/`fico_range_high` (ohne `last_`): Das sind die Origination-Werte,
+  die als legitime Features im Modell bleiben dürfen.
+- `debt_settlement_flag`
 - alle `hardship_*`-Spalten (z. B. `hardship_amount`, `hardship_payoff_balance_amount`, `hardship_flag`, `hardship_type`, `hardship_status`, ...)
 - ggf. weitere `settlement_*`-Spalten (Debt-Settlement-Infos), falls im geladenen Datensatz vorhanden
+
+**Hinweis zur Erwartungshaltung:** Spalten mit sehr hohem Missing-Anteil (viele
+`hardship_*`- und `settlement_*`-Felder) werden vermutlich bereits durch den bestehenden
+`rm_nas(df, threshold=0.4)`-Filter entfernt. Sie trotzdem explizit in die Drop-Liste
+aufzunehmen ist richtig (defensive Deny-List, unabhängig von Filter-Reihenfolge und
+Threshold). Die eigentlichen Treiber des 0.9999-AUC sind aber die voll befüllten Spalten
+(`total_pymnt`, `recoveries`, `out_prncp`, `last_pymnt_amnt`, `last_fico_range_*`), die
+den NaN-Filter überleben.
 
 ## Ziel
 

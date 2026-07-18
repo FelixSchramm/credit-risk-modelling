@@ -39,7 +39,7 @@ fremden Person erlaubt, das Projekt ohne Rückfragen nachzuvollziehen und lokal 
    (Modularisierung) umgesetzt werden, damit die README die finale Struktur beschreibt
    und nicht erneut veraltet.
 2. Abschnitt "Folder Structure" so aktualisieren, dass er exakt die vorhandenen Dateien
-   auflistet (Notebook-Name, ggf. neue `.py`-Module aus `03_src/`, ggf. Modell-Artefakt in
+   auflistet (Notebook-Name, ggf. neue `.py`-Module aus `src/` (siehe Issue 03), ggf. Modell-Artefakt in
    `04_models/`, falls dort tatsächlich etwas abgelegt wird).
 3. Abschnitt "How to run" ergänzen:
    - Link/Hinweis, woher der Rohdatensatz stammt (Kaggle, LendingClub) und wo er abgelegt
@@ -47,7 +47,7 @@ fremden Person erlaubt, das Projekt ohne Rückfragen nachzuvollziehen und lokal 
    - `pip install -r requirements.txt` bzw. Setup-Befehle.
    - Befehl(e) zum Ausführen des Notebooks bzw. der Pipeline-Skripte.
 4. Ergebnis-/Metrik-Abschnitt mit dem korrigierten AUC-Wert aus Issue 01 aktualisieren.
-5. Kurzen Link/Verweis auf `docs/REPO_REVIEW.md` ist **nicht** nötig — die README richtet
+5. Ein Link/Verweis auf `docs/REPO_REVIEW.md` ist **nicht** nötig — die README richtet
    sich an externe Leser (Recruiter, Interviewer), das Review-Dokument ist internes
    Arbeitsmaterial.
 

@@ -29,6 +29,13 @@ erklärenden Markdown-Zellen zu EDA, Feature Engineering, Modellwahl und Evaluat
 
 1. Nach Umsetzung von Issue 01 (Leakage-Fix) und Issue 03 (Modularisierung): Kernel neu
    starten und das Notebook komplett von oben nach unten ausführen ("Restart & Run All").
+   Skriptbar geht das mit dem ohnehin installierten `nbconvert`:
+   ```
+   jupyter nbconvert --to notebook --execute --inplace 01_notebooks/prediction.ipynb
+   ```
+   Ein so ausgeführtes Notebook hat automatisch streng monotone `execution_count`-Werte —
+   das erste Akzeptanzkriterium ist damit maschinell erfüllbar und prüfbar (für
+   parametrisierte Läufe wäre `papermill` die Alternative, hier aber nicht nötig).
 2. Alle kryptischen Kommentare wie `# (g, h, i)` etc. entfernen oder durch echte,
    erklärende Kommentare/Markdown-Zellen ersetzen, die beschreiben, *warum* ein Schritt
    gemacht wird (nicht nur *was*).

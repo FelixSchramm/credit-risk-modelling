@@ -28,7 +28,8 @@ Die einzelnen Verbesserungspunkte sind als eigenständige Umsetzungs-Issues unte
 
 1. **Vermutlicher Data Leakage → ROC AUC 0.9999.** Der Leakage-Spalten-Drop entfernt zwar
    `grade`, `sub_grade`, Datumsspalten etc., aber **nicht** Post-Outcome-Felder wie
-   `total_pymnt`, `out_prncp`, `recoveries`, `last_pymnt_amnt`, `hardship_*`. Diese sind erst
+   `total_pymnt`, `out_prncp`, `recoveries`, `last_pymnt_amnt`, `last_fico_range_high/low`,
+   `hardship_*`. Diese sind erst
    nach Kreditausfall/-tilgung bekannt. Ein AUC von 0.9999 ist im Credit-Risk-Kontext ein
    Warnsignal, kein Erfolg — genau das würde ein Bank-Interviewer sofort erkennen.
 2. **README ist inkonsistent mit dem tatsächlichen Repo-Inhalt.** Sie listet
@@ -51,7 +52,8 @@ Die einzelnen Verbesserungspunkte sind als eigenständige Umsetzungs-Issues unte
 8. **Fehlende Projekt-Hygiene.** Kein Pinning in `requirements.txt`, keine
    `pyproject.toml`/`environment.yml`, keine CI (GitHub Actions), keine LICENSE, keine
    "How to run"-Anleitung in der README.
-9. **Git-Historie wenig aussagekräftig.** 9 Commits, ein Tag, ein Autor, Messages wie
+9. **Git-Historie wenig aussagekräftig.** 9 Commits an zwei aufeinanderfolgenden Tagen,
+   ein Autor, Messages wie
    "Update README.md" (×4), Tippfehler in Merge-Message. Wirkt wie schnell hochgeladen statt
    gepflegt.
 10. **Kleinkram:** `.DS_Store`-Dateien versehentlich eingecheckt; globales
@@ -64,7 +66,7 @@ Die einzelnen Verbesserungspunkte sind als eigenständige Umsetzungs-Issues unte
 - [README an tatsächlichen Repo-Inhalt angleichen](./issues/02-align-readme-with-repo.md)
 
 **P1 — Struktur/Professionalität:**
-- [Code in Module unter `03_src/` auslagern](./issues/03-modularize-src.md)
+- [Code in Module unter `src/` auslagern (Umbenennung von `03_src/`)](./issues/03-modularize-src.md)
 - [Notebook-Reproduzierbarkeit herstellen](./issues/04-notebook-reproducibility.md)
 - [Unit-Tests ergänzen](./issues/05-add-unit-tests.md)
 - [Dependencies pinnen, LICENSE ergänzen](./issues/06-pin-dependencies-and-license.md)
@@ -82,7 +84,21 @@ Die einzelnen Verbesserungspunkte sind als eigenständige Umsetzungs-Issues unte
 
 ## Wichtiger Hinweis zu diesem PR
 
-Dieser Pull Request enthält **ausschließlich Dokumentation** (`docs/REPO_REVIEW.md` und
-`docs/issues/*.md`). Es werden keine funktionalen Änderungen an Notebook, README,
-`requirements.txt` oder Modellcode vorgenommen. Die Umsetzung der einzelnen Punkte ist als
-Folge-Arbeit über die jeweiligen Issue-Dateien vorgesehen.
+Dieser Pull Request enthält **ausschließlich Dokumentation** (`docs/REPO_REVIEW.md`,
+`docs/issues/*.md` sowie ein PR-Template unter `.github/pull_request_template.md`).
+Es werden keine funktionalen Änderungen an Notebook, README, `requirements.txt` oder
+Modellcode vorgenommen. Die Umsetzung der einzelnen Punkte ist als Folge-Arbeit über die
+jeweiligen Issue-Dateien vorgesehen.
+
+## Lebenszyklus dieser Dokumente
+
+`docs/REPO_REVIEW.md` und `docs/issues/*` sind **internes Arbeitsmaterial** — in einem
+öffentlichen Portfolio-Repo sind sie aber für genau die Zielgruppe sichtbar (Recruiter,
+Interviewer), an die sich das Repo richtet. Deshalb:
+
+- Nach dem Merge die Issue-Dateien idealerweise in echte GitHub-Issues überführen (dort
+  gehören sie hin und sie lassen sich abhaken/schließen).
+- Spätestens nach Abarbeitung der P0-/P1-Punkte das `docs/`-Verzeichnis wieder aus dem
+  Repo entfernen. Die Git-Historie dokumentiert die Arbeitsweise weiterhin nachvollziehbar;
+  als dauerhafter, prominenter Repo-Inhalt würde die Selbstkritik dem erklärten Ziel
+  (überzeugender erster Eindruck) entgegenwirken.

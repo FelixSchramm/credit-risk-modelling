@@ -26,6 +26,10 @@ fachlicher Einordnung (ergibt das Muster ökonomisch/geschäftlich Sinn?).
 3. Zusätzlich SHAP-Werte berechnen (z. B. `shap.TreeExplainer` für den Random Forest) und
    mindestens einen SHAP-Summary-Plot erzeugen, der Richtung und Stärke des Einflusses
    pro Feature zeigt (nicht nur absolute Wichtigkeit wie bei `feature_importances_`).
+   **Wichtig:** Nicht auf dem vollen Test-Set rechnen — `TreeExplainer` auf einem Random
+   Forest mit ~125k Zeilen × 150+ Features läuft sehr lange. Ein Zufalls-Sample von
+   2.000–5.000 Zeilen (z. B. `X_test.sample(3000, random_state=42)`) reicht für stabile
+   Summary-Plots völlig aus.
 4. Für 2–3 der wichtigsten Features eine kurze fachliche Einordnung im Notebook ergänzen:
    Ergibt der beobachtete Zusammenhang (z. B. höheres `dti` (Debt-to-Income) → höhere
    Ausfallwahrscheinlichkeit) ökonomisch Sinn? Das zeigt Domänenverständnis, nicht nur

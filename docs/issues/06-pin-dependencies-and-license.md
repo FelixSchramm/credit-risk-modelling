@@ -25,8 +25,7 @@ Reproduzierbare, versionsfixierte Abhängigkeiten sowie eine klare, offene Lizen
    vollständigen `pip freeze`-Dumps mit allen transitiven Abhängigkeiten — für ein
    Portfolio-Projekt ist eine kuratierte, lesbare Liste besser als ein automatischer Dump.
 2. Neu hinzugekommene Pakete aus anderen Issues ergänzen: `pytest` (Issue 05), `shap`
-   (Issue 08), ggf. `scikit-learn`-Erweiterungen für WOE/IV (Issue 09), `flake8`/`ruff`
-   (Issue 12).
+   (Issue 08), ggf. `optbinning` für WOE/IV (Issue 09), `ruff` (Issue 12).
 3. Prüfen, ob ein Wechsel zu `pyproject.toml` (z. B. mit `uv` oder `poetry`) sinnvoll ist —
    optional, `requirements.txt` mit gepinnten Versionen ist ausreichend und einfacher zu
    reviewen.

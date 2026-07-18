@@ -2,7 +2,7 @@
 
 **Priorität:** P2 (Fachliche Tiefe — Differenzierung für Banking-Rollen, optional)
 **Status:** Open
-**Betrifft:** `01_notebooks/prediction.ipynb`, ggf. `03_src/train.py`
+**Betrifft:** `01_notebooks/prediction.ipynb`, ggf. `src/train.py` (siehe Issue 03)
 
 ## Kontext
 
@@ -41,7 +41,7 @@ Vergleich zum Random Forest, inklusive kurzer Diskussion der Trade-offs
 ## Betroffene Dateien
 
 - `01_notebooks/prediction.ipynb`
-- `03_src/train.py` (falls Issue 03 bereits umgesetzt)
+- `src/train.py` (falls Issue 03 bereits umgesetzt)
 - `requirements.txt` (ggf. `optbinning` oder vergleichbares Paket)
 
 ## Akzeptanzkriterien / Definition of Done

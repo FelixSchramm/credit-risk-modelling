@@ -2,7 +2,7 @@
 
 **Priorität:** P1 (Struktur/Professionalität)
 **Status:** Open
-**Betrifft:** neu: `tests/`, sowie `03_src/*.py`
+**Betrifft:** neu: `tests/`, sowie `src/*.py` (siehe Issue 03 — Umbenennung von `03_src/`)
 
 ## Kontext
 
@@ -12,12 +12,12 @@ ein auffälliger Mangel: Testabdeckung (auch nur für die Kernlogik) signalisier
 Software-Engineering-Reife und Sorgfalt, die über reines Notebook-Prototyping hinausgeht.
 
 **Voraussetzung:** Diese Issue baut auf Issue 03 (Modularisierung) auf — Tests ergeben
-erst Sinn, sobald Logik als importierbare Funktionen in `03_src/` vorliegt.
+erst Sinn, sobald Logik als importierbare Funktionen in `src/` vorliegt.
 
 ## Ziel
 
 Eine Basis-Testsuite (`pytest`) für die wichtigsten, deterministisch testbaren Funktionen
-aus `03_src/` — nicht für das gesamte Notebook, sondern gezielt für die Bausteine, bei
+aus `src/` — nicht für das gesamte Notebook, sondern gezielt für die Bausteine, bei
 denen ein Test echten Mehrwert hat (Datenverarbeitung, Feature Engineering, Metrikberechnung).
 
 ## Umsetzungsschritte
@@ -35,7 +35,9 @@ denen ein Test echten Mehrwert hat (Datenverarbeitung, Feature Engineering, Metr
    Input-DataFrame vorhanden sind (kein Fehler bei fehlenden Spalten).
 5. Für Feature-Engineering-Funktionen: mit einem kleinen synthetischen Beispiel-DataFrame
    (nicht dem echten, großen Datensatz) prüfen, dass Encodings/abgeleitete Features wie
-   erwartet berechnet werden.
+   erwartet berechnet werden. Für DataFrame-/Series-Vergleiche
+   `pandas.testing.assert_frame_equal` bzw. `assert_series_equal` verwenden statt
+   handgeschriebener Vergleichsschleifen.
 6. Für Evaluation-Funktionen (sofern in `evaluate.py` eigene Berechnungen stattfinden,
    z. B. KS-Statistik aus Issue 07): mit bekannten Beispielwerten (y_true, y_pred_proba)
    die korrekte Metrikberechnung verifizieren.

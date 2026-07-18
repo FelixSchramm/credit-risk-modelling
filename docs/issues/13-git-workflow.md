@@ -6,8 +6,8 @@
 
 ## Kontext
 
-Die bisherige Git-Historie des Repos besteht aus 9 Commits, alle an einem einzigen Tag
-(2025-09-03/09-04), von einem Autor, ohne Feature-Branches oder Pull Requests. Die
+Die bisherige Git-Historie des Repos besteht aus 9 Commits an zwei aufeinanderfolgenden
+Tagen (2025-09-03/04), von einem Autor, ohne Feature-Branches oder Pull Requests. Die
 Commit-Messages sind größtenteils wenig aussagekräftig ("Update README.md" mehrfach
 hintereinander, "Folder Struture" mit Tippfehler, eine Merge-Message mit einem
 versehentlichen `#`-Zeichen: `M#erge branch 'main' of ...`). Das wirkt wie ein schnell

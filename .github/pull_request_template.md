@@ -4,7 +4,7 @@ Kurz: Was ändert dieser PR und warum?
 ## Type of change
 - [ ] Bugfix
 - [ ] New feature / analysis
-- [ ] Refactoring (kein Verhaltensänderung)
+- [ ] Refactoring (keine Verhaltensänderung)
 - [ ] Documentation
 - [ ] Model/metrics change
 
