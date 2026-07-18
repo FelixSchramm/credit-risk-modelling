@@ -9,9 +9,9 @@ werden kann, plus konkrete, priorisierte Verbesserungsvorschläge.
 (`01_notebooks/prediction.ipynb`) und einer README, die eine Projektstruktur beschreibt,
 die im Repo so nicht existiert.
 
-Die einzelnen Verbesserungspunkte sind als eigenständige Umsetzungs-Issues unter
-[`docs/issues/`](./issues/) abgelegt — jede Datei ist so geschrieben, dass ein neuer Agent
-(oder eine Person ohne Vorwissen zu dieser Diskussion) sie direkt umsetzen kann.
+Die einzelnen Verbesserungspunkte sind als eigenständige GitHub-Issues (#2–#14) angelegt —
+jedes Issue ist so geschrieben, dass ein neuer Agent (oder eine Person ohne Vorwissen zu
+dieser Diskussion) es direkt umsetzen kann.
 
 ## Stärken
 
@@ -62,43 +62,43 @@ Die einzelnen Verbesserungspunkte sind als eigenständige Umsetzungs-Issues unte
 ## Priorisierte Verbesserungsvorschläge
 
 **P0 — Glaubwürdigkeit (vor jeder Bewerbung zwingend):**
-- [Data Leakage beheben](./issues/01-fix-data-leakage.md)
-- [README an tatsächlichen Repo-Inhalt angleichen](./issues/02-align-readme-with-repo.md)
+- [#2 — Data Leakage beheben](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/2)
+- [#3 — README an tatsächlichen Repo-Inhalt angleichen](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/3)
 
 **P1 — Struktur/Professionalität:**
-- [Code in Module unter `src/` auslagern (Umbenennung von `03_src/`)](./issues/03-modularize-src.md)
-- [Notebook-Reproduzierbarkeit herstellen](./issues/04-notebook-reproducibility.md)
-- [Unit-Tests ergänzen](./issues/05-add-unit-tests.md)
-- [Dependencies pinnen, LICENSE ergänzen](./issues/06-pin-dependencies-and-license.md)
+- [#4 — Code in Module unter `src/` auslagern (Umbenennung von `03_src/`)](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/4)
+- [#5 — Notebook-Reproduzierbarkeit herstellen](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/5)
+- [#6 — Unit-Tests ergänzen](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/6)
+- [#7 — Dependencies pinnen, LICENSE ergänzen](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/7)
 
 **P2 — Fachliche Tiefe (Differenzierung für Banking-Rollen):**
-- [Credit-Risk-Standardmetriken ergänzen (KS, Gini, Kalibrierung)](./issues/07-credit-risk-metrics.md)
-- [Modell-Interpretierbarkeit (SHAP/Feature Importance)](./issues/08-model-interpretability.md)
-- [Scorecard-Vergleichsmodell (Logistic Regression + WOE/IV)](./issues/09-scorecard-comparison.md)
-- [Basel/IFRS9-Einordnung ergänzen](./issues/10-basel-ifrs9-context.md)
+- [#8 — Credit-Risk-Standardmetriken ergänzen (KS, Gini, Kalibrierung)](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/8)
+- [#9 — Modell-Interpretierbarkeit (SHAP/Feature Importance)](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/9)
+- [#10 — Scorecard-Vergleichsmodell (Logistic Regression + WOE/IV)](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/10)
+- [#11 — Basel/IFRS9-Einordnung ergänzen](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/11)
 
 **P3 — Politur:**
-- [Repo-Hygiene (.DS_Store, warnings)](./issues/11-repo-hygiene.md)
-- [CI-Setup (GitHub Actions)](./issues/12-ci-setup.md)
-- [Git-Workflow-Empfehlungen](./issues/13-git-workflow.md)
+- [#12 — Repo-Hygiene (.DS_Store, warnings)](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/12)
+- [#13 — CI-Setup (GitHub Actions)](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/13)
+- [#14 — Git-Workflow-Empfehlungen](https://github.com/FelixSchramm/Credit_Risk_Modelling/issues/14)
 
 ## Wichtiger Hinweis zu diesem PR
 
-Dieser Pull Request enthält **ausschließlich Dokumentation** (`docs/REPO_REVIEW.md`,
-`docs/issues/*.md` sowie ein PR-Template unter `.github/pull_request_template.md`).
-Es werden keine funktionalen Änderungen an Notebook, README, `requirements.txt` oder
-Modellcode vorgenommen. Die Umsetzung der einzelnen Punkte ist als Folge-Arbeit über die
-jeweiligen Issue-Dateien vorgesehen.
+Dieser Pull Request enthält **ausschließlich Dokumentation** (`docs/REPO_REVIEW.md`
+sowie ein PR-Template unter `.github/pull_request_template.md`). Es werden keine
+funktionalen Änderungen an Notebook, README, `requirements.txt` oder Modellcode
+vorgenommen. Die Umsetzung der einzelnen Punkte ist als Folge-Arbeit über die
+GitHub-Issues #2–#14 vorgesehen.
 
-## Lebenszyklus dieser Dokumente
+## Lebenszyklus dieses Dokuments
 
-`docs/REPO_REVIEW.md` und `docs/issues/*` sind **internes Arbeitsmaterial** — in einem
-öffentlichen Portfolio-Repo sind sie aber für genau die Zielgruppe sichtbar (Recruiter,
-Interviewer), an die sich das Repo richtet. Deshalb:
+Die ursprünglich unter `docs/issues/` geführten Umsetzungs-Briefings wurden in echte
+GitHub-Issues (#2–#14) überführt und aus diesem PR entfernt — im Issue-Tracker gehören
+sie hin und lassen sich pro Punkt abhaken und schließen.
 
-- Nach dem Merge die Issue-Dateien idealerweise in echte GitHub-Issues überführen (dort
-  gehören sie hin und sie lassen sich abhaken/schließen).
-- Spätestens nach Abarbeitung der P0-/P1-Punkte das `docs/`-Verzeichnis wieder aus dem
-  Repo entfernen. Die Git-Historie dokumentiert die Arbeitsweise weiterhin nachvollziehbar;
-  als dauerhafter, prominenter Repo-Inhalt würde die Selbstkritik dem erklärten Ziel
-  (überzeugender erster Eindruck) entgegenwirken.
+Dieses Review-Dokument selbst ist **internes Arbeitsmaterial**: Es dient als Übersicht
+und Priorisierung während der Umsetzung und sollte nach Abarbeitung der P0-/P1-Punkte
+ebenfalls aus dem Repo entfernt werden — in einem öffentlichen Portfolio-Repo ist die
+Selbstkritik sonst für genau die Zielgruppe sichtbar (Recruiter, Interviewer), an die
+sich das Repo richtet. Die Git-Historie dokumentiert die Arbeitsweise weiterhin
+nachvollziehbar.
