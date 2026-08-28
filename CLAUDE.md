@@ -2,6 +2,9 @@
 
 Compact project context for Claude Code. Keep this short and current.
 
+Coding standards and behavioral guidelines live in
+@CLAUDE_CODING_RULES.md — they apply to every session and every role.
+
 ## What this is
 
 Credit risk portfolio project: a probability-of-default (PD) model on the
@@ -21,8 +24,7 @@ Work them in this order:
 #12 (repo hygiene) → #13 (CI)**
 
 Each issue is written to be self-contained. Read the issue in full before
-starting it. Close issues via `Closes #N` in the merge/PR description or by
-referencing them in the commit message.
+starting it.
 
 Note: the raw dataset (`accepted_2007_to_2018Q4.csv`) is NOT in the repo and
 may not be available in a fresh cloud session. Issues that need the real data
@@ -30,192 +32,138 @@ may not be available in a fresh cloud session. Issues that need the real data
 path, and record in HANDOVER.md if a step could not be executed against the
 full dataset so it can be verified locally.
 
-## Autonomous session protocol (session chain)
+## Autonomous session protocol (relay of single-purpose sessions)
 
-This repo is worked on by a chain of Claude Code web sessions that hand over
-to each other because of the 5-hour usage windows. Every session MUST follow
-this protocol:
+This repo is worked on autonomously by a relay of Claude Code web sessions,
+each with exactly one job:
 
-1. **Branches & PRs:** `claude/github-issues-review-3scsqi` is the
-   integration branch (fetch + check it out first; never force-push it).
-   Each issue is worked on its own feature branch `issue-NN-<short-slug>`
-   branched off the integration branch and merged back via a PR after a
-   mandatory code review (see "Per-issue code review" below). When everything
-   is done, the final session proposes a PR from the integration branch to
+- **Worker session:** implements exactly one issue and opens its PR, then
+  spawns the reviewer.
+- **Reviewer session:** reviews that PR, fixes clear findings itself, merges,
+  then spawns the next worker.
+
+A fallback routine (2x daily, 06:00/18:00 UTC) restarts the relay if it
+stalls (>12h without a commit while issues remain open).
+
+### Rules for every session
+
+1. **Branches:** `claude/github-issues-review-3scsqi` is the integration
+   branch (never force-push it). Each issue lives on its own feature branch
+   `issue-NN-<short-slug>` off the integration branch. When all issues are
+   done, the final session proposes a PR from the integration branch to
    `main` for the user to review.
-2. **Start of session:** read this file and `HANDOVER.md`, then continue with
-   the next open step recorded there.
-3. **Commit early, push often:** commit and push after every completed unit of
-   work (at the latest after every finished issue; for larger issues, after
-   each coherent sub-step). Git history + `HANDOVER.md` are the only handover
-   channel — nothing outside pushed commits survives a session.
-4. **Keep `HANDOVER.md` current:** update it after every completed unit
-   (done / in progress / next step / known pitfalls), commit it together with
-   the work.
+2. **Session start:** fetch + check out the integration branch, read this
+   file, `CLAUDE_CODING_RULES.md` and `HANDOVER.md`, then do the one job
+   your role defines.
+3. **Commit early, push often:** commit and push after every completed unit
+   of work. Git history + `HANDOVER.md` are the only handover channel —
+   nothing outside pushed commits survives a session.
+4. **Keep `HANDOVER.md` current:** update it before ending your session
+   (done / in progress / next step / open PR + its state / pitfalls) and
+   push it.
 5. **90% budget rule:** note the `total_tokens` value at session start. When
-   the remaining budget falls below **10% of that starting value**:
-   - do not start anything new,
-   - commit and push the current state,
-   - finalize `HANDOVER.md`,
-   - archive the handover (step 5a),
-   - schedule the successor session (step 6),
-   - end the turn with a short status summary.
+   the remaining budget falls below **10% of that starting value**: do not
+   start anything new, commit and push the current state, finalize
+   `HANDOVER.md`, write an archive snapshot (see "Handover archive"), and
+   schedule the successor **as a +5h one-shot trigger instead of an
+   immediate spawn** (see step 6), then end the turn.
+6. **Spawning the successor:** use the claude-code-remote MCP tools.
+   - Normal case (budget fine): `create_session` in the same environment —
+     the successor starts immediately.
+   - 90% rule hit: `create_trigger` with `run_once_at` = now + 5 hours,
+     `create_new_session_on_fire: true`, `initiation: "human_schedule"`.
+   - Either way the prompt must be fully standalone — use the templates
+     below and fill in issue/PR numbers. Never end your session without
+     having spawned or scheduled the successor (unless the relay is
+     complete, see step 7).
+7. **Completion:** when all issues #2-#13 are done, do NOT spawn a
+   successor. Update `HANDOVER.md` to state the relay is finished, write a
+   final archive snapshot (reason: "all issues done"), and ask the user in
+   the session summary whether to open the PR to `main` and disable the
+   fallback routine.
 
-   **5a. Handover archive:** copy the finalized `HANDOVER.md` to
-   `docs/handovers/YYYY-MM-DD_HHMM.md` (current UTC date and time), add a
-   first line `# Handover <timestamp> — session ended: <reason>` (reason:
-   "90% budget reached", "all issues done", or "fallback restart"), and
-   commit + push it together with the updated `HANDOVER.md`. One snapshot
-   per session, written only at handover time — never edit old snapshots.
-6. **Scheduling the successor:** create a one-shot trigger via the
-   claude-code-remote MCP tool `create_trigger` with:
-   - `run_once_at` = now + 5 hours,
-   - `create_new_session_on_fire: true`,
-   - `initiation: "human_schedule"`,
-   - a fully standalone prompt, e.g.:
-     > "Continue the autonomous work chain on FelixSchramm/credit-risk-modelling.
-     > Fetch and check out branch `claude/github-issues-review-3scsqi`, read
-     > CLAUDE.md (section 'Autonomous session protocol') and HANDOVER.md, and
-     > continue with the next open step. Follow the protocol including the 90%
-     > handover rule."
-7. **Completion:** when all issues #2-#13 are done, do NOT schedule another
-   session. Update `HANDOVER.md` to state the chain is finished, archive it
-   per step 5a (reason: "all issues done"), and ask the user (in the session
-   summary) whether to open the PR to `main` and disable the daily fallback
-   routine.
+### Worker session (one issue)
 
-A daily fallback routine (Claude Code web "Routine") independently checks the
-branch and restarts the chain if it stalled (>12h without a commit while
-issues remain open). If you are that fallback session, follow the same
-protocol above.
-
-### Per-issue code review (mandatory before every merge)
-
-1. When an issue's implementation is complete on its feature branch: push it
-   and open a PR targeting `claude/github-issues-review-3scsqi`.
+1. Identify the next open issue N from `HANDOVER.md`; read issue N in full.
+2. Create `issue-NN-<short-slug>` off the integration branch.
+3. Implement the issue following `CLAUDE_CODING_RULES.md`; commit/push per
+   unit of work.
+4. Open a PR targeting `claude/github-issues-review-3scsqi`.
    Note: `Closes #N` does NOT auto-close issues for PRs into a non-default
-   branch — after the merge, close issue #N manually with a comment linking
-   the PR.
-2. Spawn a **fresh reviewer agent** (Agent tool, clean context — it must not
-   inherit the author's reasoning) with this mandate:
-   - Review the full PR diff. Three questions, in priority order:
-     1. **Is the code as simple and as short as possible?** Flag
-        overcomplication, speculative abstraction, unnecessary
-        configurability, dead code, anything where 50 lines would do the
-        job of 200.
-     2. **Does hand-written code reimplement something an established
-        package already provides** (pandas, numpy, scikit-learn, scipy,
-        shap, optbinning, ...)? Prefer the package; flag the reinvention.
-     3. **Are the CLAUDE.md rules followed?** Coding standards (PEP 8,
-        snake_case, reST docstrings, black), commit conventions, and the
-        Behavioral Guidelines — especially "Simplicity First" and
-        "Surgical Changes".
-   - Post the findings as a PR review with inline comments (github MCP
-     tools), most severe first. If there is nothing to flag, say so
-     explicitly in a short review — do not invent findings.
-3. The working session addresses **every** finding: fix and push, or reply
-   on the thread with a short justification why not. Re-request a review
-   pass only after substantial rework, not for trivial fixes.
+   branch — the reviewer closes the issue manually after the merge.
+5. Update `HANDOVER.md` (PR number, state: "review pending"), push it to the
+   integration branch.
+6. Spawn the reviewer session (worker → reviewer template) and end the turn.
+
+### Reviewer session (one PR)
+
+1. Review the full PR diff with fresh eyes. Three questions, in priority
+   order:
+   1. **Is the code as simple and as short as possible?** Flag
+      overcomplication, speculative abstraction, unnecessary
+      configurability, dead code, anything where 50 lines would do the job
+      of 200.
+   2. **Does hand-written code reimplement something an established package
+      already provides** (pandas, numpy, scikit-learn, scipy, shap,
+      optbinning, ...)? Prefer the package; flag the reinvention.
+   3. **Are the rules in `CLAUDE_CODING_RULES.md` followed?** Especially
+      "Simplicity First" and "Surgical Changes".
+2. Post the findings as a PR review with inline comments (github MCP tools),
+   most severe first. If there is nothing to flag, say so explicitly in a
+   short review — do not invent findings.
+3. **Fix only clear-cut findings yourself** (simplifications, package
+   replacements, style/docstring fixes) — commit and push them to the
+   feature branch. **Structural or debatable findings are NOT implemented**:
+   leave them as PR comments and record them in `HANDOVER.md` so the user or
+   a later issue can pick them up.
 4. Merge the PR into the integration branch (regular merge, no force-push),
-   close issue #N manually, delete the feature branch, update `HANDOVER.md`.
-5. If the 90% rule triggers mid-review-cycle: record the PR number and its
-   exact state (review pending / findings open / ready to merge) in
-   `HANDOVER.md` so the successor session resumes exactly there.
+   close issue #N manually with a comment linking the PR, delete the
+   feature branch.
+5. Update `HANDOVER.md` (issue N done, next issue), write an archive
+   snapshot (reason: "issue #N merged").
+6. Spawn the next worker session (reviewer → worker template) and end the
+   turn — or, if all issues are done, follow "Completion" above.
 
-# AI Coding Instructions
+### Handover archive
 
-## General Coding Standards
-- Write code in English, as easy as possible and do not use emojis.
-- Follow PEP 8 coding style for Python
-- Variable and function names: use snake_case
-- Use reStructuredText (reST) format for all Python docstrings.
-- Format: Use `:param name: description` and `:return: description`.
-- Python code needs to be formatted with `black`; linting with `ruff`
-  (see issue #13).
+Snapshots of `HANDOVER.md` go to `docs/handovers/YYYY-MM-DD_HHMM.md`
+(current UTC date/time), prefixed with one line
+`# Handover <timestamp> — <reason>`. Write a snapshot:
 
-## Commit & Branching Conventions
-- Use conventional commits (https://www.conventionalcommits.org/)
-- Chain work lives on `claude/github-issues-review-3scsqi`; reference the
-  issue number in each commit (e.g. `fix: drop post-outcome leakage columns (#2)`).
-- Commit messages explain the WHY in the body when it is not obvious.
-- Keep commits small and focused: one commit = one logical change.
+- after every merge (reviewer, reason: "issue #N merged"),
+- whenever the 90% rule triggers (reason: "90% budget reached"),
+- at relay completion (reason: "all issues done").
 
-## Documentation Requirements
-- Every code module needs a Markdown file or a module-level docstring.
-- Every function needs a docstring.
-- Inline comments: Focus on WHY, not WHAT
+Snapshots are append-only history — never edit or delete old ones. The
+current working state always lives in `/HANDOVER.md` at the repo root.
 
-## Plans
-- Implementierungs-/Ausführpläne werden **immer** im Ordner `plans/` abgelegt.
-- `plans/` ist **nicht** in `.gitignore` und wird ins Repo committet (nicht nur lokal).
-- Dateiname-Format: `YYYY-MM-DD_name.md` (aktuelles Datum + kurzer Slug),
-  z. B. `2026-06-25_api-anbindung.md`.
+### Fallback sessions
 
-# Behavioral Guidelines
+If you were started by the fallback routine: read `HANDOVER.md` and adopt
+the role that matches the recorded state — an open PR with review pending
+makes you the reviewer; otherwise you are the worker for the next open
+issue. Then follow that role's protocol above, including spawning the
+successor.
 
-Behavioral guidelines to reduce common LLM coding mistakes.
+### Prompt templates
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+Worker → reviewer:
 
-## 1. Think Before Coding
+> Continue the autonomous relay on FelixSchramm/credit-risk-modelling as the
+> REVIEWER session. Fetch and check out branch
+> `claude/github-issues-review-3scsqi`, read CLAUDE.md (section "Autonomous
+> session protocol"), CLAUDE_CODING_RULES.md and HANDOVER.md. Review PR #<PR>
+> for issue #<N> following the "Reviewer session" protocol: post a PR review
+> (simplicity first, package reuse, coding-rules compliance), fix only
+> clear-cut findings yourself, merge, close issue #<N>, archive the handover,
+> then spawn the next worker session. Apply the 90% budget rule.
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
+Reviewer → worker:
 
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-- In autonomous chain sessions nobody can answer: record the open question and
-  your chosen assumption in `HANDOVER.md` instead, pick the conservative
-  option, and continue.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
----
-
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+> Continue the autonomous relay on FelixSchramm/credit-risk-modelling as the
+> WORKER session. Fetch and check out branch
+> `claude/github-issues-review-3scsqi`, read CLAUDE.md (section "Autonomous
+> session protocol"), CLAUDE_CODING_RULES.md and HANDOVER.md. Implement issue
+> #<N> on a feature branch following the "Worker session" protocol, open the
+> PR, update HANDOVER.md, then spawn the reviewer session. Apply the 90%
+> budget rule.
