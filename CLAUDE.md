@@ -36,9 +36,13 @@ This repo is worked on by a chain of Claude Code web sessions that hand over
 to each other because of the 5-hour usage windows. Every session MUST follow
 this protocol:
 
-1. **Branch:** all chain work happens on `claude/github-issues-review-3scsqi`
-   (fetch + check it out first; never force-push it). When everything is done,
-   the final session proposes a PR to `main` for the user to review.
+1. **Branches & PRs:** `claude/github-issues-review-3scsqi` is the
+   integration branch (fetch + check it out first; never force-push it).
+   Each issue is worked on its own feature branch `issue-NN-<short-slug>`
+   branched off the integration branch and merged back via a PR after a
+   mandatory code review (see "Per-issue code review" below). When everything
+   is done, the final session proposes a PR from the integration branch to
+   `main` for the user to review.
 2. **Start of session:** read this file and `HANDOVER.md`, then continue with
    the next open step recorded there.
 3. **Commit early, push often:** commit and push after every completed unit of
@@ -84,6 +88,39 @@ A daily fallback routine (Claude Code web "Routine") independently checks the
 branch and restarts the chain if it stalled (>12h without a commit while
 issues remain open). If you are that fallback session, follow the same
 protocol above.
+
+### Per-issue code review (mandatory before every merge)
+
+1. When an issue's implementation is complete on its feature branch: push it
+   and open a PR targeting `claude/github-issues-review-3scsqi`.
+   Note: `Closes #N` does NOT auto-close issues for PRs into a non-default
+   branch — after the merge, close issue #N manually with a comment linking
+   the PR.
+2. Spawn a **fresh reviewer agent** (Agent tool, clean context — it must not
+   inherit the author's reasoning) with this mandate:
+   - Review the full PR diff. Three questions, in priority order:
+     1. **Is the code as simple and as short as possible?** Flag
+        overcomplication, speculative abstraction, unnecessary
+        configurability, dead code, anything where 50 lines would do the
+        job of 200.
+     2. **Does hand-written code reimplement something an established
+        package already provides** (pandas, numpy, scikit-learn, scipy,
+        shap, optbinning, ...)? Prefer the package; flag the reinvention.
+     3. **Are the CLAUDE.md rules followed?** Coding standards (PEP 8,
+        snake_case, reST docstrings, black), commit conventions, and the
+        Behavioral Guidelines — especially "Simplicity First" and
+        "Surgical Changes".
+   - Post the findings as a PR review with inline comments (github MCP
+     tools), most severe first. If there is nothing to flag, say so
+     explicitly in a short review — do not invent findings.
+3. The working session addresses **every** finding: fix and push, or reply
+   on the thread with a short justification why not. Re-request a review
+   pass only after substantial rework, not for trivial fixes.
+4. Merge the PR into the integration branch (regular merge, no force-push),
+   close issue #N manually, delete the feature branch, update `HANDOVER.md`.
+5. If the 90% rule triggers mid-review-cycle: record the PR number and its
+   exact state (review pending / findings open / ready to merge) in
+   `HANDOVER.md` so the successor session resumes exactly there.
 
 # AI Coding Instructions
 

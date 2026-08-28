@@ -31,5 +31,9 @@ Update after every completed unit of work and before every handover.
 ## Known pitfalls
 
 - Never force-push `claude/github-issues-review-3scsqi`.
+- Issue PRs target the integration branch, not `main` — GitHub's `Closes #N`
+  auto-close does not fire there; close issues manually after the merge.
+- Every issue PR needs the reviewer-agent pass (see CLAUDE.md, "Per-issue
+  code review") before merging; record mid-review state here if handing over.
 - README metrics (AUC 0.9999) are known-wrong until #2 is done — update README
   only in #3, after the leakage fix.
