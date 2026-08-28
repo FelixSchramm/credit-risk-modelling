@@ -53,8 +53,16 @@ this protocol:
    - do not start anything new,
    - commit and push the current state,
    - finalize `HANDOVER.md`,
+   - archive the handover (step 5a),
    - schedule the successor session (step 6),
    - end the turn with a short status summary.
+
+   **5a. Handover archive:** copy the finalized `HANDOVER.md` to
+   `docs/handovers/YYYY-MM-DD_HHMM.md` (current UTC date and time), add a
+   first line `# Handover <timestamp> — session ended: <reason>` (reason:
+   "90% budget reached", "all issues done", or "fallback restart"), and
+   commit + push it together with the updated `HANDOVER.md`. One snapshot
+   per session, written only at handover time — never edit old snapshots.
 6. **Scheduling the successor:** create a one-shot trigger via the
    claude-code-remote MCP tool `create_trigger` with:
    - `run_once_at` = now + 5 hours,
@@ -67,9 +75,10 @@ this protocol:
      > continue with the next open step. Follow the protocol including the 90%
      > handover rule."
 7. **Completion:** when all issues #2-#13 are done, do NOT schedule another
-   session. Update `HANDOVER.md` to state the chain is finished, and ask the
-   user (in the session summary) whether to open the PR to `main` and disable
-   the daily fallback routine.
+   session. Update `HANDOVER.md` to state the chain is finished, archive it
+   per step 5a (reason: "all issues done"), and ask the user (in the session
+   summary) whether to open the PR to `main` and disable the daily fallback
+   routine.
 
 A daily fallback routine (Claude Code web "Routine") independently checks the
 branch and restarts the chain if it stalled (>12h without a commit while
