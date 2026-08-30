@@ -4,29 +4,53 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-08-28 (setup session — no issue work started yet)
-**Chain status:** not started
+**Last updated:** 2026-08-30 (fallback session, acted as worker for issue #2)
+**Chain status:** issue #2 implemented, PR #16 open — review pending
 
 ## Done
 
-- (nothing yet — protocol and fallback routine set up on 2026-08-28)
+- (nothing merged yet)
 
 ## In progress
 
-- (nothing)
+- **Issue #2 — Data Leakage beheben:** implemented on branch
+  `issue-02-fix-leakage`, **PR #16** targeting the integration branch.
+  State: **review pending**.
+  What the PR does: adds an explicit `post_outcome_cols` deny-list plus a
+  prefix rule for `hardship_*`/`settlement_*` to the drop cell of
+  `01_notebooks/prediction.ipynb`, adds a markdown section documenting the
+  leakage finding, rewrites the closing "Comments on Findings" cell, and
+  clears the stored outputs of the affected cells (they came from the leaky
+  run).
 
 ## Next step
 
-- Start with issue **#2 — Data Leakage im Kreditausfall-Modell beheben**.
-  Read the issue in full first; the drop-list of post-outcome columns is
-  specified there.
+- Reviewer session for **PR #16** (review, fix clear-cut findings, merge,
+  close issue #2 manually, archive handover), then worker session for the
+  next issue in the plan: **#4 — Notebook-Logik nach `src/` auslagern**.
 
 ## Open questions / decisions taken
 
-- Raw dataset (`accepted_2007_to_2018Q4.csv`, ~1.6 GB from Kaggle) is not in
-  the repo. If it cannot be downloaded in a cloud session, implement and
-  document the code changes anyway and record here which steps still need a
-  local run for verification.
+- **Raw dataset not available in the cloud session.** `02_data/raw/` contains
+  only `.gitkeep`, the ~1.6 GB Kaggle CSV is not in the repo and cannot be
+  downloaded without Kaggle credentials. Consequences for issue #2:
+  - The corrected model could **not** be retrained, so the new realistic AUC
+    is **not yet measured**. Issue #2 expects roughly 0.65-0.75.
+  - **Open task for a local run:** execute the notebook top to bottom on the
+    full dataset, record the new AUC / precision / recall / confusion matrix,
+    and only then update the README metrics (that is issue #3).
+  - Instead of a real run, the drop logic was verified against a synthetic
+    DataFrame with the LendingClub column names: no post-outcome column
+    survives, no legitimate origination column (`fico_range_low/high`, `dti`,
+    `int_rate`, `term`, ...) is removed by mistake.
+- Decision: stored outputs of the cells from the drop cell onwards were
+  cleared rather than left in place — they showed the AUC 0.9999 of the leaky
+  run and would have contradicted the corrected code. Clearing all remaining
+  notebook artifacts is issue #5.
+- Observation, not acted on (out of scope for #2): `issue_year` stays in the
+  feature set. It is known at origination, so it is not leakage, but as a
+  time index it can make the model learn the vintage rather than the risk —
+  worth a look in #5 or #10.
 
 ## Known pitfalls
 
@@ -37,5 +61,6 @@ Update after every completed unit of work and before every handover.
 - Every issue PR is merged only by a reviewer session (see CLAUDE.md,
   "Reviewer session"); always record the open PR number and its state
   (review pending / findings open / merged) here.
-- README metrics (AUC 0.9999) are known-wrong until #2 is done — update README
-  only in #3, after the leakage fix.
+- README metrics (AUC 0.9999) are known-wrong. They stay wrong until the
+  notebook has actually been re-run on the full dataset locally — do not put
+  a guessed number into the README in #3.
