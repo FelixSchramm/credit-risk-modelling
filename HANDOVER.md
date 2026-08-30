@@ -52,6 +52,16 @@ Update after every completed unit of work and before every handover.
   time index it can make the model learn the vintage rather than the risk —
   worth a look in #5 or #10.
 
+- **Successor session could NOT be spawned.** This session ran as the
+  scheduled fallback routine and had only the `github` MCP server available —
+  the `claude-code-remote` tools (`create_session` / `create_trigger`) that
+  CLAUDE.md step 6 requires were not connected, so the reviewer session for
+  PR #16 could not be started. Safety net: the fallback routine runs twice a
+  day (06:00/18:00 UTC) and, per "Fallback sessions", the next firing will
+  read this file, see "PR #16 review pending" and adopt the reviewer role. If
+  the relay is meant to run at full speed, the environment of the relay
+  sessions needs the claude-code-remote MCP server attached.
+
 ## Known pitfalls
 
 - Never force-push `claude/github-issues-review-3scsqi`.
