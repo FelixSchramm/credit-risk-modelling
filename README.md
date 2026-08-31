@@ -61,10 +61,12 @@ Folder Structure/
 │   └── processed/
 │       └── cleaned_lending_data.csv
 │
-├── 03_src/
+├── src/
 │   ├── __init__.py
-│   ├── 01_process_data.py
-│   └── 02_train_model.py
+│   ├── data_processing.py
+│   ├── features.py
+│   ├── train.py
+│   └── evaluate.py
 │
 └── 04_models/
     └── random_forest_v1.joblib
