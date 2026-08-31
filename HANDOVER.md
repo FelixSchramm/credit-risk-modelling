@@ -4,8 +4,9 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-08-31 (fallback session, acted as reviewer for PR #16)
-**Chain status:** issue #2 done and merged — next up: worker session for issue #4
+**Last updated:** 2026-08-31 18:00 UTC (fallback session, acted as worker for issue #4)
+**Chain status:** issue #4 implemented, PR #17 open — next up: reviewer session
+for PR #17
 
 ## Done
 
@@ -20,13 +21,18 @@ Update after every completed unit of work and before every handover.
 
 ## In progress
 
-- (nothing — no open PR)
+- **Issue #4 — Notebook-Logik nach `src/` auslagern:** implemented on branch
+  `issue-04-src-modules`, **PR #17 open, state: review pending**.
+  `03_src/` renamed to `src/` (a package name must not start with a digit);
+  the notebook logic now lives in `src/data_processing.py`, `src/features.py`,
+  `src/train.py` and `src/evaluate.py`; the notebook imports them via
+  `sys.path.insert(0, "..")`. EDA, plots and the narrative stay in the
+  notebook. README folder structure updated to the real module names.
 
 ## Next step
 
-- Worker session for **issue #4 — Notebook-Logik nach `src/` auslagern**.
-  Read the issue in full first. After that the plan order is
-  #5 → #8 → #9 → #3 → #7 → #6 → #10 → #11 → #12 → #13.
+- Reviewer session for **PR #17** (issue #4). After the merge the plan order
+  is #5 → #8 → #9 → #3 → #7 → #6 → #10 → #11 → #12 → #13.
 
 ## Open questions / decisions taken
 
@@ -42,6 +48,11 @@ Update after every completed unit of work and before every handover.
     against a synthetic DataFrame with the LendingClub column names instead.
   - Every following issue that needs real data must degrade the same way:
     implement and document the code path, record the unverified step here.
+  - Issue #4 was verified the same way: a synthetic CSV with the LendingClub
+    column names was written to `02_data/raw/` and the notebook was executed
+    top to bottom with `nbclient` — it runs through, but the metrics of that
+    run are meaningless and were not stored in the notebook. The real
+    "Restart & Run All" on the full dataset is still outstanding.
 - Observation from issue #2, not acted on: `issue_year` stays in the feature
   set. It is known at origination, so it is not leakage, but as a time index it
   can make the model learn the vintage rather than the risk — worth a look in
@@ -51,14 +62,18 @@ Update after every completed unit of work and before every handover.
   outputs and execution counts from the leaky run. Cleaning all of this up is
   issue #5.
 
-- **Successor sessions still cannot be spawned automatically.** Both fallback
-  sessions so far (2026-08-30, 2026-08-31) had only the `github` MCP server
+- **Successor sessions still cannot be spawned automatically.** All three
+  fallback sessions so far (2026-08-30, 2026-08-31 06:00, 2026-08-31 18:00)
+  had only the `github` MCP server
   available; the `claude-code-remote` tools (`create_session` /
   `create_trigger`) that CLAUDE.md step 6 requires are not connected in this
   environment. `CronCreate` is no substitute — it is session-only and dies
   with the session. Consequence: the relay advances at most one step per
   fallback firing (06:00/18:00 UTC). To run at full speed, the relay
   environment needs the claude-code-remote MCP server attached.
+  - Consequence for the next session: nothing is running. Whoever starts
+    next takes the role that HANDOVER.md records here, not the one the
+    previous session was supposed to spawn.
 
 ## Known pitfalls
 
