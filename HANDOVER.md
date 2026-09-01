@@ -4,8 +4,9 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-09-01 06:10 UTC (fallback session, acted as reviewer for PR #17)
-**Chain status:** issue #4 done and merged — next up: worker session for issue #5
+**Last updated:** 2026-09-01 06:35 UTC (fallback session: reviewer for PR #17, then worker for issue #5)
+**Chain status:** issue #4 done and merged; issue #5 implemented, PR #18 open —
+next up: reviewer session for PR #18
 
 ## Done
 
@@ -33,13 +34,23 @@ Update after every completed unit of work and before every handover.
 
 ## In progress
 
-- (nothing — no open PR)
+- **Issue #5 — Notebook-Reproduzierbarkeit / Kurs-Artefakte:** implemented on
+  branch `issue-05-notebook-reproducibility`, **PR #18 open, state: review
+  pending**. Only `01_notebooks/prediction.ipynb` is touched.
+  Course markers (`# (b)`, `# (q)`, `# (s)`, ...) replaced by comments that say
+  WHY; `df.info` fixed to `df.info()`; the EDA cells got their own section and
+  the sections are renumbered 1-5; each section markdown cell now states the
+  decision behind the code; the title cell documents how to run the notebook.
+  Two cleanups the goal required: the duplicated matplotlib/seaborn imports in
+  two adjacent EDA cells moved into the first cell, and the
+  `try/except FileNotFoundError` around the CSV load removed (it turned one
+  clear error into a `NameError` cascade).
+  **All code cells are committed unexecuted.** See the decision below.
 
 ## Next step
 
-- Worker session for **issue #5 — Notebook-Reproduzierbarkeit herstellen und
-  Kurs-Artefakte entfernen**. Read the issue in full first. After that the
-  plan order is #8 → #9 → #3 → #7 → #6 → #10 → #11 → #12 → #13.
+- Reviewer session for **PR #18** (issue #5). After the merge the plan order
+  is #8 → #9 → #3 → #7 → #6 → #10 → #11 → #12 → #13.
 
 ## Open questions / decisions taken
 
@@ -58,6 +69,20 @@ Update after every completed unit of work and before every handover.
     "Restart & Run All" on the full dataset is still outstanding.
   - Every following issue that needs real data must degrade the same way:
     implement and document the code path, record the unverified step here.
+- **Decision taken in issue #5: the notebook is committed with empty outputs.**
+  Acceptance criterion 1 asks for strictly monotonic `execution_count` values,
+  which only a real execution produces — and the only data available in a cloud
+  session is synthetic. Committing the outputs of a synthetic run would put
+  meaningless plots and fabricated metrics into a portfolio repo, so the
+  conservative option was chosen: every code cell reset to unexecuted. The
+  structure was verified instead, by executing a *copy* of the notebook with
+  `nbclient` against a synthetic LendingClub-shaped CSV (3000 rows, all columns
+  the notebook and `src/` touch) — all 18 code cells run without error and
+  produce counts 1-18; the copy was not committed.
+  **Open task, local:** run
+  `jupyter nbconvert --to notebook --execute --inplace 01_notebooks/prediction.ipynb`
+  on the real CSV. That single run closes the last open point of #5 and
+  produces the metrics that issues #2 and #3 are waiting for.
 - **Open finding from the PR #17 review, deliberately NOT implemented there
   (structural, belongs to #9/#10):** `split_and_scale` in `src/train.py`
   returns `StandardScaler.fit_transform` output, i.e. numpy arrays, so the
