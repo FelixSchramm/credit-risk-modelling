@@ -69,5 +69,5 @@ Folder Structure/
 │   └── evaluate.py
 │
 └── 04_models/
-    └── random_forest_v1.joblib
+    └── random_forest.joblib
 ```
