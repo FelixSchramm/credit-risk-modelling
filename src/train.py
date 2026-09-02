@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -17,11 +16,16 @@ def split_and_scale(
     y: pd.Series,
     test_size: float = 0.3,
     random_state: int = 42,
-) -> tuple[np.ndarray, np.ndarray, pd.Series, pd.Series, StandardScaler]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, StandardScaler]:
     """Split the data stratified by the target and standardize the features.
 
     The scaler is fitted on the training set only, so no information from the
     test set enters the training data.
+
+    ``set_output(transform="pandas")`` keeps the scaled features as DataFrames.
+    Plain ``StandardScaler`` output would be a numpy array, which drops the
+    column names and leaves feature importances and SHAP plots labelled with
+    positional indices instead of feature names.
 
     :param x: Feature matrix.
     :param y: Binary target.
@@ -32,7 +36,7 @@ def split_and_scale(
     x_train, x_test, y_train, y_test = train_test_split(
         x, y, test_size=test_size, random_state=random_state, stratify=y
     )
-    scaler = StandardScaler()
+    scaler = StandardScaler().set_output(transform="pandas")
     return (
         scaler.fit_transform(x_train),
         scaler.transform(x_test),
@@ -43,7 +47,7 @@ def split_and_scale(
 
 
 def train_random_forest(
-    x_train: np.ndarray, y_train: pd.Series, random_state: int = 42
+    x_train: pd.DataFrame, y_train: pd.Series, random_state: int = 42
 ) -> RandomForestClassifier:
     """Train a random forest on the scaled training data.
 
