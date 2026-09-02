@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 from scipy.stats import ks_2samp
 from sklearn.base import ClassifierMixin
@@ -13,7 +12,7 @@ TARGET_NAMES = ["Fully Paid (0)", "Charged Off (1)"]
 
 
 def evaluate_model(
-    model: ClassifierMixin, x_test: np.ndarray, y_test: pd.Series
+    model: ClassifierMixin, x_test: pd.DataFrame, y_test: pd.Series
 ) -> dict[str, object]:
     """Score a fitted model on the test set.
 
