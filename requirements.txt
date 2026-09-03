@@ -1,9 +1,17 @@
-pandas
-numpy
-scikit-learn
-jupyter
-matplotlib
-seaborn
-joblib
-scipy
-shap
+# Pinned so that "Restart & Run All" keeps working. The versions below were
+# resolved together on Python 3.11 and the notebook was run end to end against
+# them; see issue #7.
+pandas==3.0.5
+numpy==2.4.6
+scikit-learn==1.9.0
+jupyter==1.1.1
+matplotlib==3.11.1
+seaborn==0.13.2
+joblib==1.6.0
+scipy==1.17.1
+shap==0.51.0
+
+# Development tools: tests (issue #6), formatting and linting (issue #13).
+pytest==9.1.1
+ruff==0.16.5
+black==26.5.1

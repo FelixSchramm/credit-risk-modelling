@@ -28,9 +28,13 @@ The raw CSV is ~1.6 GB and is **not** part of this repository (see
 `accepted_2007_to_2018Q4.csv` in `02_data/raw/`. Nothing else needs to be put
 there — the notebook does all cleaning in memory.
 
-**2. Set up the environment.** Python 3.11 is what this was developed against;
-3.10+ should work. `src/train.py` uses `StandardScaler.set_output`, which needs
-scikit-learn 1.2 or newer.
+**2. Set up the environment.** Python 3.11 or newer is required — the pinned
+`pandas`, `numpy`, `scikit-learn`, `scipy`, `matplotlib` and `shap` releases all
+declare `requires-python >= 3.11`. `requirements.txt` pins exact versions that
+were resolved and run together, so the install reproduces a known-good
+environment rather than whatever is current on PyPI. If you deviate from the
+pins: `src/train.py` uses `StandardScaler.set_output`, which needs scikit-learn
+1.2 or newer.
 
 ```bash
 python -m venv venv
@@ -65,6 +69,7 @@ the repository — the import cell puts the project root on `sys.path` relative 
 credit-risk-modelling/
 │
 ├── README.md
+├── LICENSE
 ├── requirements.txt
 ├── .gitignore
 │
@@ -150,3 +155,7 @@ Two things are worth stating up front about how those numbers should be read:
   predicted probabilities are deliberately shifted and cannot be used as PDs in
   an expected-loss calculation without recalibration. That is acceptable for a
   ranking model, but it has to be said rather than assumed.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
