@@ -85,8 +85,9 @@ credit-risk-modelling/
 └── 04_models/                    # random_forest.joblib is written here (untracked)
 ```
 
-`docs/` and the `CLAUDE*.md` files at the repository root are working material
-for the ongoing rework of this repository, not part of the analysis.
+`docs/`, `HANDOVER.md` and the `CLAUDE*.md` files at the repository root are
+working material for the ongoing rework of this repository, not part of the
+analysis.
 
 ## Workflow
 
