@@ -29,8 +29,10 @@ The raw CSV is ~1.6 GB and is **not** part of this repository (see
 there — the notebook does all cleaning in memory.
 
 **2. Set up the environment.** Python 3.11 is what this was developed against;
-3.10+ should work. `src/train.py` uses `StandardScaler.set_output`, which needs
-scikit-learn 1.2 or newer.
+3.10+ should work. `requirements.txt` pins exact versions that were resolved and
+run together, so the install reproduces a known-good environment rather than
+whatever is current on PyPI. If you deviate from the pins: `src/train.py` uses
+`StandardScaler.set_output`, which needs scikit-learn 1.2 or newer.
 
 ```bash
 python -m venv venv
@@ -150,3 +152,7 @@ Two things are worth stating up front about how those numbers should be read:
   predicted probabilities are deliberately shifted and cannot be used as PDs in
   an expected-loss calculation without recalibration. That is acceptable for a
   ranking model, but it has to be said rather than assumed.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
