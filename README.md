@@ -63,6 +63,16 @@ The notebook imports the pipeline from `src/`, so it has to be run from within
 the repository — the import cell puts the project root on `sys.path` relative to
 `01_notebooks/`.
 
+**4. Run the tests** (optional, and independent of the dataset — they work on
+small synthetic frames):
+
+```bash
+pytest
+```
+
+`pytest.ini` points at `tests/` and puts the repository root on the import
+path, so the command works from the root without further arguments.
+
 ## Repository layout
 
 ```
@@ -71,6 +81,7 @@ credit-risk-modelling/
 ├── README.md
 ├── LICENSE
 ├── requirements.txt
+├── pytest.ini
 ├── .gitignore
 │
 ├── 01_notebooks/
@@ -82,6 +93,11 @@ credit-risk-modelling/
 │   ├── features.py               # term/emp_length conversion, one-hot encoding
 │   ├── train.py                  # split, scaling, random forest, persistence
 │   └── evaluate.py               # ROC AUC, Gini, KS, classification report
+│
+├── tests/                        # pytest suite for the src/ modules
+│   ├── test_data_processing.py
+│   ├── test_features.py
+│   └── test_evaluate.py
 │
 ├── 02_data/
 │   ├── raw/                      # place accepted_2007_to_2018Q4.csv here (untracked)
