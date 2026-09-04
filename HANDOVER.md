@@ -4,9 +4,9 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-09-04 18:20 UTC (fallback session: reviewer for PR #24, then worker for issue #11)
-**Chain status:** issue #10 done and merged; issue #11 in progress —
-next up: reviewer session for the issue #11 PR
+**Last updated:** 2026-09-04 18:45 UTC (fallback session: reviewer for PR #24, then worker for issue #11)
+**Chain status:** issue #10 done and merged; issue #11 implemented, PR #25 open —
+next up: reviewer session for PR #25
 
 ## Done
 
@@ -249,12 +249,41 @@ next up: reviewer session for the issue #11 PR
 
 ## In progress
 
-- **Issue #11 — Basel/IFRS9-Einordnung ergänzen:** worker session running.
+- **Issue #11 — Basel/IFRS9-Einordnung ergänzen:** implemented on branch
+  `issue-11-basel-ifrs9-context`, **PR #25 open, state: review pending**.
+  Documentation only — no Python code touched, no metric changed.
+  - `README.md` gains a "Regulatory context" section between "Results" and
+    "License": the PD/LGD/EAD split under Basel (as a table with an honest
+    "not modelled" for the other two), the two mismatches that decide how the
+    numbers may be read (the target is a write-off, not the 90-days-past-due
+    or unlikeliness-to-pay definition; the horizon is the loan's whole 36/60
+    month term, not one year), IFRS 9 ECL with the stage 1/2/3 table, the
+    point-in-time vs through-the-cycle split that stops one model serving both
+    frameworks, the Swiss implementation via FINMA, and a closing
+    "What this project is not" list.
+  - `01_notebooks/prediction.ipynb` gains one "Scope" paragraph in the intro
+    cell, pointing at the README section instead of repeating it.
+  - **Step 2 of the issue was already done and was not duplicated.** Notebook
+    cell 24 (from #8) already places AUC/Gini/KS against the usual retail
+    ranges; the calibration cell already states `ECL = PD x LGD x EAD`; and
+    section 7 (from #10) already contrasts an IRB rating system with an IFRS 9
+    PD. What was missing was the framing itself, and that is what this PR adds.
+  - Scope decision: no new notebook section 8. The regulatory material lives in
+    the README only, so the two cannot drift apart.
+  - Verification: a *copy* of the notebook executed with `nbclient` against a
+    synthetic LendingClub-shaped CSV runs all 25 code cells, counts 1-25;
+    `pytest` 20 passed. The copy and the CSV were not committed and the
+    committed notebook keeps empty outputs.
+  - Two things flagged for the reviewer: one out-of-scope line (see below), and
+    a request to read the regulatory claims critically — being wrong about
+    Basel or IFRS 9 in an application repo is expensive, so the riskiest
+    statements are deliberately unspecific (no Basel article numbers, no input
+    floor percentages, no FINMA circular number, no named banks).
 
 ## Next step
 
-- Reviewer session for the issue #11 PR. After the merge the plan order is
-  #12 -> #13.
+- Reviewer session for **PR #25** (issue #11). After the merge the plan order
+  is #12 -> #13.
 
 ## Open questions / decisions taken
 
@@ -312,6 +341,22 @@ next up: reviewer session for the issue #11 PR
   the `scaler` returned by `split_and_scale`. It is needed to score new
   applications, so it is worth keeping — but nothing in the repo demonstrates
   that yet.
+- **`plans/` was created in issue #11 and issues #2-#10 never used it.**
+  `CLAUDE_CODING_RULES.md` requires an implementation plan under
+  `plans/YYYY-MM-DD_name.md` for every change, committed to the repo. Nine
+  merged issues did not do this and nobody flagged it. #11 follows the rule, so
+  the directory now exists with exactly one file in it — which is inconsistent
+  either way. **Open question for the user:** retro-fit plans for #2-#10, apply
+  the rule only from here on, or drop it from the coding rules because the
+  issues themselves already serve as the plan. The conservative option was
+  taken (follow the written rule, record the inconsistency) rather than
+  silently continuing to ignore it.
+- **One out-of-scope line in the issue #11 PR, deliberately taken and
+  disclosed.** The README repository-layout block did not list
+  `tests/test_train.py`, which #10 added. #11 edits that same block, and #3
+  established the block as maintained-as-truth, so shipping a knowingly wrong
+  layout while editing it seemed worse than the rule violation. Flagged in the
+  PR body rather than slipped in.
 - **Carried over from issue #10, for the real run — the `fico_range` pair.**
   `fico_range_low` and `fico_range_high` are the two ends of the same
   four-point band. Both clear the IV threshold and both are handed to the
