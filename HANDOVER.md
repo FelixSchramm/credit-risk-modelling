@@ -5,8 +5,8 @@ Living handover document for the autonomous session chain
 Update after every completed unit of work and before every handover.
 
 **Last updated:** 2026-09-04 06:15 UTC (fallback session: reviewer for PR #23, then worker for issue #10)
-**Chain status:** issue #6 done and merged; issue #10 in progress —
-next up: worker finishes #10, then reviewer session for its PR
+**Chain status:** issue #6 done and merged; issue #10 implemented, PR #24 open —
+next up: reviewer session for PR #24
 
 ## Done
 
@@ -201,12 +201,45 @@ next up: worker finishes #10, then reviewer session for its PR
 ## In progress
 
 - **Issue #10 — Scorecard-Vergleichsmodell (Logistic Regression + WOE/IV):**
-  in progress in this session (see the PR once opened).
+  implemented on branch `issue-10-woe-scorecard`, **PR #24 open, state: review
+  pending**. Adds `train_scorecard` to `src/train.py`, notebook section 7
+  (seven cells), `tests/test_train.py` (2 tests), `optbinning==0.21.0` to
+  `requirements.txt` and a workflow step 7 to the README.
+  - `train_scorecard` is `optbinning.BinningProcess` -> `LogisticRegression` in
+    a plain sklearn `Pipeline`. The binning replaces each value by the WOE of
+    its bin and drops features with IV < 0.02. WOE values are log-odds, so the
+    pipeline has no scaling step. Being a `Pipeline` it is scored by the
+    **existing** `evaluate_model` unchanged -- that is what makes the two
+    models comparable.
+  - The scorecard is fitted on the *unencoded* frame: cell 20 binds it to
+    `df_raw` before `engineer_features`, which copies its input, so nothing is
+    duplicated -- the frame is only kept from being discarded. The forest's
+    split is reproduced via `X_woe.loc[X_train.index]`, which works because
+    `split_and_scale` preserves the index (the `set_output(transform="pandas")`
+    change from #9).
+  - Verification: `pytest` 20 passed; `black`/`ruff` clean; a *copy* of the
+    notebook executed with `nbclient` against a synthetic LendingClub-shaped
+    CSV (6000 rows, 65 columns) runs all 25 code cells, counts 1-25. The copy
+    was not committed and the committed notebook keeps empty outputs.
+    `optbinning 0.21.0` installs without moving any existing pin.
+  - **No metric from that run is quoted anywhere.** The synthetic data is
+    generated from a logistic link with no interactions, so it structurally
+    flatters the scorecard; the discussion cell is written to hold whichever
+    way the real comparison falls.
+  - Two things flagged for the reviewer: `fico_range_low`/`fico_range_high` are
+    two ends of a four-point band and will both be selected (IV is per-feature
+    and cannot see the redundancy) -- documented rather than fixed, since
+    dropping one is a modelling decision beyond #10; and `issue_year` finally
+    has an evidence-based home in the IV table, which is what the leakage
+    review asked #10 to provide.
+  - Scope decision: the scorecard is not persisted via `save_model` and gets no
+    SHAP treatment -- WOE coefficients are interpretable by construction, and
+    `save_model` is typed for the forest.
 
 ## Next step
 
-- Reviewer session for the **issue #10 PR**. After that the plan order is
-  #11 → #12 → #13.
+- Reviewer session for **PR #24** (issue #10). After the merge the plan order
+  is #11 → #12 → #13.
 
 ## Open questions / decisions taken
 
