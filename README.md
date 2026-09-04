@@ -91,7 +91,7 @@ credit-risk-modelling/
 │   ├── __init__.py
 │   ├── data_processing.py        # loading, target, leakage and NaN handling
 │   ├── features.py               # term/emp_length conversion, one-hot encoding
-│   ├── train.py                  # split, scaling, random forest, persistence
+│   ├── train.py                  # split, scaling, forest, scorecard, persistence
 │   └── evaluate.py               # ROC AUC, Gini, KS, classification report
 │
 ├── tests/                        # pytest suite for the src/ modules
@@ -142,6 +142,12 @@ for discrimination, plus a reliability diagram for calibration.
 plot showing the direction and size of each feature's effect, and a waterfall
 plot explaining one single high-risk loan in the form an adverse-action notice
 would need.
+
+**7. Scorecard benchmark** — the classical counterpart to the forest: features
+binned by `optbinning`, replaced by their Weight of Evidence, selected on
+Information Value and fed to a logistic regression. Both models are scored on
+the same test rows, and the section closes with the trade-off a bank actually
+faces between the two.
 
 ## Results
 

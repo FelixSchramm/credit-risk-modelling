@@ -6,8 +6,11 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
+from optbinning import BinningProcess
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 
@@ -66,6 +69,47 @@ def train_random_forest(
     )
     model.fit(x_train, y_train)
     return model
+
+
+def train_scorecard(
+    x_train: pd.DataFrame,
+    y_train: pd.Series,
+    categorical_variables: list[str],
+    min_iv: float = 0.02,
+) -> Pipeline:
+    """Train the classical credit scorecard: WOE binning plus logistic regression.
+
+    ``BinningProcess`` bins every feature so that the bins separate defaulted
+    from repaid loans as well as possible, replaces each value by the Weight of
+    Evidence of its bin and drops the features whose Information Value stays
+    below ``min_iv``. The logistic regression then runs on the WOE values,
+    which are log-odds already, so this pipeline needs no scaling step.
+
+    The input is the *unencoded* feature frame: WOE grouping works on the raw
+    categories, and one-hot encoding beforehand would only split them apart
+    again.
+
+    :param x_train: Unencoded training features, raw categoricals included.
+    :param y_train: Training target.
+    :param categorical_variables: Columns to bin as categories rather than as
+        numbers.
+    :param min_iv: Information Value a feature needs to be kept. The usual
+        rule of thumb treats anything below 0.02 as barely predictive.
+    :return: The fitted ``woe`` to ``logit`` pipeline.
+    """
+    binning = BinningProcess(
+        variable_names=list(x_train.columns),
+        categorical_variables=categorical_variables,
+        selection_criteria={"iv": {"min": min_iv}},
+    )
+    scorecard = Pipeline(
+        [
+            ("woe", binning),
+            ("logit", LogisticRegression(class_weight="balanced", max_iter=1000)),
+        ]
+    )
+    scorecard.fit(x_train, y_train)
+    return scorecard
 
 
 def save_model(model: RandomForestClassifier, path: str | Path) -> None:
