@@ -10,6 +10,7 @@ seaborn==0.13.2
 joblib==1.6.0
 scipy==1.17.1
 shap==0.51.0
+optbinning==0.21.0
 
 # Development tools: tests (issue #6), formatting and linting (issue #13).
 pytest==9.1.1
