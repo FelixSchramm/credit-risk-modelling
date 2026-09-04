@@ -97,7 +97,8 @@ credit-risk-modelling/
 ├── tests/                        # pytest suite for the src/ modules
 │   ├── test_data_processing.py
 │   ├── test_features.py
-│   └── test_evaluate.py
+│   ├── test_evaluate.py
+│   └── test_train.py
 │
 ├── 02_data/
 │   ├── raw/                      # place accepted_2007_to_2018Q4.csv here (untracked)
@@ -177,6 +178,101 @@ Two things are worth stating up front about how those numbers should be read:
   predicted probabilities are deliberately shifted and cannot be used as PDs in
   an expected-loss calculation without recalibration. That is acceptable for a
   ranking model, but it has to be said rather than assumed.
+
+## Regulatory context
+
+A PD model is not a free-standing object: in a bank it is an input to two
+different regulatory calculations. Being precise about which part of them this
+project touches is more useful than claiming to cover them.
+
+### Basel: PD is one of three inputs, and only one is built here
+
+Under the internal ratings-based (IRB) approach, the capital requirement for a
+credit exposure comes out of a supervisory risk-weight function fed by three
+estimates:
+
+| Input | Question it answers | Here |
+| --- | --- | --- |
+| **PD** — probability of default | How likely is this borrower to default? | modelled |
+| **LGD** — loss given default | If they default, what share of the exposure is lost? | not modelled |
+| **EAD** — exposure at default | How much is outstanding at that moment? | not modelled |
+
+Expected loss is `PD x LGD x EAD`, so a PD model on its own answers one third of
+the question. For a fully drawn, amortising consumer loan EAD holds few
+surprises — it is close to the outstanding balance. LGD is a genuine second
+modelling problem: recovery on unsecured consumer debt is driven by collections
+behaviour rather than by collateral, and this project does not attempt it.
+
+Two further details decide how the numbers here may be read:
+
+- **The default definition is not the regulatory one.** Basel defines default as
+  90 days past due or unlikeliness to pay. The target here is LendingClub's
+  `Charged Off` status, which is a write-off — a later and stricter event that a
+  loan reaches long after it would already have counted as defaulted under the
+  regulatory definition. The two are not interchangeable, and a model trained on
+  one does not estimate the other.
+- **The horizon is not the regulatory one.** An IRB PD is a one-year
+  probability. This model is fitted at origination against the outcome over the
+  loan's entire 36- or 60-month term, which makes it closer to a lifetime PD.
+
+### IFRS 9: PD drives the loss allowance and the staging
+
+IFRS 9 requires expected credit losses (ECL) to be recognised up front rather
+than waiting for a loss event, and PD is the first factor of the same
+`ECL = PD x LGD x EAD`, discounted. Which PD is required depends on the stage
+the exposure sits in:
+
+| Stage | Condition | Allowance |
+| --- | --- | --- |
+| 1 | no significant increase in credit risk since initial recognition | 12-month ECL |
+| 2 | significant increase in credit risk, not credit-impaired | lifetime ECL |
+| 3 | credit-impaired | lifetime ECL, interest on the net carrying amount |
+
+The staging is where the two frameworks pull apart. IFRS 9 PDs are
+point-in-time and forward-looking — conditioned on where the cycle currently is
+and on macroeconomic scenarios. Basel IRB PDs are deliberately the opposite:
+long-run averages, insensitive to the cycle by design. One estimate cannot be
+both, which is why banks maintain separate PD models for the two purposes
+instead of reusing one.
+
+### Switzerland
+
+FINMA implements the Basel framework through the Capital Adequacy Ordinance and
+its circulars. In practice the standardised approach dominates: risk weights
+come from a supervisory table and no internal PD enters the capital calculation
+at all. Internal PD models under IRB require explicit FINMA approval and are
+used by only a small number of institutions. Provisioning splits along a similar
+line — banks reporting under IFRS apply IFRS 9, while banks reporting under the
+Swiss accounting rules follow FINMA's own expected-loss provisioning
+requirements, which are graduated by the category of the institution. The
+vocabulary above therefore travels to a Swiss bank; which of the two regimes
+that bank actually applies does not follow from it.
+
+### What this project is not
+
+A learning and portfolio project on a public historical dataset from a US
+peer-to-peer lending platform. It is **not** a supervisory-approved model and
+makes no claim to satisfy any regulatory requirement. Beyond the default
+definition and the horizon above, it lacks essentially everything that turns a
+classifier into a rating system:
+
+- **No calibration.** `class_weight="balanced"` shifts the predicted
+  probabilities away from the observed default rate on purpose (see "Results"),
+  so the output ranks borrowers rather than estimating a PD level — and there is
+  neither a through-the-cycle nor a point-in-time calibration on top, so it fits
+  neither definition even after recalibration.
+- **No rating system.** No grades, no masterscale, no margin of conservatism.
+- **No validation in the supervisory sense.** No out-of-time testing, no
+  independent validation function, no annual review, no ongoing monitoring, no
+  override policy, no model documentation of the kind a validation unit means.
+- **No representativeness argument.** One platform, one country, one time
+  window. Nothing has been established about how that relates to any bank's own
+  portfolio.
+
+None of this makes the exercise idle. The steps are the ones a real PD project
+runs: the leakage correction, the origination-only feature set, the scorecard
+benchmark, the discrimination and calibration metrics. It does mean the result
+is a demonstration of method, not a PD.
 
 ## License
 
