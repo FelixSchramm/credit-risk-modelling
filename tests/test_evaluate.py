@@ -19,11 +19,15 @@ class FixedProbaModel:
         self.y_pred_proba = np.asarray(y_pred_proba)
 
     def predict_proba(self, x_test: pd.DataFrame) -> np.ndarray:
-        """:return: The two-column probability matrix sklearn models return."""
+        """:param x_test: Ignored; the probabilities are fixed at construction.
+        :return: The two-column probability matrix sklearn models return.
+        """
         return np.column_stack([1 - self.y_pred_proba, self.y_pred_proba])
 
     def predict(self, x_test: pd.DataFrame) -> np.ndarray:
-        """:return: The 0.5-threshold labels sklearn classifiers predict."""
+        """:param x_test: Ignored; see :meth:`predict_proba`.
+        :return: The 0.5-threshold labels sklearn classifiers predict.
+        """
         return (self.y_pred_proba >= 0.5).astype(int)
 
 

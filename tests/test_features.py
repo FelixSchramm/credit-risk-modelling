@@ -19,6 +19,7 @@ from src.features import convert_emp_length, engineer_features
     ],
 )
 def test_convert_emp_length(value, expected):
+    """``< 1 year`` and missing both collapse to 0; ``10+ years`` caps at 10."""
     assert convert_emp_length(value) == expected
 
 

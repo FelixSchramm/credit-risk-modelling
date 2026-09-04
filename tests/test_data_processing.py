@@ -25,6 +25,7 @@ def test_rm_nas_keeps_a_column_exactly_at_the_threshold():
 
 
 def test_rm_nas_leaves_complete_data_untouched():
+    """No column has missing values, so none can exceed the threshold."""
     df = pd.DataFrame({"a": [1, 2], "b": ["x", "y"]})
     assert_frame_equal(rm_nas(df), df)
 
