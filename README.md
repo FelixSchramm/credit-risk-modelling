@@ -188,8 +188,9 @@ project touches is more useful than claiming to cover them.
 ### Basel: PD is one of three inputs, and only one is built here
 
 Under the internal ratings-based (IRB) approach, the capital requirement for a
-credit exposure comes out of a supervisory risk-weight function fed by three
-estimates:
+retail exposure — the category a consumer loan falls into — comes out of a
+supervisory risk-weight function fed by three estimates (outside retail the
+effective maturity enters as a fourth):
 
 | Input | Question it answers | Here |
 | --- | --- | --- |
