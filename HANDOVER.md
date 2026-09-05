@@ -523,6 +523,14 @@ next up: reviewer session for PR #26
 
 ## Known pitfalls
 
+- **The repo has a PR template at `.github/pull_request_template.md` and it is
+  easy to miss.** It asks for Summary / Type of change / Related issue /
+  Changes / a Model-Data-Leakage check / How to test / a checklist. PR #26 is
+  the first relay PR written against it; the earlier ones (#16-#25) were not,
+  so their bodies do not carry the leakage checklist the template asks for.
+  Fill it in when opening a PR — the leakage section in particular is the one
+  the user built this repo's review discipline around. Do not put
+  `Closes #N` in it (see below).
 - Never force-push `claude/github-issues-review-3scsqi`.
 - Issue PRs target the integration branch, not `main` — GitHub's `Closes #N`
   auto-close does not fire there; the reviewer closes issues manually after
