@@ -5,8 +5,8 @@ Living handover document for the autonomous session chain
 Update after every completed unit of work and before every handover.
 
 **Last updated:** 2026-09-05 06:15 UTC (fallback session: reviewer for PR #25, then worker for issue #12)
-**Chain status:** issue #11 done and merged; issue #12 in progress —
-next up: reviewer session for the issue #12 PR
+**Chain status:** issue #11 done and merged; issue #12 implemented, PR #26 open —
+next up: reviewer session for PR #26
 
 ## Done
 
@@ -292,11 +292,46 @@ next up: reviewer session for the issue #12 PR
 
 ## In progress
 
-- **Issue #12 — Repo-Hygiene:** in progress in this session.
+- **Issue #12 — Repo-Hygiene (.DS_Store, Warnings):** implemented on branch
+  `issue-12-repo-hygiene`, **PR #26 open, state: review pending**.
+  - `.gitignore` gains `.DS_Store`; both tracked copies (repo root and
+    `02_data/`) removed with `git rm --cached`. The history is **not**
+    rewritten — that would need a force-push of the integration branch, which
+    the protocol forbids.
+  - The global `warnings.filterwarnings('ignore')` is gone from the notebook,
+    together with the now-unused `import warnings`.
+  - **What the global filter was hiding was measured, not guessed.** A copy of
+    the notebook run with `warnings.simplefilter("always")` against a synthetic
+    LendingClub-shaped CSV showed exactly two warnings, both real:
+    the seaborn `FutureWarning` for `palette` without `hue` (removed in v0.14)
+    in the year-count plot, and the pandas `Pandas4Warning` at
+    `src/features.py:35` for `select_dtypes(include=["object"])` — the finding
+    the PR #23 review deferred to this issue. **Both are now closed.**
+  - Scope decision: **no replacement filter.** The issue offers targeted
+    suppression as the alternative, but with both causes fixed there is
+    nothing repo-owned left to suppress and a filter for warnings that do not
+    occur is dead code. Under `simplefilter("always")` the only remaining
+    output is three `PendingDeprecationWarning`s raised inside `shap` at
+    import — not this repo's code, and invisible under Python's default
+    filters. Flagged to the reviewer as a deliberate rather than literal
+    reading of acceptance criterion 2.
+  - **Step 4 of the issue produced a positive result worth keeping:** removing
+    the suppression surfaced no `SettingWithCopyWarning` and no
+    chained-assignment warning anywhere in the pipeline, i.e. the `df.copy()`
+    calls in `src/` are doing their job.
+  - Verification: a *copy* of the notebook executed with `nbclient` against a
+    synthetic CSV (6000 rows, all 55 columns the notebook and `src/` touch)
+    runs all 25 code cells, counts 1-25, 0 errors; 0 stderr blocks from repo
+    code with warnings forced visible and 0 on a plain run. `pytest` 20
+    passed, `black --check` and `ruff check` clean. The synthetic CSV was
+    deleted afterwards and never committed — `02_data/raw/` holds only
+    `.gitkeep`, so no later session can mistake it for the real dataset.
+  - `plans/2026-09-05_repo-hygiene.md` written, as the coding rules require.
 
 ## Next step
 
-- Reviewer session for the **issue #12 PR**. After the merge only #13 is left.
+- Reviewer session for **PR #26** (issue #12). After the merge only #13 is
+  left, and with it the relay is complete.
 
 ## Open questions / decisions taken
 
