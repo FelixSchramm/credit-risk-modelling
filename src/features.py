@@ -32,5 +32,5 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["term"] = df["term"].str.extract(r"(\d+)").astype(int)
     df["emp_length"] = df["emp_length"].apply(convert_emp_length)
 
-    categorical_cols = df.select_dtypes(include=["object"]).columns
+    categorical_cols = df.select_dtypes(include=["str", "object"]).columns
     return pd.get_dummies(df, columns=categorical_cols, drop_first=True)
