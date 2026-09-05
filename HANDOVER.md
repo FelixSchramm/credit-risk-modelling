@@ -4,9 +4,10 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-09-05 06:15 UTC (fallback session: reviewer for PR #25, then worker for issue #12)
-**Chain status:** issue #11 done and merged; issue #12 implemented, PR #26 open —
-next up: reviewer session for PR #26
+**Last updated:** 2026-09-05 18:20 UTC (fallback session: reviewer for PR #26, then worker for issue #13)
+**Chain status:** issue #12 done and merged; issue #13 — the last issue —
+implemented, PR #27 open, state: review pending. After that merge the relay is
+complete.
 
 ## Done
 
@@ -290,48 +291,84 @@ next up: reviewer session for PR #26
   as `CLAUDE_CODING_RULES.md` requires. Issues #2-#10 did not — noted for the
   user, not retrofitted.
 
+- **Issue #12 — Repo-Hygiene (.DS_Store, Warnings):** PR #26 reviewed and
+  merged (merge commit `9f1001e`), issue #12 closed manually.
+  `.gitignore` gains `.DS_Store` and both tracked copies (repo root and
+  `02_data/`) are gone via `git rm --cached`; the history is deliberately not
+  rewritten, since that needs a force-push of the integration branch. The
+  global `warnings.filterwarnings('ignore')` and the orphaned
+  `import warnings` are gone from the notebook, and the two deprecations the
+  filter was hiding are fixed at the cause: the seaborn `palette`-without-`hue`
+  `FutureWarning` (now `hue='issue_year', legend=False`) and the pandas
+  `Pandas4Warning` at `src/features.py:35` (now
+  `select_dtypes(include=["str", "object"])`, which is also what notebook cell
+  37 already did). The latter is the finding the PR #23 review deferred here.
+  Review result: **no findings, nothing changed by the reviewer.** Both scope
+  decisions were endorsed — no replacement filter (with both causes fixed there
+  is nothing repo-owned left to suppress, and a filter for warnings that do not
+  occur is dead code), and no history rewrite.
+  Verification by the reviewer, independent of the worker's run and on the
+  pinned versions: on pandas 3.0.5 the old and new `select_dtypes` forms select
+  an identical column set against a frame carrying `str`, `int64` and
+  `categorical` columns, and only the old one warns — so the feature matrix
+  provably cannot change; on seaborn 0.13.2 the migrated `countplot` produces
+  identical bar heights and no warning; `git ls-files` lists no `.DS_Store` and
+  creating both files afresh leaves `git status --porcelain` empty; the
+  notebook still has 43 cells / 25 code cells / 0 outputs / 0 execution counts
+  and no `warnings` reference; no import was orphaned. `pytest` 20 passed,
+  `black --check` and `ruff check` clean.
+  One cosmetic note recorded on the PR, not a finding: adding `hue` also makes
+  seaborn spread the viridis palette over its full range instead of a narrow
+  slice, so the year-count plot's bar colours change. Heights, order and
+  meaning are unchanged — that is what the migrated call is supposed to do.
+
 ## In progress
 
-- **Issue #12 — Repo-Hygiene (.DS_Store, Warnings):** implemented on branch
-  `issue-12-repo-hygiene`, **PR #26 open, state: review pending**.
-  - `.gitignore` gains `.DS_Store`; both tracked copies (repo root and
-    `02_data/`) removed with `git rm --cached`. The history is **not**
-    rewritten — that would need a force-push of the integration branch, which
-    the protocol forbids.
-  - The global `warnings.filterwarnings('ignore')` is gone from the notebook,
-    together with the now-unused `import warnings`.
-  - **What the global filter was hiding was measured, not guessed.** A copy of
-    the notebook run with `warnings.simplefilter("always")` against a synthetic
-    LendingClub-shaped CSV showed exactly two warnings, both real:
-    the seaborn `FutureWarning` for `palette` without `hue` (removed in v0.14)
-    in the year-count plot, and the pandas `Pandas4Warning` at
-    `src/features.py:35` for `select_dtypes(include=["object"])` — the finding
-    the PR #23 review deferred to this issue. **Both are now closed.**
-  - Scope decision: **no replacement filter.** The issue offers targeted
-    suppression as the alternative, but with both causes fixed there is
-    nothing repo-owned left to suppress and a filter for warnings that do not
-    occur is dead code. Under `simplefilter("always")` the only remaining
-    output is three `PendingDeprecationWarning`s raised inside `shap` at
-    import — not this repo's code, and invisible under Python's default
-    filters. Flagged to the reviewer as a deliberate rather than literal
-    reading of acceptance criterion 2.
-  - **Step 4 of the issue produced a positive result worth keeping:** removing
-    the suppression surfaced no `SettingWithCopyWarning` and no
-    chained-assignment warning anywhere in the pipeline, i.e. the `df.copy()`
-    calls in `src/` are doing their job.
-  - Verification: a *copy* of the notebook executed with `nbclient` against a
-    synthetic CSV (6000 rows, all 55 columns the notebook and `src/` touch)
-    runs all 25 code cells, counts 1-25, 0 errors; 0 stderr blocks from repo
-    code with warnings forced visible and 0 on a plain run. `pytest` 20
-    passed, `black --check` and `ruff check` clean. The synthetic CSV was
-    deleted afterwards and never committed — `02_data/raw/` holds only
-    `.gitkeep`, so no later session can mistake it for the real dataset.
-  - `plans/2026-09-05_repo-hygiene.md` written, as the coding rules require.
+- **Issue #13 — CI-Setup (GitHub Actions für Lint/Tests):** implemented on
+  branch `issue-13-ci-setup`, **PR #27 open, state: review pending.** This is
+  the last issue of the work plan.
+  - `.github/workflows/ci.yml`: one job `lint-and-test` on `ubuntu-latest` —
+    `actions/checkout@v4`, `actions/setup-python@v5` (Python 3.11, `cache:
+    pip`), `pip install -r requirements.txt`, `ruff check .`,
+    `black --check src tests`, `pytest tests/`. Triggers on `push` to `main`
+    and on `pull_request` **unfiltered**, so PRs into the integration branch
+    are covered too — which is what lets this PR's own check run serve as
+    acceptance criterion 2.
+  - `README.md`: CI badge under the title, and `.github/` added to the
+    repository-layout block (#3 established that block as maintained-as-truth,
+    and this PR adds a directory to it). Both `pull_request_template.md` and
+    the new workflow are listed.
+  - `plans/2026-09-05_ci-setup.md` written, as the coding rules require.
+  - **Two decisions flagged to the reviewer.** (1) `black --check` is in the
+    pipeline although the issue names only `ruff`: the issue's "one tool is
+    enough" argument is about ruff replacing `flake8`/`isort` as a *linter*,
+    while `CLAUDE_CODING_RULES.md` separately requires black and points at
+    this issue for the enforcement. (2) It is scoped to `src tests`, not `.` —
+    the notebook is not black-formatted, and more importantly `black --check .`
+    is non-deterministic: black silently skips `.ipynb` unless the
+    `black[jupyter]` extras are present, so the same command passes or fails
+    depending on whether `tokenize-rt` got pulled in transitively. Both
+    behaviours were reproduced locally on the pinned `black==26.5.1`. Naming
+    the directories removes that coin flip. `ruff check .` stays unscoped: it
+    does cover the notebook (`ruff check . --show-files` lists it among the 10
+    files) and passes.
+  - Verification: all three CI commands run locally on the pinned versions
+    (Python 3.11.15) before the push — `ruff check .` clean over 10 files,
+    `black --check src tests` 9 files unchanged, `pytest` 20 passed; the
+    workflow parses as valid YAML.
+  - **This is the one issue in the work plan whose acceptance criteria are
+    fully verifiable in a cloud session** — no dataset needed, and the green
+    run is the criterion itself.
 
 ## Next step
 
-- Reviewer session for **PR #26** (issue #12). After the merge only #13 is
-  left, and with it the relay is complete.
+- Reviewer session for **PR #27** (issue #13) — confirm the check run on the
+  PR head is green before merging, since that green run *is* acceptance
+  criterion 2. After that merge **all issues #2-#13 are done and the relay is
+  complete**: do not spawn a successor, write the final archive snapshot
+  (reason: "all issues done"), and ask the user whether to open the PR from
+  `claude/github-issues-review-3scsqi` to `main` and disable the fallback
+  routine.
 
 ## Open questions / decisions taken
 
@@ -473,11 +510,12 @@ next up: reviewer session for PR #26
   applies directly and #6 does not ask for it, so it was left alone: a natural
   pickup for #13 (when CI decides what it runs) or #12.
 
-- **Successor sessions still cannot be spawned automatically.** All eleven
+- **Successor sessions still cannot be spawned automatically.** All twelve
   fallback sessions so far (2026-08-30, 2026-08-31 06:00, 2026-08-31 18:00,
   2026-09-01 06:00, 2026-09-02 06:00, 2026-09-02 18:00, 2026-09-03 06:00,
-  2026-09-03 18:00, 2026-09-04 06:00, 2026-09-04 18:00, 2026-09-05 06:00) had
-  only the `github` MCP server available (checked again in the 2026-09-05 06:00
+  2026-09-03 18:00, 2026-09-04 06:00, 2026-09-04 18:00, 2026-09-05 06:00,
+  2026-09-05 18:00) had
+  only the `github` MCP server available (checked again in the 2026-09-05 18:00
   session); the
   `claude-code-remote` tools (`create_session` / `create_trigger`) that
   CLAUDE.md step 6 requires are not connected in this environment.
@@ -490,7 +528,7 @@ next up: reviewer session for PR #26
     previous session was supposed to spawn.
   - Because of this, the 2026-09-01 06:00, 2026-09-01 18:00, 2026-09-02 06:00,
     2026-09-02 18:00, 2026-09-03 06:00, 2026-09-03 18:00, 2026-09-04 06:00,
-    2026-09-04 18:00 and 2026-09-05 06:00 fallback sessions each did the
+    2026-09-04 18:00, 2026-09-05 06:00 and 2026-09-05 18:00 fallback sessions each did the
     reviewer job for the open PR **and then continued as the worker for the next
     issue in the same session** rather than ending with an unspawnable
     successor. The 90% budget rule still applies and was not close to being hit
@@ -513,7 +551,9 @@ next up: reviewer session for PR #26
     added evidence that every commit in the repo's history sits at 06:0x or
     18:0x UTC, i.e. the fallback firing times and nothing else. That pattern
     is the direct proof the relay is not self-sustaining; the wall-clock age
-    is only a proxy for it.
+    is only a proxy for it. The 2026-09-05 18:00 session saw **11h45m** and
+    proceeded on the same reasoning. It is the last one that needs to: with
+    PR #27 merged, the relay is complete and the routine can be switched off.
 
 - **Deleting a remote branch still fails** (tried again for
   `issue-10-woe-scorecard` after the PR #24 merge: "the remote end hung up
