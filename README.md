@@ -1,5 +1,7 @@
 # Credit Risk Modelling
 
+[![CI](https://github.com/FelixSchramm/credit-risk-modelling/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixSchramm/credit-risk-modelling/actions/workflows/ci.yml)
+
 A probability-of-default (PD) model on the historical LendingClub dataset
 (2007-2018Q4). The task is to estimate, at the moment of application, how likely
 a loan is to end as "Charged Off" — the question a credit risk function answers
@@ -83,6 +85,10 @@ credit-risk-modelling/
 ├── requirements.txt
 ├── pytest.ini
 ├── .gitignore
+│
+├── .github/
+│   ├── pull_request_template.md
+│   └── workflows/ci.yml          # lint, format and tests on push/PR
 │
 ├── 01_notebooks/
 │   └── prediction.ipynb          # the analysis: EDA, cleaning, model, evaluation
