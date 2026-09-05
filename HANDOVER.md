@@ -473,11 +473,11 @@ next up: reviewer session for PR #26
   applies directly and #6 does not ask for it, so it was left alone: a natural
   pickup for #13 (when CI decides what it runs) or #12.
 
-- **Successor sessions still cannot be spawned automatically.** All ten
+- **Successor sessions still cannot be spawned automatically.** All eleven
   fallback sessions so far (2026-08-30, 2026-08-31 06:00, 2026-08-31 18:00,
   2026-09-01 06:00, 2026-09-02 06:00, 2026-09-02 18:00, 2026-09-03 06:00,
-  2026-09-03 18:00, 2026-09-04 06:00, 2026-09-04 18:00) had
-  only the `github` MCP server available (checked again in the 2026-09-04 18:00
+  2026-09-03 18:00, 2026-09-04 06:00, 2026-09-04 18:00, 2026-09-05 06:00) had
+  only the `github` MCP server available (checked again in the 2026-09-05 06:00
   session); the
   `claude-code-remote` tools (`create_session` / `create_trigger`) that
   CLAUDE.md step 6 requires are not connected in this environment.
@@ -489,8 +489,8 @@ next up: reviewer session for PR #26
     next takes the role that HANDOVER.md records here, not the one the
     previous session was supposed to spawn.
   - Because of this, the 2026-09-01 06:00, 2026-09-01 18:00, 2026-09-02 06:00,
-    2026-09-02 18:00, 2026-09-03 06:00, 2026-09-03 18:00, 2026-09-04 06:00 and
-    2026-09-04 18:00 fallback sessions each did the
+    2026-09-02 18:00, 2026-09-03 06:00, 2026-09-03 18:00, 2026-09-04 06:00,
+    2026-09-04 18:00 and 2026-09-05 06:00 fallback sessions each did the
     reviewer job for the open PR **and then continued as the worker for the next
     issue in the same session** rather than ending with an unspawnable
     successor. The 90% budget rule still applies and was not close to being hit
@@ -508,6 +508,12 @@ next up: reviewer session for PR #26
     2026-09-03 06:00 session saw the same 11h51m and did the same, as did the
     2026-09-03 18:00 session at 11h46m and the 2026-09-04 06:00 session at
     11h50m. The 2026-09-04 18:00 session saw 11h41m and did the same.
+    The 2026-09-05 06:00 session saw **11h44m** — the closest call yet, 16
+    minutes inside the window — and proceeded on the same reasoning, with the
+    added evidence that every commit in the repo's history sits at 06:0x or
+    18:0x UTC, i.e. the fallback firing times and nothing else. That pattern
+    is the direct proof the relay is not self-sustaining; the wall-clock age
+    is only a proxy for it.
 
 - **Deleting a remote branch still fails** (tried again for
   `issue-10-woe-scorecard` after the PR #24 merge: "the remote end hung up
