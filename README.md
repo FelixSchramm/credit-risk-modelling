@@ -98,13 +98,15 @@ credit-risk-modelling/
 │   ├── data_processing.py        # loading, target, leakage and NaN handling
 │   ├── features.py               # term/emp_length conversion, one-hot encoding
 │   ├── train.py                  # split, scaling, forest, scorecard, persistence
+│   ├── bundle.py                 # calibrated artefact bundle for the dashboard
 │   └── evaluate.py               # ROC AUC, Gini, KS, classification report
 │
 ├── tests/                        # pytest suite for the src/ modules
 │   ├── test_data_processing.py
 │   ├── test_features.py
 │   ├── test_evaluate.py
-│   └── test_train.py
+│   ├── test_train.py
+│   └── test_bundle.py
 │
 ├── 02_data/
 │   ├── raw/                      # place accepted_2007_to_2018Q4.csv here (untracked)
