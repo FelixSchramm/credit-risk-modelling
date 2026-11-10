@@ -94,6 +94,13 @@ AUC, Gini and KS of both forests and the scorecard, the number of training and
 test rows, the bundle size and the TreeSHAP time for one row, so the depth
 limit can be judged from measured numbers.
 
+**6. Start the dashboard** (needs the bundle from step 5; set `BUNDLE_PATH` to
+use a bundle at another location):
+
+```bash
+streamlit run streamlit_app.py
+```
+
 ## Repository layout
 
 ```
@@ -118,12 +125,21 @@ credit-risk-modelling/
 │   ├── features.py               # term/emp_length conversion, one-hot encoding
 │   ├── train.py                  # split, scaling, forest, scorecard, persistence
 │   ├── bundle.py                 # calibrated artefact bundle for the dashboard
+│   ├── scoring.py                # one application to a calibrated PD (no Streamlit)
 │   └── evaluate.py               # ROC AUC, Gini, KS, classification report
 │
 ├── scripts/
 │   └── build_bundle.py           # CLI: raw CSV to the dashboard bundle
 │
-├── tests/                        # pytest suite for src/ and the script
+├── streamlit_app.py              # dashboard entry point: sidebar and navigation
+├── app/
+│   ├── ui.py                     # bundle loading and the page list (PAGES)
+│   └── views/                    # one file per dashboard page
+│
+├── tests/                        # pytest suite for src/, the script and the app
+│   ├── conftest.py               # synthetic bundle fixture
+│   ├── test_scoring.py
+│   ├── test_app_smoke.py
 │   ├── test_data_processing.py
 │   ├── test_features.py
 │   ├── test_evaluate.py
