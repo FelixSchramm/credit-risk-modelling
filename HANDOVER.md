@@ -23,9 +23,26 @@ next section.
   `scripts/build_bundle.py`, `max_depth` / `min_samples_leaf` pass-through in
   `train_random_forest` and `build_bundle`, README section "Build the model
   bundle", `black --check` in CI now covers `scripts`.
-- **Next:** reviewer for the #29 PR, then #31 (app skeleton). #30 (full run)
-  can start once #29 is merged.
-- **Open PR:** #48 (issue #29), state: reviewed, ready to merge. Review
+- **#31 implemented** (app skeleton and scoring layer): `src/scoring.py`
+  (`build_feature_vector`, `build_scorecard_row`, `score`, `percentile_of`,
+  `band_of`), `streamlit_app.py`, `app/ui.py` (`get_bundle`, `PAGES`),
+  `app/views/home.py` (placeholder), `tests/conftest.py` (synthetic bundle
+  fixture, `bundle_env` sets `BUNDLE_PATH`), `tests/test_scoring.py`,
+  `tests/test_app_smoke.py`. `streamlit==1.66.1` pinned, CI black covers
+  `app` and `streamlit_app.py`. **Open PR for #31:** review pending.
+- **Next:** reviewer for the #31 PR, then #40 (design system, adds `plotly`).
+  #30 (full run) can start any time.
+- **Notes for #40 and later pages:** `PAGES` is a dict `key -> file`; the menu
+  title is `key.capitalize()` for now, #41 translates it. `get_bundle()` is
+  called once in `streamlit_app.py`, so a missing bundle stops every page; pages
+  call it again for the (cached) dict. User input is a dict of the
+  `input_spec` fields; `term` and `emp_length` are the raw texts from
+  `input_spec["..."]["categories"]`. Not entered fields (including
+  `issue_year` and all dummies) stay at `feature_defaults`; that is the
+  portfolio median, and a dummy default is the mode of that dummy, so the
+  default forest row is not necessarily a real loan. Assumption: valid input
+  fields are exactly the keys of `bundle["input_spec"]`.
+- **Earlier PR:** #48 (issue #29), state: reviewed, ready to merge. Review
   result: smoke test reproduced exactly (same AUCs, 67,121 rows); cleaning
   chain matches the notebook; pytest 32 passed (script test 2.4 s). One fix:
   the depth assertion in the script test passed even without the
