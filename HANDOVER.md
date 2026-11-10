@@ -77,7 +77,7 @@ next section.
 ### Issue #30 — bundle run
 
 One full run was enough; all targets were met with the script defaults, so no
-parameter was changed and no second run was made. PR: see below.
+parameter was changed and no second run was made. PR: #50.
 
 Command (from a worktree, relative paths):
 
