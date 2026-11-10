@@ -8,8 +8,10 @@ venv/
 # Data files - keep raw data out of version control
 02_data/raw/
 
-# Trained models - can be large and should not be tracked
-04_models/
+# Trained models - can be large and should not be tracked; only the dashboard
+# bundle (at most 50 MB, issue #30) is tracked
+04_models/*
+!04_models/bundle.joblib
 
 # macOS folder metadata
 .DS_Store
