@@ -50,7 +50,11 @@ def split_and_scale(
 
 
 def train_random_forest(
-    x_train: pd.DataFrame, y_train: pd.Series, random_state: int = 42
+    x_train: pd.DataFrame,
+    y_train: pd.Series,
+    random_state: int = 42,
+    max_depth: int | None = None,
+    min_samples_leaf: int = 1,
 ) -> RandomForestClassifier:
     """Train a random forest on the scaled training data.
 
@@ -59,10 +63,15 @@ def train_random_forest(
     :param x_train: Scaled training features.
     :param y_train: Training target.
     :param random_state: Seed for the reproducible forest.
+    :param max_depth: Tree depth limit; ``None`` grows the trees fully. A limit
+        keeps the stored forest small enough to commit to the repository.
+    :param min_samples_leaf: Minimum loans per leaf, the second size lever.
     :return: The fitted classifier.
     """
     model = RandomForestClassifier(
         n_estimators=100,
+        max_depth=max_depth,
+        min_samples_leaf=min_samples_leaf,
         random_state=random_state,
         class_weight="balanced",
         n_jobs=-1,

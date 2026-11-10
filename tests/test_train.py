@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from src.train import train_scorecard
+from src.train import train_random_forest, train_scorecard
 
 
 def _scorecard_inputs(n: int = 3000) -> tuple[pd.DataFrame, pd.Series]:
@@ -46,3 +46,10 @@ def test_train_scorecard_returns_a_fitted_probability_model():
     )
     assert y_pred_proba.shape == (len(x), 2)
     assert ((y_pred_proba >= 0) & (y_pred_proba <= 1)).all()
+
+
+def test_random_forest_depth_and_leaf_limits_are_applied():
+    x, y = _scorecard_inputs()
+    model = train_random_forest(x[["signal"]], y, max_depth=3, min_samples_leaf=50)
+    assert max(tree.get_depth() for tree in model.estimators_) <= 3
+    assert model.min_samples_leaf == 50

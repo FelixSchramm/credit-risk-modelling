@@ -133,7 +133,11 @@ def _as_float32(values: np.ndarray) -> np.ndarray:
 
 
 def build_bundle(
-    df_unencoded: pd.DataFrame, fields: list[str], random_state: int = 42
+    df_unencoded: pd.DataFrame,
+    fields: list[str],
+    random_state: int = 42,
+    max_depth: int | None = None,
+    min_samples_leaf: int = 1,
 ) -> dict[str, object]:
     """Train, calibrate and evaluate both models and assemble the bundle.
 
@@ -152,6 +156,8 @@ def build_bundle(
         ``emp_length`` still as text, all NaN rows dropped.
     :param fields: Columns the user may enter in the app (for ``input_spec``).
     :param random_state: Seed for splits and forest.
+    :param max_depth: Depth limit of the forest (``None`` for unlimited).
+    :param min_samples_leaf: Minimum loans per forest leaf.
     :return: The bundle dict (see the issue #28 contract).
     """
     x_woe = df_unencoded.drop(columns="target")
@@ -172,7 +178,13 @@ def build_bundle(
     # same loans for both models.
     categorical = list(x_woe.select_dtypes(include=["str", "object"]).columns)
     scorecard_raw = train_scorecard(x_woe.loc[x_fit.index], y_fit, categorical)
-    rf_raw = train_random_forest(x_fit, y_fit, random_state=random_state)
+    rf_raw = train_random_forest(
+        x_fit,
+        y_fit,
+        random_state=random_state,
+        max_depth=max_depth,
+        min_samples_leaf=min_samples_leaf,
+    )
 
     rf = calibrate(rf_raw, x_calib, y_calib)
     scorecard = calibrate(scorecard_raw, x_woe.loc[x_calib.index], y_calib)
