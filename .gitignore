@@ -10,3 +10,6 @@ venv/
 
 # Trained models - can be large and should not be tracked
 04_models/
+
+# macOS folder metadata
+.DS_Store

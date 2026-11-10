@@ -1,0 +1,35 @@
+name: CI
+
+# Linting, formatting and tests on every push to main and on every pull
+# request. The tests run on small synthetic DataFrames, so CI needs no access
+# to the ~1.6 GB raw dataset.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          # The pins in requirements.txt were resolved together on 3.11.
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        run: ruff check .
+
+      # Scoped to the Python sources: the notebook is not black-formatted, and
+      # reformatting it is not this workflow's job.
+      - name: Check formatting
+        run: black --check src tests
+
+      - name: Test
+        run: pytest tests/
