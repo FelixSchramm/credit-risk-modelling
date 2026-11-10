@@ -21,7 +21,15 @@ next section.
   before #38.
 - **Done:** #28 implemented (`src/bundle.py`, `tests/test_bundle.py`), PR open.
 - **Next:** #29 (build script) once the #28 PR is merged.
-- **Open PR:** #28 bundle with calibration, state: review pending.
+- **Open PR:** #28 bundle with calibration, state: reviewed, ready to merge.
+  Review added two tests (calibration split disjoint from test/fit rows; AUC
+  on aligned test rows). Open findings for #29: `train_random_forest` and
+  `build_bundle` take no `max_depth` / `min_samples_leaf`; add pass-through
+  kwargs there. The unlimited analysis forest can come from a second
+  `build_bundle` call with the same seed (identical splits, scorecard is
+  retrained). Minor, left open: the scaler is fitted on the training part
+  including the calibration rows (no target involved), and calibration is
+  only unit-tested for the forest.
 - **Pitfalls for #29/#31/#33:** `build_bundle(df_unencoded, fields)` expects
   the cleaned frame after `dropna` with `target`, `term` and `emp_length` as
   text. `bundle["rf"]` is the calibrated wrapper; the inner forest for SHAP is

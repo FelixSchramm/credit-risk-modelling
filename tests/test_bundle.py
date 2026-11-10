@@ -3,7 +3,9 @@
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.metrics import roc_auc_score
 
+import src.bundle as bundle_module
 from src.bundle import (
     build_bundle,
     calibrate,
@@ -12,7 +14,8 @@ from src.bundle import (
     save_bundle,
     score_bands,
 )
-from src.train import train_random_forest
+from src.features import engineer_features
+from src.train import split_and_scale, train_random_forest
 
 CONTRACT_KEYS = {
     "version",
@@ -151,3 +154,29 @@ def test_bundle_contents_are_consistent(bundle):
     assert abs(bundle["proba_rf"].mean() - base_rate) < abs(
         bundle["proba_rf_raw"].mean() - base_rate
     )
+
+
+def test_bundle_scores_carry_signal_on_aligned_test_rows(bundle):
+    """Misaligned rows between frame and labels would push the AUC to 0.5."""
+    for name in ("rf", "scorecard"):
+        assert bundle["metrics"][name]["roc_auc"] > 0.65
+        recomputed = roc_auc_score(bundle["y_test"], bundle[f"proba_{name}"])
+        assert recomputed == pytest.approx(bundle["metrics"][name]["roc_auc"], abs=1e-3)
+
+
+def test_calibration_split_is_disjoint_from_test_and_fit_rows(monkeypatch):
+    seen = []
+    real_calibrate = bundle_module.calibrate
+
+    def spy(model, x_calib, y_calib):
+        seen.append(set(x_calib.index))
+        return real_calibrate(model, x_calib, y_calib)
+
+    monkeypatch.setattr(bundle_module, "calibrate", spy)
+    df = _loans()
+    build_bundle(df, fields=["loan_amnt"])
+    x = engineer_features(df).drop(columns="target")
+    x_train, x_test, *_ = split_and_scale(x, df["target"])
+    for calib_index in seen:
+        assert calib_index <= set(x_train.index)
+        assert not calib_index & set(x_test.index)
