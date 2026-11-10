@@ -19,9 +19,15 @@ next section.
 - **Order:** #28 → #29 → #31 → #40 → #41 → #42 → #43 → #32 → #33 → #34 → #35 →
   #36 → #37 → #38. #30 (local run on the raw dataset) any time after #29 and
   before #38.
-- **Done:** nothing yet.
-- **Next:** #28.
-- **Open PR:** none.
+- **Done:** #28 implemented (`src/bundle.py`, `tests/test_bundle.py`), PR open.
+- **Next:** #29 (build script) once the #28 PR is merged.
+- **Open PR:** #28 bundle with calibration, state: review pending.
+- **Pitfalls for #29/#31/#33:** `build_bundle(df_unencoded, fields)` expects
+  the cleaned frame after `dropna` with `target`, `term` and `emp_length` as
+  text. `bundle["rf"]` is the calibrated wrapper; the inner forest for SHAP is
+  `bundle["rf"].calibrated_classifiers_[0].estimator.estimator`. A 20 %
+  calibration split is carved from the training part, so the forest and the
+  scorecard train on 56 % of the data. The real-data run (#30) is not done.
 - **Open points for the user:** the LinkedIn and website URLs for the start
   page (as a comment on #43); the deployment in #38 needs the user's Streamlit
   Community Cloud account.
