@@ -25,7 +25,16 @@ next section.
   bundle", `black --check` in CI now covers `scripts`.
 - **Next:** reviewer for the #29 PR, then #31 (app skeleton). #30 (full run)
   can start once #29 is merged.
-- **Open PR:** #29 build script (number in the PR list), state: review pending.
+- **Open PR:** #48 (issue #29), state: reviewed, ready to merge. Review
+  result: smoke test reproduced exactly (same AUCs, 67,121 rows); cleaning
+  chain matches the notebook; pytest 32 passed (script test 2.4 s). One fix:
+  the depth assertion in the script test passed even without the
+  `max_depth` pass-through (leaf size 100 alone kept ~900 rows shallow); the
+  test now uses `--min-samples-leaf 1` and asserts depth 4. Open, minor: no
+  test checks that the printed "analysis forest" metrics come from the
+  unlimited run (swapping the source passes the tests). Design of the two
+  builds: acceptable for #30; if the full run is too slow or memory-bound the
+  smallest change is a `with_scorecard` flag, see "Design of #29".
 - **Design of #29:** the script calls `build_bundle` twice with the same seed:
   unlimited forest (only its metrics are kept, then freed), then the
   depth-limited deployment forest (saved). Cost: the scorecard is trained

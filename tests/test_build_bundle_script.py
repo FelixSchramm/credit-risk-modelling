@@ -58,12 +58,17 @@ def test_script_builds_a_loadable_bundle_and_reports(tmp_path, capsys):
     csv, out = tmp_path / "raw.csv", tmp_path / "bundle.joblib"
     _raw_csv(csv)
     _load_script().main(
-        ["--data", str(csv), "--out", str(out), "--max-depth", "4", "--nrows", "1900"]
+        [
+            *("--data", str(csv), "--out", str(out), "--nrows", "1900"),
+            # leaf size 1, so that only the depth limit can keep the trees shallow
+            *("--max-depth", "4", "--min-samples-leaf", "1"),
+        ]
     )
 
     bundle = load_bundle(out)
     forest = bundle["rf"].calibrated_classifiers_[0].estimator.estimator
-    assert max(tree.get_depth() for tree in forest.estimators_) <= 4
+    depths = [tree.get_depth() for tree in forest.estimators_]
+    assert max(depths) == 4
     # 2014 loans and unfinished loans are dropped: about 2/3 of 1800 remain.
     assert bundle["n_train"] + bundle["n_test"] < 1300
 
