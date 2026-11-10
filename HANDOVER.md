@@ -29,8 +29,8 @@ next section.
   `app/views/home.py` (placeholder), `tests/conftest.py` (synthetic bundle
   fixture, `bundle_env` sets `BUNDLE_PATH`), `tests/test_scoring.py`,
   `tests/test_app_smoke.py`. `streamlit==1.66.1` pinned, CI black covers
-  `app` and `streamlit_app.py`. **Open PR for #31:** #49, state: review pending.
-- **Next:** reviewer for the #31 PR, then #40 (design system, adds `plotly`).
+  `app` and `streamlit_app.py`. **Open PR for #31:** #49, state: reviewed, ready to merge (see "Review of #49").
+- **Next:** merge #49, then #40 (design system, adds `plotly`).
   #30 (full run) can start any time.
 - **Notes for #40 and later pages:** `PAGES` is a dict `key -> file`; the menu
   title is `key.capitalize()` for now, #41 translates it. `get_bundle()` is
@@ -42,6 +42,21 @@ next section.
   portfolio median, and a dummy default is the mode of that dummy, so the
   default forest row is not necessarily a real loan. Assumption: valid input
   fields are exactly the keys of `bundle["input_spec"]`.
+- **Review of #49:** all acceptance criteria of #31 met; AppTest from outside
+  the repo and a real headless start (health `ok`, no traceback) reproduced.
+  Fixed: four tests did not discriminate (removing the scaler, the dummy
+  clearing and the `[names]` column selection all left the suite green); added
+  a forest-monotonic test, a test with a dummy that is 1 by default, and a
+  test with reversed default dicts. **Open, for the orchestrator (domain):**
+  coupled columns that are model features on the real data and stay at the
+  median while the user changes the inputs: `funded_amnt`, `funded_amnt_inv`
+  (= `loan_amnt`), `installment` (annuity of amount, rate, term),
+  `fico_range_high` (= `fico_range_low` + 4). They are in `feature_defaults`
+  and `scorecard_defaults`, so the calculator scores an impossible loan and the
+  effect of amount and FICO is diluted. `grade`/`sub_grade` are already
+  removed. Suggested fix, not done here: derive these four in the scoring
+  layer from the inputs. Open, minor: the synthetic bundle has signal only in
+  `int_rate`, so tests can assert direction only for that field.
 - **Earlier PR:** #48 (issue #29), state: reviewed, ready to merge. Review
   result: smoke test reproduced exactly (same AUCs, 67,121 rows); cleaning
   chain matches the notebook; pytest 32 passed (script test 2.4 s). One fix:
