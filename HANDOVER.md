@@ -19,23 +19,55 @@ next section.
 - **Order:** #28 → #29 → #31 → #40 → #41 → #42 → #43 → #32 → #33 → #34 → #35 →
   #36 → #37 → #38. #30 (local run on the raw dataset) any time after #29 and
   before #38.
-- **Done:** #28 implemented (`src/bundle.py`, `tests/test_bundle.py`), PR open.
-- **Next:** #29 (build script) once the #28 PR is merged.
-- **Open PR:** #28 bundle with calibration, state: reviewed, ready to merge.
-  Review added two tests (calibration split disjoint from test/fit rows; AUC
-  on aligned test rows). Open findings for #29: `train_random_forest` and
-  `build_bundle` take no `max_depth` / `min_samples_leaf`; add pass-through
-  kwargs there. The unlimited analysis forest can come from a second
-  `build_bundle` call with the same seed (identical splits, scorecard is
-  retrained). Minor, left open: the scaler is fitted on the training part
-  including the calibration rows (no target involved), and calibration is
-  only unit-tested for the forest.
-- **Pitfalls for #29/#31/#33:** `build_bundle(df_unencoded, fields)` expects
-  the cleaned frame after `dropna` with `target`, `term` and `emp_length` as
-  text. `bundle["rf"]` is the calibrated wrapper; the inner forest for SHAP is
+- **Done:** #28 merged (PR #47, `src/bundle.py`). #29 implemented:
+  `scripts/build_bundle.py`, `max_depth` / `min_samples_leaf` pass-through in
+  `train_random_forest` and `build_bundle`, README section "Build the model
+  bundle", `black --check` in CI now covers `scripts`.
+- **Next:** reviewer for the #29 PR, then #31 (app skeleton). #30 (full run)
+  can start once #29 is merged.
+- **Open PR:** #48 (issue #29), state: reviewed, ready to merge. Review
+  result: smoke test reproduced exactly (same AUCs, 67,121 rows); cleaning
+  chain matches the notebook; pytest 32 passed (script test 2.4 s). One fix:
+  the depth assertion in the script test passed even without the
+  `max_depth` pass-through (leaf size 100 alone kept ~900 rows shallow); the
+  test now uses `--min-samples-leaf 1` and asserts depth 4. Open, minor: no
+  test checks that the printed "analysis forest" metrics come from the
+  unlimited run (swapping the source passes the tests). Design of the two
+  builds: acceptable for #30; if the full run is too slow or memory-bound the
+  smallest change is a `with_scorecard` flag, see "Design of #29".
+- **Design of #29:** the script calls `build_bundle` twice with the same seed:
+  unlimited forest (only its metrics are kept, then freed), then the
+  depth-limited deployment forest (saved). Cost: the scorecard is trained
+  twice. If the full run is too slow, the alternative is a flag in
+  `build_bundle` that skips the scorecard for the analysis run.
+- **Smoke test of #29** (first 100,000 rows of the real CSV, `--out` in a temp
+  dir, 0.2 min wall-clock):
+  ```
+  Rows: 100,000 raw -> 67,121 after cleaning
+  n_train 46,984  n_test 20,137
+    analysis forest (unlimited)  ROC AUC 0.7334  Gini 0.4668  KS 0.3468
+    deployment forest            ROC AUC 0.7384  Gini 0.4767  KS 0.3488
+    scorecard                    ROC AUC 0.7424  Gini 0.4848  KS 0.3519
+  ROC AUC lost by the depth limit: -0.0050
+  Bundle size: 1.3 MB (target: at most 50 MB)
+  TreeSHAP, one row: 0.003 s (target: below 1 s)
+  ```
+  The depth limit costs nothing on this sample (the limited forest is even
+  slightly better); the numbers say nothing about the full 300k rows, that is
+  what #30 measures. The start values 10 and 100 are still estimates.
+- **Pitfalls for #31/#33 and #30:** `build_bundle(df_unencoded, fields)`
+  expects the cleaned frame after `dropna` with `target`, `term` and
+  `emp_length` as text. `bundle["rf"]` is the calibrated wrapper; the inner
+  forest for SHAP is
   `bundle["rf"].calibrated_classifiers_[0].estimator.estimator`. A 20 %
   calibration split is carved from the training part, so the forest and the
-  scorecard train on 56 % of the data. The real-data run (#30) is not done.
+  scorecard train on 56 % of the data. The script's input fields (assumption,
+  the issues name no list) are `loan_amnt`, `term`, `int_rate`, `annual_inc`,
+  `dti`, `fico_range_low`, `emp_length`, `purpose` (`INPUT_FIELDS`); `term`
+  and `emp_length` are categorical in `input_spec` because they are text.
+  `issue_year` is still a model feature (open question from the leakage
+  review), so the scoring layer has to fill it, e.g. from `feature_defaults`.
+  The full-data run (#30) is not done.
 - **Open points for the user:** the LinkedIn and website URLs for the start
   page (as a comment on #43); the deployment in #38 needs the user's Streamlit
   Community Cloud account.

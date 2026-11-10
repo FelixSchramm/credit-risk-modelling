@@ -29,7 +29,7 @@ jobs:
       # Scoped to the Python sources: the notebook is not black-formatted, and
       # reformatting it is not this workflow's job.
       - name: Check formatting
-        run: black --check src tests
+        run: black --check src tests scripts
 
       - name: Test
         run: pytest tests/
