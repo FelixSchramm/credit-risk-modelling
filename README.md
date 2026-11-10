@@ -78,8 +78,8 @@ path, so the command works from the root without further arguments.
 **5. Build the model bundle** (for the dashboard). The script runs the cleaning
 of the notebook, trains forest and WOE scorecard, calibrates both and writes
 everything the dashboard needs to one file. Run the smoke test on the first
-100,000 rows first (about a minute), the full run afterwards (an estimated
-10 to 30 minutes and about 6 GB of RAM):
+100,000 rows first (about a minute), the full run afterwards (4.3 minutes
+measured; the memory need was not measured):
 
 ```bash
 python scripts/build_bundle.py --data 02_data/raw/accepted_2007_to_2018Q4.csv --nrows 100000
@@ -87,9 +87,9 @@ python scripts/build_bundle.py --data 02_data/raw/accepted_2007_to_2018Q4.csv
 ```
 
 The bundle goes to `04_models/bundle.joblib`, which is tracked in the repo
-(the rest of `04_models/` is in `.gitignore`); change the target with `--out`. It holds a depth-limited "deployment forest"
-(`--max-depth`, default 10, and `--min-samples-leaf`, default 100) so that the
-file stays small. The script also trains the unlimited forest and prints ROC
+(the rest of `04_models/` is in `.gitignore`); change the target with `--out`.
+It holds a depth-limited "deployment forest" (`--max-depth`, default 10, and
+`--min-samples-leaf`, default 100) so that the file stays small. The script also trains the unlimited forest and prints ROC
 AUC, Gini and KS of both forests and the scorecard, the number of training and
 test rows, the bundle size and the TreeSHAP time for one row, so the depth
 limit can be judged from measured numbers.
@@ -136,7 +136,7 @@ credit-risk-modelling/
 │   └── processed/                # unused; the pipeline keeps intermediates in memory
 │
 └── 04_models/
-    └── bundle.joblib            # tracked bundle for the dashboard (4.8 MB)
+    └── bundle.joblib             # tracked bundle for the dashboard (4.8 MB);
                                   # random_forest.joblib from the notebook is untracked
 ```
 
