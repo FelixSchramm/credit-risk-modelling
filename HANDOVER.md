@@ -4,12 +4,29 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-09-05 18:35 UTC (fallback session: reviewer for PR #26,
-then worker *and* reviewer for issue #13)
-**Chain status:** **THE RELAY IS FINISHED.** All issues #2-#13 are implemented,
-reviewed, merged into `claude/github-issues-review-3scsqi` and closed. No
-successor session was spawned and none should be. What is left is for the user
-— see "What the user needs to decide" below.
+**Last updated:** 2026-11-10 (planning session for epic #39)
+**Chain status:** The relay for issues #2-#13 is finished and merged into
+`main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
+next section.
+
+## Epic #39 — current state
+
+- **Mode:** locally orchestrated. An orchestrator session on the user's
+  machine starts one worker and one reviewer per issue and merges the PR. A
+  session does not spawn its successor (see CLAUDE.md, "Work plan").
+- **Base branch:** `main`. Feature branches `issue-NN-<slug>` start from
+  `main`, PRs target `main`.
+- **Order:** #28 → #29 → #31 → #40 → #41 → #42 → #43 → #32 → #33 → #34 → #35 →
+  #36 → #37 → #38. #30 (local run on the raw dataset) any time after #29 and
+  before #38.
+- **Done:** nothing yet.
+- **Next:** #28.
+- **Open PR:** none.
+- **Open points for the user:** the LinkedIn and website URLs for the start
+  page (as a comment on #43); the deployment in #38 needs the user's Streamlit
+  Community Cloud account.
+- **Plan, decisions and verified Streamlit findings:**
+  `plans/2026-11-09_streamlit-recruiter-dashboard.md`.
 
 ## Done
 
@@ -367,25 +384,16 @@ work plan.
 
 ## What the user needs to decide
 
-The autonomous relay has done everything it was set up to do. Three things are
-now the user's call:
+The three decisions the first relay left to the user are settled (state on
+2026-11-10):
 
-1. **Open the PR from `claude/github-issues-review-3scsqi` to `main`.** The
-   protocol reserves this for the user rather than letting a session merge its
-   own twelve issues into the default branch. The integration branch carries
-   issues #2-#13 as twelve reviewed merge commits.
-   Merging it also lights up the README CI badge: the badge renders the status
-   of `ci.yml` on the *default* branch, and the workflow only exists on the
-   integration branch until then.
-2. **Disable the 06:00/18:00 UTC fallback routine.** With no open issues it has
-   nothing left to restart, and every future firing would find a complete relay
-   and stand down.
-3. **Run the notebook once on the real dataset** — the single outstanding piece
-   of work no cloud session could do. See the first entry under "Open questions
-   / decisions taken": `jupyter nbconvert --to notebook --execute --inplace
-   01_notebooks/prediction.ipynb` against the full Kaggle CSV closes the last
-   formally-open acceptance criteria of #2, #3 and #5 and produces the measured
-   metrics the README is written to accept.
+1. **PR to `main`:** done. The user merged
+   `claude/github-issues-review-3scsqi` into `main` as PR #44.
+2. **Fallback routine:** no routine exists for this repository any more.
+3. **Notebook run on the real dataset:** done locally on 2026-11-09, the
+   outputs are committed (`f338045`). Random forest on 125,381 test loans:
+   ROC AUC 0.7168, Gini 0.4335, KS 0.3133. The README "Results" section still
+   quotes no measured values; issue #30 fills it from the bundle run.
 
 ### Still open, recorded rather than fixed
 

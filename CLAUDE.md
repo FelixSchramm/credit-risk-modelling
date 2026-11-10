@@ -15,16 +15,30 @@ review that produced the work plan.
 
 ## Work plan
 
-GitHub issues #2-#13 are the work plan (issue #14 defines the git workflow).
-Work them in this order:
+Issues #2-#13 (the first work plan) are done and merged into `main`.
 
-**#2 (leakage fix) → #4 (modularize src/) → #5 (notebook reproducibility) →
-#8 (KS/Gini/calibration) → #9 (SHAP) → #3 (README) → #7 (pinning/LICENSE) →
-#6 (tests) → #10 (WOE/IV scorecard) → #11 (Basel/IFRS9/FINMA context) →
-#12 (repo hygiene) → #13 (CI)**
+The current work plan is **epic #39: recruiter dashboard (Streamlit, DE/EN)**.
+Read the epic first, then the one issue you are working on. Order:
+
+**#28 (bundle) → #29 (build script) → #31 (app skeleton, scoring) →
+#40 (design system) → #41 (DE/EN) → #42 (glossary) → #43 (start page) →
+#32 → #33 → #34 → #35 → #36 → #37 (pages) → #38 (deployment)**
+
+#30 (bundle from the raw dataset) runs locally any time after #29 and blocks
+only #38.
 
 Each issue is written to be self-contained. Read the issue in full before
-starting it.
+starting it, including its section "Ergänzung (Epic #39, ...)", which takes
+precedence over the text above it.
+
+For this epic the session protocol below applies with three changes:
+
+- Feature branches start from `main` and their PRs target `main`.
+  `claude/github-issues-review-3scsqi` is merged and no longer used.
+- Sessions are started by a local orchestrator session, one worker and one
+  reviewer per issue. A session does not spawn its successor and does not
+  merge; it ends with a report to the orchestrator, which merges.
+- `HANDOVER.md` is updated inside the issue's PR. No archive snapshots.
 
 Note: the raw dataset (`accepted_2007_to_2018Q4.csv`) is NOT in the repo and
 may not be available in a fresh cloud session. Issues that need the real data
