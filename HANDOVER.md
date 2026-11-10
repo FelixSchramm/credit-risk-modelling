@@ -29,7 +29,7 @@ next section.
   `app/views/home.py` (placeholder), `tests/conftest.py` (synthetic bundle
   fixture, `bundle_env` sets `BUNDLE_PATH`), `tests/test_scoring.py`,
   `tests/test_app_smoke.py`. `streamlit==1.66.1` pinned, CI black covers
-  `app` and `streamlit_app.py`. **Open PR for #31:** review pending.
+  `app` and `streamlit_app.py`. **Open PR for #31:** #49, state: review pending.
 - **Next:** reviewer for the #31 PR, then #40 (design system, adds `plotly`).
   #30 (full run) can start any time.
 - **Notes for #40 and later pages:** `PAGES` is a dict `key -> file`; the menu
