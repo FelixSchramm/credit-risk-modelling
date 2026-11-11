@@ -63,7 +63,7 @@ next section.
   in both locale files, `app/views/glossary.py` (search field key
   `glossary_search`, group headings, expanders, `st.latex`), `help_text(key)` in
   `app/ui.py`, `tests/test_glossary.py`, two smoke tests. **Open PR for #42:**
-  see the PR list, state: review pending. Not verifiable without a browser:
+  #53, state: review pending. Not verifiable without a browser:
   KaTeX rendering of the formulas, look of the page, tooltips in a browser.
 - **Pitfalls from #42:** `group` is a group id (`data`, `models`, `quality`,
   `calibration`, `explain`, `economics`, `regulatory`), the titles are in
