@@ -12,6 +12,7 @@ scipy==1.17.1
 shap==0.51.0
 optbinning==0.21.0
 streamlit==1.66.1
+plotly==7.1.0
 
 # Development tools: tests (issue #6), formatting and linting (issue #13).
 pytest==9.1.1

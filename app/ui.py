@@ -5,9 +5,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import plotly.graph_objects as go
 import streamlit as st
 
 from src.bundle import load_bundle
+from src.design import style_figure
 
 DEFAULT_BUNDLE_PATH = (
     Path(__file__).resolve().parents[1] / "04_models" / "bundle.joblib"
@@ -41,3 +43,25 @@ def get_bundle() -> dict[str, object]:
         )
         st.stop()
     return _load(str(path))
+
+
+def current_mode() -> str:
+    """Return the active theme mode, ``"dark"`` if it is unknown.
+
+    Known limitation: after a theme change in the Streamlit menu the value
+    updates only on the next rerun, so explicitly set series colours keep the
+    hue of the previous mode until then. Surfaces, text and grid follow at once.
+
+    :return: ``"light"`` or ``"dark"``.
+    """
+    return st.context.theme.type or "dark"
+
+
+def show_chart(fig: go.Figure) -> None:
+    """Style a Plotly figure with the design CI and draw it full width.
+
+    This is the only way pages output charts.
+
+    :param fig: Plotly figure.
+    """
+    st.plotly_chart(style_figure(fig), theme="streamlit", width="stretch")
