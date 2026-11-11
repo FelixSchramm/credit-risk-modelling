@@ -117,6 +117,16 @@ Wall-clock time: 4.3 min
   AUC 0.7168 / Gini 0.4335 / KS 0.3133 and scorecard 0.7222 / 0.4445 / 0.3234
   on the same 125,381 test loans; the bundle numbers differ slightly because
   the bundle models train on 56 % of the data (20 % calibration split).
+- **Review of PR #50 (reproduction):** an independent full run (4.9 min,
+  TreeSHAP 0.010 s) printed the same metrics. Against the committed bundle:
+  same keys, `feature_names`, `scorecard_columns`, `metrics`, `y_test` and all
+  four probability arrays exactly equal; `created_at` differs by design. Two
+  harmless differences, left open: `iv_table` shows `n_bins` 9 vs 10 for the
+  unselected feature `revol_bal` (IV equal to 4e-9), and `bands_rf` differs
+  only at floating-point level. Open observation: the calibrated scores have
+  recall 0.07 (forest) and 0.10 (scorecard) at the 0.5 cutoff, so the cutoff is
+  not meaningful on calibrated probabilities; the README quotes recall only
+  for the notebook models.
 - **Not verified:** step 8 of the issue (executing the notebook) was skipped
   as instructed; the bundle was not reproduced bit-identically in a second run
   (joblib embeds the creation time anyway).
