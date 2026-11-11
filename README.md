@@ -127,6 +127,8 @@ credit-risk-modelling/
 │   ├── bundle.py                 # calibrated artefact bundle for the dashboard
 │   ├── scoring.py                # one application to a calibrated PD (no Streamlit)
 │   ├── design.py                 # chart rules and series colours of the design CI
+│   ├── i18n.py                   # translations and number formats (no Streamlit)
+│   ├── locales/                  # en.toml and de.toml, same keys
 │   ├── ci.json                   # design tokens (copied from stock_treemap)
 │   └── evaluate.py               # ROC AUC, Gini, KS, classification report
 │
@@ -135,7 +137,7 @@ credit-risk-modelling/
 │
 ├── streamlit_app.py              # dashboard entry point: sidebar and navigation
 ├── app/
-│   ├── ui.py                     # bundle loading, page list, show_chart
+│   ├── ui.py                     # bundle loading, page list, t/num/pct, show_chart
 │   └── views/                    # one file per dashboard page
 │
 ├── .streamlit/config.toml        # light and dark theme, static serving
@@ -145,6 +147,7 @@ credit-risk-modelling/
 │   ├── conftest.py               # synthetic bundle fixture
 │   ├── test_scoring.py
 │   ├── test_design.py
+│   ├── test_i18n.py
 │   ├── test_app_smoke.py
 │   ├── test_data_processing.py
 │   ├── test_features.py
@@ -175,6 +178,12 @@ at commit `02a9c982127ba6a0e70cb090e9889d8dcb6e21fd` (`src/ci.json`). Light and
 dark theme are defined in `.streamlit/config.toml`; switch them in the
 Streamlit menu (System / Light / Dark). The font Questrial is licensed under
 the SIL Open Font License 1.1; the licence text is in `static/OFL-Questrial.txt`.
+
+### Languages
+
+The dashboard is available in English (default) and German. Switch with the
+switcher at the top of the sidebar or open a page with `?lang=de`. Texts are in
+`src/locales/en.toml` and `src/locales/de.toml`.
 
 ## Workflow
 

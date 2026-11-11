@@ -40,7 +40,34 @@ next section.
   #51"). Not verifiable without a
   browser: Questrial visible in both modes and in charts, immediate switch via
   the menu (orchestrator checks).
-- **Next:** #41 (i18n). #30 (full run) can start any time.
+- **#41 implemented** (i18n): `src/i18n.py` (`translate`, `fmt_number`,
+  `fmt_percent`, `SEPARATORS`), `src/locales/{en,de}.toml`, `app/ui.py`
+  (`init_language`, `current_lang`, `t`, `num`, `pct`; `show_chart` passes the
+  separators), language `st.radio` (key `lang`) at the top of the sidebar,
+  `tests/test_i18n.py`, extended smoke tests. **Open PR for #41:** #52,
+  state: reviewed, orchestrator browser check pending. Not verifiable without
+  a browser: switcher position and look, German texts rendered, `?lang=de`
+  direct link in a real browser, highlighting of the active `page_link`
+  (AppTest and a headless start only).
+- **Review of PR #52 (no clear-cut findings, nothing changed in the code):**
+  open, minor, debatable: (1) `init_language()` in `streamlit_app.py` is
+  redundant because `t()` calls it through `current_lang()`; (2) `fmt_number`
+  and `fmt_percent` accept an unknown language and silently format as English,
+  unlike `translate`; (3) a small negative value rounds to `-0.000` / `-0,000`
+  (Python formatting); (4) `page_link` highlighting of the active page is
+  frontend behaviour, not checked in the review. Mutation checks: key parity,
+  missing key, unknown language, DE swap, no-break space, EN percent and
+  placeholder parity each make a test fail.
+- **Next:** #42 (glossary). #30 (full run) can start any time.
+- **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
+  content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
+  draws the menu with `st.sidebar.page_link` below the switcher (assumption:
+  "top of the sidebar" outranks the built-in menu). `app/ui.py` must be
+  imported before any `t()` use; `t()` needs a Streamlit session. In AppTest
+  `at.query_params["lang"]` is a plain string, not a list. New texts go into
+  both toml files with identical keys and placeholders (tested); a missing key
+  raises `KeyError`. `st.set_page_config` runs after `init_language()`, which
+  only touches session state and query parameters.
 - **Pitfalls from #40:** pages draw charts only via `show_chart(fig)` and take
   colours from `model_color` / `series_color` with `current_mode()`; no hex
   codes in `app/` (tested). `show_chart` uses `width="stretch"` because

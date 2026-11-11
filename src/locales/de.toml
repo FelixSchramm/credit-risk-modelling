@@ -1,0 +1,14 @@
+[app]
+title = "Kreditrisiko-Dashboard"
+
+[nav]
+home = "Start"
+
+[common]
+language = "Sprache"
+model_bundle = "Modell-Bundle vom {created_at}"
+bundle_missing = "Modell-Bundle nicht gefunden unter `{path}`. Erzeuge es mit `python scripts/build_bundle.py --data <raw csv>` oder setze `BUNDLE_PATH` auf eine vorhandene Datei."
+
+[home]
+title = "Kreditrisiko-Dashboard"
+intro = "Ausfallwahrscheinlichkeit von LendingClub-Krediten: Random Forest und Scorecard."

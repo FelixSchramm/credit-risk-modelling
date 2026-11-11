@@ -1,0 +1,14 @@
+[app]
+title = "Credit risk dashboard"
+
+[nav]
+home = "Home"
+
+[common]
+language = "Language"
+model_bundle = "Model bundle from {created_at}"
+bundle_missing = "Model bundle not found at `{path}`. Build it with `python scripts/build_bundle.py --data <raw csv>` or point `BUNDLE_PATH` to an existing file."
+
+[home]
+title = "Credit risk dashboard"
+intro = "Probability of default on LendingClub loans: random forest and scorecard."
