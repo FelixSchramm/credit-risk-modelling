@@ -78,18 +78,18 @@ path, so the command works from the root without further arguments.
 **5. Build the model bundle** (for the dashboard). The script runs the cleaning
 of the notebook, trains forest and WOE scorecard, calibrates both and writes
 everything the dashboard needs to one file. Run the smoke test on the first
-100,000 rows first (about a minute), the full run afterwards (an estimated
-10 to 30 minutes and about 6 GB of RAM):
+100,000 rows first (about a minute), the full run afterwards (4.3 minutes
+measured; the memory need was not measured):
 
 ```bash
 python scripts/build_bundle.py --data 02_data/raw/accepted_2007_to_2018Q4.csv --nrows 100000
 python scripts/build_bundle.py --data 02_data/raw/accepted_2007_to_2018Q4.csv
 ```
 
-The bundle goes to `04_models/bundle.joblib`, which is in `.gitignore`; change
-the target with `--out`. It holds a depth-limited "deployment forest"
-(`--max-depth`, default 10, and `--min-samples-leaf`, default 100) so that the
-file stays small. The script also trains the unlimited forest and prints ROC
+The bundle goes to `04_models/bundle.joblib`, which is tracked in the repo
+(the rest of `04_models/` is in `.gitignore`); change the target with `--out`.
+It holds a depth-limited "deployment forest" (`--max-depth`, default 10, and
+`--min-samples-leaf`, default 100) so that the file stays small. The script also trains the unlimited forest and prints ROC
 AUC, Gini and KS of both forests and the scorecard, the number of training and
 test rows, the bundle size and the TreeSHAP time for one row, so the depth
 limit can be judged from measured numbers.
@@ -151,7 +151,9 @@ credit-risk-modelling/
 │   ├── raw/                      # place accepted_2007_to_2018Q4.csv here (untracked)
 │   └── processed/                # unused; the pipeline keeps intermediates in memory
 │
-└── 04_models/                    # random_forest.joblib is written here (untracked)
+└── 04_models/
+    └── bundle.joblib             # tracked bundle for the dashboard (4.8 MB);
+                                  # random_forest.joblib from the notebook is untracked
 ```
 
 `docs/`, `HANDOVER.md` and the `CLAUDE*.md` files at the repository root are
@@ -199,32 +201,52 @@ faces between the two.
 
 ## Results
 
-**The corrected model has not yet been run on the full dataset, so no metrics
-are quoted here.**
+Measured on the full dataset with `scripts/build_bundle.py` (default
+parameters, one run of 4.3 minutes). After the cleaning chain of the notebook
+417,935 loans remain (of 2,260,701 raw rows). They are split 70/30 into
+**292,554 training and 125,381 test loans**; the **default rate in the test
+set is 21.6 %** (27,090 "Charged Off"). All numbers below are measured on those
+test loans, and the probabilities of the bundle models are calibrated.
+
+| Model | ROC AUC | Gini | KS |
+|---|---|---|---|
+| Deployment forest (depth-limited, calibrated; the forest in the bundle) | 0.7196 | 0.4392 | 0.3177 |
+| Analysis forest (unlimited depth, calibrated; for comparison only) | 0.7159 | 0.4317 | 0.3175 |
+| WOE scorecard (calibrated; in the bundle) | 0.7224 | 0.4447 | 0.3242 |
+
+The depth limit (`max_depth=10`, `min_samples_leaf=100`) costs no
+discrimination: the limited forest is 0.0037 ROC AUC better than the unlimited
+one. The bundle file is 4.8 MB, TreeSHAP for one row takes 0.011 s.
+
+The notebook trains its forest on the full training part, while the bundle
+carves a 20 % calibration split out of it, so forest and scorecard in the
+bundle see 56 % of the loans. The notebook's numbers therefore differ slightly.
+As they stand in the executed notebook: random forest ROC AUC 0.7168, Gini
+0.4335, KS 0.3133; WOE scorecard ROC AUC 0.7222, Gini 0.4445, KS 0.3234, on the
+same 125,381 test loans.
 
 Earlier versions of this README reported an ROC AUC of **0.9999**. That number
 was an artefact of the data leakage described in step 3, not evidence of
-predictive power — the model was reading columns that only exist because the
-outcome was already known. It has been removed rather than restated.
-
-What the corrected model should produce, once the notebook has been run against
-the full dataset, is an ROC AUC in the region of **0.65-0.75** — a Gini of
-roughly 0.30-0.50 in the form a scorecard validation would report it. That is
-what a realistic PD model on LendingClub data achieves and what can be defended
-in a credit risk context. This section will be filled in with the measured
-values from that run.
+predictive power. The measured values are in the 0.65-0.75 range expected for a
+realistic PD model on LendingClub data, which is what can be defended in a
+credit risk context.
 
 Two things are worth stating up front about how those numbers should be read:
 
-- **Recall on the "Charged Off" class** is the business-relevant quantity — it
-  says how many of the loans that actually defaulted the model flags. Precision
-  and recall trade off against each other, so the decision threshold follows
-  from the cost of a missed default versus the cost of turning away a good
-  customer; the model does not choose it.
-- **Discrimination is not calibration.** With `class_weight="balanced"` the
-  predicted probabilities are deliberately shifted and cannot be used as PDs in
-  an expected-loss calculation without recalibration. That is acceptable for a
-  ranking model, but it has to be said rather than assumed.
+- **Recall on the "Charged Off" class** is the business-relevant quantity - it
+  says how many of the loans that actually defaulted the model flags. In the
+  notebook the forest at the default threshold of 0.5 reaches a recall of 0.29
+  (precision 0.46) and the scorecard 0.68 (precision 0.34). Precision and recall
+  trade off against each other, so the decision threshold follows from the cost
+  of a missed default versus the cost of turning away a good customer; the model
+  does not choose it.
+- **Discrimination is not calibration.** ROC AUC, Gini and KS only measure how
+  well the model ranks loans. The notebook's forest uses
+  `class_weight="balanced"`, so its raw probabilities are deliberately shifted
+  and are not PDs. The scores in the bundle are recalibrated on a held-out part
+  of the training data, which is what makes them usable as probabilities of
+  default; the discrimination metrics above do not change by that, they only
+  say nothing about whether the probabilities are right.
 
 ## Regulatory context
 

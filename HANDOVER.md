@@ -106,6 +106,63 @@ next section.
 - **Plan, decisions and verified Streamlit findings:**
   `plans/2026-11-09_streamlit-recruiter-dashboard.md`.
 
+### Issue #30 — bundle run
+
+One full run was enough; all targets were met with the script defaults, so no
+parameter was changed and no second run was made. PR: #50.
+
+Command (from a worktree, relative paths):
+
+```
+python scripts/build_bundle.py --data 02_data/raw/accepted_2007_to_2018Q4.csv --out 04_models/bundle.joblib
+```
+
+Complete output:
+
+```
+Loading ../../../02_data/raw/accepted_2007_to_2018Q4.csv (nrows=None) ...
+Rows: 2,260,701 raw -> 417,935 after cleaning
+Training the analysis forest (unlimited) and the scorecard ...
+Training the deployment forest (max_depth=10, min_samples_leaf=100) and the scorecard ...
+Bundle written to 04_models/bundle.joblib (4.8 MB)
+
+n_train 292,554  n_test 125,381
+Test-set metrics (calibrated):
+  analysis forest (unlimited)  ROC AUC 0.7159  Gini 0.4317  KS 0.3175
+  deployment forest            ROC AUC 0.7196  Gini 0.4392  KS 0.3177
+  scorecard                    ROC AUC 0.7224  Gini 0.4447  KS 0.3242
+ROC AUC lost by the depth limit: -0.0037
+Bundle size: 4.8 MB (target: at most 50 MB)
+TreeSHAP, one row: 0.011 s (target: below 1 s)
+Wall-clock time: 4.3 min
+```
+
+- **Final parameters:** `--max-depth 10`, `--min-samples-leaf 100` (the
+  defaults), seed as in the script.
+- **File:** `04_models/bundle.joblib`, 4,790,006 bytes (4.8 MB), tracked via
+  the exception `!04_models/bundle.joblib` in `.gitignore`, no Git LFS.
+  `load_bundle` loads it; all 21 contract keys of `build_bundle` are present.
+- **Test-set default rate:** 21.6 % (27,090 of 125,381, `y_test.mean()` =
+  0.21606), equal to the notebook's.
+- **Abort criterion:** not triggered (highest ROC AUC 0.7224, below 0.80).
+- **Notebook comparison:** the executed notebook on `main` reports forest ROC
+  AUC 0.7168 / Gini 0.4335 / KS 0.3133 and scorecard 0.7222 / 0.4445 / 0.3234
+  on the same 125,381 test loans; the bundle numbers differ slightly because
+  the bundle models train on 56 % of the data (20 % calibration split).
+- **Review of PR #50 (reproduction):** an independent full run (4.9 min,
+  TreeSHAP 0.010 s) printed the same metrics. Against the committed bundle:
+  same keys, `feature_names`, `scorecard_columns`, `metrics`, `y_test` and all
+  four probability arrays exactly equal; `created_at` differs by design. Two
+  harmless differences, left open: `iv_table` shows `n_bins` 9 vs 10 for the
+  unselected feature `revol_bal` (IV equal to 4e-9), and `bands_rf` differs
+  only at floating-point level. Open observation: the calibrated scores have
+  recall 0.07 (forest) and 0.10 (scorecard) at the 0.5 cutoff, so the cutoff is
+  not meaningful on calibrated probabilities; the README quotes recall only
+  for the notebook models.
+- **Not verified:** step 8 of the issue (executing the notebook) was skipped
+  as instructed; the bundle was not reproduced bit-identically in a second run
+  (joblib embeds the creation time anyway).
+
 ## Done
 
 - **Issue #2 — Data Leakage beheben:** PR #16 reviewed and merged into
