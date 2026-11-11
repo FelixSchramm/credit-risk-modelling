@@ -45,9 +45,19 @@ next section.
   (`init_language`, `current_lang`, `t`, `num`, `pct`; `show_chart` passes the
   separators), language `st.radio` (key `lang`) at the top of the sidebar,
   `tests/test_i18n.py`, extended smoke tests. **Open PR for #41:** #52,
-  state: review pending. Not verifiable without a browser: switcher
-  position and look, German texts rendered, `?lang=de` direct link in a real
-  browser (AppTest and a headless start only).
+  state: reviewed, orchestrator browser check pending. Not verifiable without
+  a browser: switcher position and look, German texts rendered, `?lang=de`
+  direct link in a real browser, highlighting of the active `page_link`
+  (AppTest and a headless start only).
+- **Review of PR #52 (no clear-cut findings, nothing changed in the code):**
+  open, minor, debatable: (1) `init_language()` in `streamlit_app.py` is
+  redundant because `t()` calls it through `current_lang()`; (2) `fmt_number`
+  and `fmt_percent` accept an unknown language and silently format as English,
+  unlike `translate`; (3) a small negative value rounds to `-0.000` / `-0,000`
+  (Python formatting); (4) `page_link` highlighting of the active page is
+  frontend behaviour, not checked in the review. Mutation checks: key parity,
+  missing key, unknown language, DE swap, no-break space, EN percent and
+  placeholder parity each make a test fail.
 - **Next:** #42 (glossary). #30 (full run) can start any time.
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
