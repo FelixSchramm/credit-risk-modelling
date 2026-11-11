@@ -67,3 +67,26 @@ def test_missing_bundle_message_is_translated(monkeypatch, tmp_path):
     at.query_params["lang"] = "de"
     at.run()
     assert at.error[0].value.startswith("Modell-Bundle nicht gefunden")
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_glossary_search_reduces_the_entries(lang, bundle_env):
+    at = AppTest.from_file(ENTRY, default_timeout=30)
+    at.query_params["lang"] = lang
+    at.run()
+    at.switch_page(PAGES["glossary"]).run()
+    assert not at.exception
+    all_entries = len(at.expander)
+    assert all_entries > 40
+    at.text_input(key="glossary_search").set_value("gini").run()
+    assert not at.exception
+    assert 0 < len(at.expander) < all_entries
+
+
+def test_glossary_search_without_hits_shows_a_message(bundle_env):
+    at = AppTest.from_file(ENTRY, default_timeout=30).run()
+    at.switch_page(PAGES["glossary"]).run()
+    at.text_input(key="glossary_search").set_value("zzzzqqq").run()
+    assert not at.exception
+    assert len(at.expander) == 0
+    assert at.info[0].value == "No entry matches your search."
