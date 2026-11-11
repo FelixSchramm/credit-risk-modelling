@@ -2,5 +2,7 @@
 
 import streamlit as st
 
-st.title("Credit risk dashboard")
-st.write("Probability of default on LendingClub loans: random forest and scorecard.")
+from app.ui import t
+
+st.title(t("home.title"))
+st.write(t("home.intro"))
