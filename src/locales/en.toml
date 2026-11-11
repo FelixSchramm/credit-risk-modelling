@@ -3,6 +3,7 @@ title = "Credit risk dashboard"
 
 [nav]
 home = "Home"
+glossary = "Glossary"
 
 [common]
 language = "Language"
@@ -12,3 +13,320 @@ bundle_missing = "Model bundle not found at `{path}`. Build it with `python scri
 [home]
 title = "Credit risk dashboard"
 intro = "Probability of default on LendingClub loans: random forest and scorecard."
+
+[glossary_page]
+title = "Glossary"
+intro = "Every term used in this dashboard, explained in plain language. The short text is also the tooltip next to each figure."
+search = "Search terms and explanations"
+no_results = "No entry matches your search."
+what = "What is it?"
+how_to_read = "How to read it"
+in_project = "In this project"
+limit = "Limit"
+regulatory_link = "More in the README: Regulatory context"
+
+[glossary_groups]
+data = "Data"
+models = "Models"
+quality = "Model quality"
+calibration = "Calibration"
+explain = "Explainability"
+economics = "Credit risk economics"
+regulatory = "Regulation"
+
+[glossary.target]
+term = "Target variable: Charged Off / Fully Paid"
+group = "data"
+what = "The outcome the models predict. A loan that the lender wrote off as lost (Charged Off) counts as 1, a loan that was repaid in full (Fully Paid) counts as 0. Only finished loans issued 2015-2018 are used."
+in_project = "{default_rate} of the {n_test} test loans are Charged Off."
+limit = "Charged Off is the platform's write-off status, not the regulatory definition of default (90 days past due or unlikely to pay). Loans still running are left out."
+
+[glossary.data_leakage]
+term = "Data leakage"
+group = "data"
+what = "Leakage means a model sees information that is only known after the outcome, for example payments received. It then looks brilliant on paper and is useless for a real decision."
+in_project = "The first version of this project reached a ROC AUC of 0.9999 because columns such as total_pymnt, recoveries and out_prncp were still in the data. They are removed now."
+limit = "Removing the known columns does not prove that no subtle leak is left. Very strong single features deserve suspicion (see IV)."
+
+[glossary.train_test_split]
+term = "Train/test split"
+group = "data"
+what = "The loans are divided into a part the model learns from (training) and a part it has never seen (test). Quality figures are only honest when they are measured on the test part."
+how_to_read = "A figure measured on the training data itself is too optimistic and says little about new loans."
+in_project = "{n_train} training loans (including the calibration split) and {n_test} test loans, a random 70/30 split."
+limit = "The split is random, not by time. It does not show how the model would perform on future loans."
+
+[glossary.out_of_time]
+term = "Out-of-time validation"
+group = "data"
+what = "A check where the model is trained on older loans and tested on newer ones, as it would be used in practice. It reveals whether the model survives a change of the economy or of the lender's policy."
+limit = "This project has no out-of-time validation. The split is random, so the figures may be more optimistic than a test on later loans would be."
+
+[glossary.random_forest]
+term = "Random forest"
+group = "models"
+what = "A model made of many decision trees. Each tree votes on a loan and the share of votes is the score. It finds non-linear effects and interactions on its own."
+in_project = "ROC AUC {auc_rf}, Gini {gini_rf}, KS {ks_rf} on the test loans (the depth-limited forest in the bundle)."
+limit = "Hard to explain: hundreds of trees cannot be read like a rule list. Banks therefore often prefer a scorecard for the decision itself."
+
+[glossary.logistic_regression]
+term = "Logistic regression"
+group = "models"
+what = "A classic model that adds up weighted inputs and turns the sum into a probability between 0 and 1. Each weight shows how strongly an input pushes the risk up or down."
+limit = "It only captures effects that add up. Interactions have to be built in by hand, for example through binning."
+
+[glossary.scorecard]
+term = "Scorecard"
+group = "models"
+what = "The classic bank model: every input is cut into bins, each bin gets a weight of evidence, and a logistic regression combines them. The result can be shown as points per answer."
+in_project = "ROC AUC {auc_scorecard}, Gini {gini_scorecard}, KS {ks_scorecard}. In this project it separates slightly better than the forest."
+limit = "It is only as good as its bins. Effects across several inputs are not captured."
+
+[glossary.binning]
+term = "Binning"
+group = "models"
+what = "Cutting a continuous input, such as income, into a few ranges (bins) so that each bin has a clearly different default rate. The bins make the scorecard easy to read."
+limit = "Few, coarse bins lose detail, many fine bins overfit to chance. Bins must be checked for stability over time."
+
+[glossary.woe]
+term = "Weight of evidence (WOE)"
+group = "models"
+what = "A number per bin that tells how much better or worse the bin is than the average: the logarithm of the share of repaid loans divided by the share of defaulted loans in that bin."
+how_to_read = "Positive means safer than average, negative means riskier, 0 means average."
+formula = '\mathrm{WOE}_{bin} = \ln\frac{\text{share of all non-defaults in the bin}}{\text{share of all defaults in the bin}}'
+limit = "WOE describes the past of one bin. It does not say why the bin is risky."
+
+[glossary.iv]
+term = "Information value (IV)"
+group = "models"
+what = "A single number per input that says how well its bins separate defaults from repaid loans. It is used to select inputs for the scorecard."
+how_to_read = "Below 0.02 useless, 0.02 to 0.1 weak, 0.1 to 0.3 medium, 0.3 to 0.5 strong, above 0.5 suspected leakage."
+in_project = "The highest value is {iv_top} for {iv_top_name}."
+formula = '\mathrm{IV} = \sum_{bins}\left(\text{share of non-defaults} - \text{share of defaults}\right)\cdot\mathrm{WOE}'
+limit = "A high IV does not prove a causal link, and a very high IV can mean that the input already contains the lender's own risk judgement."
+
+[glossary.class_weight]
+term = 'class_weight="balanced"'
+group = "models"
+what = "A training setting that makes the rare class, the defaults, count more. The model then pays attention to defaults, but its raw outputs are no longer probabilities: they average near 0.5, not near the real default rate."
+how_to_read = "Raw scores of a balanced model are rankings. Only calibrated scores can be read as probabilities."
+limit = "It improves the detection of defaults at the cost of honest probabilities. That is why the bundle calibrates the scores afterwards."
+
+[glossary.roc_curve]
+term = "ROC curve"
+group = "quality"
+what = "A curve that shows, for every possible cut-off, how many of the defaults the model catches (vertical) against how many good loans it wrongly flags (horizontal)."
+how_to_read = "The closer the curve bends to the top left corner, the better. The diagonal line is a coin toss."
+limit = "The curve ignores how large the default rate is and says nothing about whether the probabilities are correct."
+
+[glossary.auc]
+term = "ROC AUC"
+group = "quality"
+what = "The area under the ROC curve. It is the chance that the model gives a higher risk score to a randomly chosen default than to a randomly chosen repaid loan."
+how_to_read = "0.5 is a coin toss, 1.0 is perfect. Realistic credit models on this kind of data lie between 0.65 and 0.75."
+in_project = "Forest {auc_rf}, scorecard {auc_scorecard} on the test loans."
+limit = "AUC measures ranking only. A model can rank well and still output wrong probabilities."
+
+[glossary.gini]
+term = "Gini"
+group = "quality"
+what = "The same information as the ROC AUC on a scale that starts at zero for a coin toss, which is how banks usually quote it."
+how_to_read = "0 means no separation, 1 means perfect separation."
+in_project = "Forest {gini_rf}, scorecard {gini_scorecard}."
+formula = '\mathrm{Gini} = 2\cdot\mathrm{AUC} - 1'
+limit = "Not to be confused with the Gini coefficient of income inequality. It carries no more information than the AUC."
+
+[glossary.ks]
+term = "KS statistic"
+group = "quality"
+what = "The largest gap between two cumulative curves: the share of defaults and the share of repaid loans, both sorted by score. It shows the point where the model separates the two groups best."
+how_to_read = "0 means no separation, 1 means perfect separation."
+in_project = "Forest {ks_rf}, scorecard {ks_scorecard}."
+formula = '\mathrm{KS} = \max_{s}\left|F_{\text{default}}(s) - F_{\text{repaid}}(s)\right|'
+limit = "It looks at one single point of the score range and says nothing about the rest."
+
+[glossary.confusion_matrix]
+term = "Confusion matrix"
+group = "quality"
+what = "A table of four counts for a chosen cut-off: defaults caught, defaults missed, good loans correctly accepted, and good loans wrongly flagged."
+how_to_read = "The diagonal holds the correct decisions, the other two cells the two kinds of mistakes."
+limit = "The counts change with the cut-off. A matrix is always tied to one cut-off."
+
+[glossary.precision]
+term = "Precision"
+group = "quality"
+what = "Of all loans the model flags as defaults, the share that really default. It says how many of the alarms are justified."
+how_to_read = "Close to 1 means few false alarms."
+formula = '\mathrm{Precision} = \frac{TP}{TP + FP}'
+limit = "High precision is easy if the model flags almost nothing. It must be read together with recall."
+
+[glossary.recall]
+term = "Recall"
+group = "quality"
+what = "Of all loans that really default, the share the model flags. It says how many defaults are caught."
+how_to_read = "Close to 1 means few missed defaults."
+formula = '\mathrm{Recall} = \frac{TP}{TP + FN}'
+limit = "Recall depends on the cut-off. With calibrated probabilities hardly any loan reaches 0.5, so recall at 0.5 is low even for a good model. A lower cut-off is needed."
+
+[glossary.f1]
+term = "F1 score"
+group = "quality"
+what = "A single number that combines precision and recall. It is only high when both are reasonably high."
+how_to_read = "0 is worst, 1 is best."
+formula = 'F_1 = 2\cdot\frac{\mathrm{Precision}\cdot\mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}'
+limit = "It treats a missed default and a false alarm as equally bad. In lending they are not: a missed default usually costs far more."
+
+[glossary.accuracy]
+term = "Accuracy"
+group = "quality"
+what = "The share of all loans the model classifies correctly. It sounds convincing but is misleading when one class is much rarer than the other."
+how_to_read = "Compare it with the accuracy of a model that always predicts the majority class."
+in_project = "With a default rate of {default_rate}, the rule that nobody defaults is already right {accuracy_naive} of the time."
+formula = '\mathrm{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}'
+limit = "A high accuracy can hide that no default is found at all."
+
+[glossary.pd]
+term = "Probability of default (PD)"
+group = "calibration"
+what = "The chance that a borrower defaults, as a number between 0 and 1. A PD of 0.2 means that of 100 such loans about 20 are expected to default."
+how_to_read = "Only a calibrated score is a PD. Raw model outputs are not."
+limit = "Here the PD covers the whole loan term and the platform's definition of default. A regulatory PD is a one-year figure with a different definition."
+
+[glossary.base_rate]
+term = "Base rate"
+group = "calibration"
+what = "The overall share of defaults in the data. It is the benchmark for everything else: a model must do better than quoting the base rate for every borrower."
+in_project = "{default_rate} of the test loans default."
+limit = "The base rate belongs to this data set, one platform and one time window. Another lender will have a different one."
+
+[glossary.calibration]
+term = "Calibration"
+group = "calibration"
+what = "A model is calibrated when its probabilities match reality: of all loans scored 0.2, about 20 percent really default. It is a separate question from how well the model ranks loans."
+how_to_read = "In the reliability diagram, calibrated means the points lie on the diagonal."
+limit = "A calibrated model is correct on average for a group of loans, not for the single loan. Calibration also ages when the economy changes."
+
+[glossary.reliability_diagram]
+term = "Reliability diagram"
+group = "calibration"
+what = "A chart that groups loans by predicted probability and plots, for each group, the share that really defaulted. It shows whether the probabilities can be trusted."
+how_to_read = "Points on the diagonal are correct. Points below the diagonal mean the model is too pessimistic, points above mean it is too optimistic."
+limit = "Groups with few loans scatter by chance, so single points far off the diagonal need not be a problem."
+
+[glossary.isotonic_regression]
+term = "Isotonic regression"
+group = "calibration"
+what = "A method that turns raw scores into probabilities. It learns, on loans the model has not been trained on, a step-shaped curve that only ever goes up. A higher raw score never gives a lower probability."
+limit = "It needs enough data and can produce flat steps. Ranking power is hardly changed, but ties can appear."
+
+[glossary.feature_importance]
+term = "Feature importance"
+group = "explain"
+what = "A ranking of the inputs by how much the forest uses them to split loans. It tells which inputs matter most overall."
+limit = "It does not show the direction of an effect and favours inputs with many distinct values. For a single loan use SHAP."
+
+[glossary.shap]
+term = "SHAP"
+group = "explain"
+what = "A method that splits the score of one loan into contributions of its inputs. Each input pushes the score up (more risk) or down (less risk) from the average."
+how_to_read = "A long bar to the right means a strong push towards default, to the left towards repayment."
+limit = "SHAP explains what the model does, not what is true in the world. A contribution is not a cause."
+
+[glossary.shap_base_value]
+term = "SHAP base value"
+group = "explain"
+what = "The starting point of an explanation: the average score of the model. The contributions of the inputs are added to it and give the score of the single loan."
+how_to_read = "Base value plus all contributions equals the score of the loan."
+limit = "The base value depends on the data used as reference and, for the forest, on the scale of the model output."
+
+[glossary.beeswarm]
+term = "Beeswarm plot"
+group = "explain"
+what = "A chart with one dot per loan and input. The position shows how much the input pushed the score, the colour shows whether the value of the input was high or low."
+how_to_read = "Rows are inputs, ordered by importance. A clear colour split left and right means a consistent direction."
+limit = "It summarises many loans and cannot explain a single decision."
+
+[glossary.waterfall]
+term = "Waterfall plot"
+group = "explain"
+what = "A chart that explains one loan step by step: starting from the average score, each input adds or removes some risk until the final score is reached."
+how_to_read = "Read from the start value to the final score. Steps that raise the score add risk, steps that lower it reduce risk."
+limit = "It explains one loan for one model. Another model can give a different story with the same score."
+
+[glossary.scorecard_points]
+term = "Scorecard points"
+group = "explain"
+what = "The scorecard translated into points: each answer of a borrower earns a number of points and the sum is the score. This is how banks make a model's decision easy to follow."
+how_to_read = "Compare the points of the bins: the larger the difference, the stronger the effect of that input."
+limit = "Points are only a rescaling of the model. They do not make the model more correct."
+
+[glossary.score_band]
+term = "Score band (decile)"
+group = "economics"
+what = "Loans are sorted by score and divided into ten equally large groups, the deciles. For each group one can compare the predicted with the observed default rate."
+how_to_read = "A good model shows a steadily rising default rate from the safest to the riskiest band."
+limit = "Bands are relative to this data set. A band is not a rating grade and has no fixed meaning."
+
+[glossary.cutoff]
+term = "Cut-off"
+group = "economics"
+what = "The score above which a loan is declined. It is a business decision that weighs the loss from a default against the profit lost by declining a good loan."
+how_to_read = "A lower cut-off declines more loans: fewer defaults get through, but also more good customers are lost."
+limit = "The model does not choose the cut-off. A sensible cut-off on calibrated probabilities is far below 0.5, because most loans have a low default probability."
+
+[glossary.approval_rate]
+term = "Approval rate"
+group = "economics"
+what = "The share of applicants whose loan is accepted at a given cut-off. It is the other side of the cut-off: the lower the cut-off, the lower the approval rate."
+limit = "The rate is computed on loans that were approved by the platform in the past. Applicants that were declined then are not in the data."
+
+[glossary.expected_loss]
+term = "Expected loss (EL)"
+group = "economics"
+what = "The loss a lender expects on average on a loan: the probability that it defaults, times the share of the exposure that is lost, times the exposure at the moment of default."
+how_to_read = "EL is an average, not the loss in a bad year. Unexpected losses need capital beyond it."
+formula = '\mathrm{EL} = \mathrm{PD}\cdot\mathrm{LGD}\cdot\mathrm{EAD}'
+limit = "This project models only the PD. LGD and EAD are not modelled, so an EL here needs an assumption for them."
+
+[glossary.lgd]
+term = "Loss given default (LGD)"
+group = "economics"
+what = "The share of the exposure that is lost when a borrower defaults, after recoveries. If 40 of 100 francs are lost, the LGD is 40 percent."
+how_to_read = "0 means everything is recovered, 1 means everything is lost."
+limit = "LGD is not modelled in this project. Recoveries on unsecured consumer debt are a modelling problem of their own."
+
+[glossary.ead]
+term = "Exposure at default (EAD)"
+group = "economics"
+what = "The amount a lender has outstanding at the moment the borrower defaults. For a fully drawn instalment loan it is close to the remaining balance."
+limit = "EAD is not modelled in this project. It is much harder for credit lines that the borrower can still draw on."
+
+[glossary.basel_irb]
+term = "Basel IRB approach"
+group = "regulatory"
+what = "The internal ratings-based approach lets a bank use its own estimates of PD, LGD and EAD to calculate the capital it must hold. It needs explicit approval by the supervisor."
+limit = "This project delivers one of the three inputs, the PD, and is not a supervisory-approved model. Details are in the README."
+
+[glossary.ifrs9]
+term = "IFRS 9"
+group = "regulatory"
+what = "An accounting standard that requires banks to book expected credit losses in advance. Loans are placed in three stages: stage 1 uses the expected loss over 12 months, stages 2 and 3 over the whole lifetime."
+limit = "IFRS 9 needs point-in-time PDs that react to the economy. This project models a PD over the full loan term at origination. Details are in the README."
+
+[glossary.finma]
+term = "FINMA"
+group = "regulatory"
+what = "The Swiss Financial Market Supervisory Authority. It supervises banks, insurers and other institutions in Switzerland and implements the Basel rules for them."
+limit = "In Switzerland the standardised approach dominates, where no internal PD enters the capital calculation. Details are in the README."
+
+[glossary.model_card]
+term = "Model card"
+group = "regulatory"
+what = "A short document that states what a model is for, which data it was built on, how well it works and where it fails. It makes the limits of a model visible to those who use it."
+limit = "A model card describes a model, it does not validate it. It is no substitute for an independent review."
+
+[glossary.model_validation]
+term = "Model validation"
+group = "regulatory"
+what = "The independent review of a model by people who did not build it: data, method, performance, stability and use. Banks must do it before a model goes live and repeat it regularly."
+limit = "This project has no validation in the supervisory sense: no independent function, no out-of-time test, no ongoing monitoring. Details are in the README."

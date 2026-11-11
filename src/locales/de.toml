@@ -3,6 +3,7 @@ title = "Kreditrisiko-Dashboard"
 
 [nav]
 home = "Start"
+glossary = "Glossar"
 
 [common]
 language = "Sprache"
@@ -12,3 +13,320 @@ bundle_missing = "Modell-Bundle nicht gefunden unter `{path}`. Erzeuge es mit `p
 [home]
 title = "Kreditrisiko-Dashboard"
 intro = "Ausfallwahrscheinlichkeit von LendingClub-Krediten: Random Forest und Scorecard."
+
+[glossary_page]
+title = "Glossar"
+intro = "Alle Begriffe dieses Dashboards in einfacher Sprache. Der Kurztext ist zugleich der Tooltip neben jeder Kennzahl."
+search = "Begriffe und Erklärungen durchsuchen"
+no_results = "Kein Eintrag passt zu deiner Suche."
+what = "Was ist das?"
+how_to_read = "So liest du es"
+in_project = "In diesem Projekt"
+limit = "Grenze"
+regulatory_link = "Mehr im README: Regulatory context"
+
+[glossary_groups]
+data = "Daten"
+models = "Modelle"
+quality = "Modellgüte"
+calibration = "Kalibrierung"
+explain = "Erklärbarkeit"
+economics = "Kreditrisiko-Ökonomie"
+regulatory = "Regulatorik"
+
+[glossary.target]
+term = "Zielvariable: Charged Off / Fully Paid"
+group = "data"
+what = "Das Ergebnis, das die Modelle vorhersagen. Ein Kredit, den der Geldgeber als Verlust abgeschrieben hat (Charged Off), zählt als 1, ein vollständig zurückgezahlter Kredit (Fully Paid) als 0. Verwendet werden nur abgeschlossene Kredite mit Ausgabejahr 2015-2018."
+in_project = "{default_rate} der {n_test} Testkredite sind Charged Off."
+limit = "Charged Off ist der Abschreibungsstatus der Plattform, nicht die aufsichtliche Ausfalldefinition (90 Tage überfällig oder unwahrscheinliche Zahlung). Laufende Kredite fehlen."
+
+[glossary.data_leakage]
+term = "Data Leakage"
+group = "data"
+what = "Leakage heißt: Das Modell sieht Informationen, die erst nach dem Kreditausgang bekannt sind, zum Beispiel erhaltene Zahlungen. Es wirkt dann auf dem Papier hervorragend und ist für eine echte Entscheidung wertlos."
+in_project = "Die erste Version dieses Projekts erreichte ein ROC AUC von 0,9999, weil Spalten wie total_pymnt, recoveries und out_prncp noch in den Daten waren. Sie sind inzwischen entfernt."
+limit = "Das Entfernen der bekannten Spalten beweist nicht, dass kein feineres Leck übrig ist. Sehr starke Einzelmerkmale sind verdächtig (siehe IV)."
+
+[glossary.train_test_split]
+term = "Train/Test-Split"
+group = "data"
+what = "Die Kredite werden in einen Teil, aus dem das Modell lernt (Training), und einen Teil geteilt, den es nie gesehen hat (Test). Gütezahlen sind nur ehrlich, wenn sie auf dem Testteil gemessen werden."
+how_to_read = "Eine Zahl, die auf den Trainingsdaten selbst gemessen wird, ist zu optimistisch und sagt wenig über neue Kredite."
+in_project = "{n_train} Trainingskredite (einschließlich Kalibrier-Split) und {n_test} Testkredite, ein zufälliger 70/30-Split."
+limit = "Der Split ist zufällig, nicht zeitlich. Er zeigt nicht, wie das Modell auf zukünftigen Krediten abschneidet."
+
+[glossary.out_of_time]
+term = "Out-of-Time-Validierung"
+group = "data"
+what = "Eine Prüfung, bei der das Modell auf älteren Krediten trainiert und auf neueren getestet wird, so wie es in der Praxis eingesetzt würde. Sie zeigt, ob das Modell einen Wandel der Wirtschaft oder der Vergabepolitik übersteht."
+limit = "Dieses Projekt hat keine Out-of-Time-Validierung. Der Split ist zufällig, die Zahlen können daher optimistischer sein als bei einem Test auf späteren Krediten."
+
+[glossary.random_forest]
+term = "Random Forest"
+group = "models"
+what = "Ein Modell aus vielen Entscheidungsbäumen. Jeder Baum stimmt über einen Kredit ab, der Anteil der Stimmen ist der Score. Es findet nichtlineare Effekte und Wechselwirkungen selbst."
+in_project = "ROC AUC {auc_rf}, Gini {gini_rf}, KS {ks_rf} auf den Testkrediten (der tiefenbegrenzte Forest im Bundle)."
+limit = "Schwer zu erklären: Hunderte Bäume lassen sich nicht wie eine Regelliste lesen. Banken bevorzugen für die Entscheidung selbst deshalb oft eine Scorecard."
+
+[glossary.logistic_regression]
+term = "Logistische Regression"
+group = "models"
+what = "Ein klassisches Modell, das gewichtete Eingaben aufsummiert und die Summe in eine Wahrscheinlichkeit zwischen 0 und 1 umrechnet. Jedes Gewicht zeigt, wie stark eine Eingabe das Risiko erhöht oder senkt."
+limit = "Sie erfasst nur Effekte, die sich addieren. Wechselwirkungen müssen von Hand eingebaut werden, zum Beispiel durch Binning."
+
+[glossary.scorecard]
+term = "Scorecard"
+group = "models"
+what = "Das klassische Bankmodell: Jede Eingabe wird in Klassen (Bins) geschnitten, jede Klasse erhält einen Weight of Evidence, und eine logistische Regression verbindet sie. Das Ergebnis lässt sich als Punkte pro Antwort zeigen."
+in_project = "ROC AUC {auc_scorecard}, Gini {gini_scorecard}, KS {ks_scorecard}. In diesem Projekt trennt sie etwas besser als der Forest."
+limit = "Sie ist nur so gut wie ihre Klassen. Effekte über mehrere Eingaben hinweg werden nicht erfasst."
+
+[glossary.binning]
+term = "Binning"
+group = "models"
+what = "Eine stetige Eingabe, etwa das Einkommen, wird in wenige Bereiche (Bins) geschnitten, sodass jeder Bin eine deutlich andere Ausfallrate hat. Die Bins machen die Scorecard leicht lesbar."
+limit = "Wenige grobe Bins verlieren Details, viele feine passen sich dem Zufall an. Bins müssen auf Stabilität über die Zeit geprüft werden."
+
+[glossary.woe]
+term = "Weight of Evidence (WOE)"
+group = "models"
+what = "Eine Zahl pro Bin, die zeigt, wie viel besser oder schlechter der Bin als der Durchschnitt ist: der Logarithmus aus dem Anteil der zurückgezahlten Kredite geteilt durch den Anteil der ausgefallenen Kredite in diesem Bin."
+how_to_read = "Positiv heißt sicherer als der Durchschnitt, negativ riskanter, 0 durchschnittlich."
+formula = '\mathrm{WOE}_{bin} = \ln\frac{\text{share of all non-defaults in the bin}}{\text{share of all defaults in the bin}}'
+limit = "Der WOE beschreibt die Vergangenheit eines Bins. Er sagt nicht, warum der Bin riskant ist."
+
+[glossary.iv]
+term = "Information Value (IV)"
+group = "models"
+what = "Eine einzelne Zahl pro Eingabe, die zeigt, wie gut ihre Bins Ausfälle von zurückgezahlten Krediten trennen. Sie dient der Auswahl der Eingaben für die Scorecard."
+how_to_read = "Unter 0,02 nutzlos, 0,02 bis 0,1 schwach, 0,1 bis 0,3 mittel, 0,3 bis 0,5 stark, über 0,5 Verdacht auf Leakage."
+in_project = "Der höchste Wert ist {iv_top} für {iv_top_name}."
+formula = '\mathrm{IV} = \sum_{bins}\left(\text{share of non-defaults} - \text{share of defaults}\right)\cdot\mathrm{WOE}'
+limit = "Ein hoher IV beweist keinen ursächlichen Zusammenhang, und ein sehr hoher IV kann heißen, dass die Eingabe bereits die eigene Risikoeinschätzung des Kreditgebers enthält."
+
+[glossary.class_weight]
+term = 'class_weight="balanced"'
+group = "models"
+what = "Eine Trainingseinstellung, die die seltene Klasse, die Ausfälle, stärker gewichtet. Das Modell achtet dann besser auf Ausfälle, seine Rohausgaben sind aber keine Wahrscheinlichkeiten mehr: Sie liegen im Schnitt nahe 0,5 statt nahe der echten Ausfallrate."
+how_to_read = "Rohscores eines balancierten Modells sind Rangfolgen. Nur kalibrierte Scores lassen sich als Wahrscheinlichkeit lesen."
+limit = "Es verbessert die Erkennung von Ausfällen auf Kosten ehrlicher Wahrscheinlichkeiten. Deshalb kalibriert das Bundle die Scores anschließend."
+
+[glossary.roc_curve]
+term = "ROC-Kurve"
+group = "quality"
+what = "Eine Kurve, die für jeden möglichen Cut-off zeigt, wie viele Ausfälle das Modell erkennt (senkrecht) im Verhältnis dazu, wie viele gute Kredite es fälschlich markiert (waagerecht)."
+how_to_read = "Je näher die Kurve an die obere linke Ecke reicht, desto besser. Die Diagonale ist ein Münzwurf."
+limit = "Die Kurve ignoriert, wie hoch die Ausfallrate ist, und sagt nichts darüber, ob die Wahrscheinlichkeiten stimmen."
+
+[glossary.auc]
+term = "ROC AUC"
+group = "quality"
+what = "Die Fläche unter der ROC-Kurve. Sie ist die Chance, dass das Modell einem zufällig gewählten Ausfall einen höheren Risikoscore gibt als einem zufällig gewählten zurückgezahlten Kredit."
+how_to_read = "0,5 ist ein Münzwurf, 1,0 ist perfekt. Realistische Kreditmodelle auf solchen Daten liegen zwischen 0,65 und 0,75."
+in_project = "Forest {auc_rf}, Scorecard {auc_scorecard} auf den Testkrediten."
+limit = "Die AUC misst nur die Rangordnung. Ein Modell kann gut ordnen und trotzdem falsche Wahrscheinlichkeiten ausgeben."
+
+[glossary.gini]
+term = "Gini"
+group = "quality"
+what = "Dieselbe Information wie das ROC AUC, auf einer Skala, die beim Münzwurf bei null beginnt. So geben Banken sie üblicherweise an."
+how_to_read = "0 heißt keine Trennung, 1 heißt perfekte Trennung."
+in_project = "Forest {gini_rf}, Scorecard {gini_scorecard}."
+formula = '\mathrm{Gini} = 2\cdot\mathrm{AUC} - 1'
+limit = "Nicht zu verwechseln mit dem Gini-Koeffizienten der Einkommensungleichheit. Er enthält nicht mehr Information als die AUC."
+
+[glossary.ks]
+term = "KS-Statistik"
+group = "quality"
+what = "Der größte Abstand zwischen zwei kumulierten Kurven: dem Anteil der Ausfälle und dem Anteil der zurückgezahlten Kredite, beide nach Score sortiert. Er zeigt die Stelle, an der das Modell beide Gruppen am besten trennt."
+how_to_read = "0 heißt keine Trennung, 1 heißt perfekte Trennung."
+in_project = "Forest {ks_rf}, Scorecard {ks_scorecard}."
+formula = '\mathrm{KS} = \max_{s}\left|F_{\text{default}}(s) - F_{\text{repaid}}(s)\right|'
+limit = "Er betrachtet nur eine einzige Stelle des Scorebereichs und sagt nichts über den Rest."
+
+[glossary.confusion_matrix]
+term = "Konfusionsmatrix"
+group = "quality"
+what = "Eine Tabelle mit vier Zahlen für einen gewählten Cut-off: erkannte Ausfälle, übersehene Ausfälle, richtig angenommene gute Kredite und fälschlich markierte gute Kredite."
+how_to_read = "Die Diagonale enthält die richtigen Entscheidungen, die beiden anderen Felder die zwei Arten von Fehlern."
+limit = "Die Zahlen ändern sich mit dem Cut-off. Eine Matrix gehört immer zu genau einem Cut-off."
+
+[glossary.precision]
+term = "Precision"
+group = "quality"
+what = "Von allen Krediten, die das Modell als Ausfall markiert, der Anteil, der wirklich ausfällt. Sie zeigt, wie viele der Alarme berechtigt sind."
+how_to_read = "Nahe 1 heißt wenige Fehlalarme."
+formula = '\mathrm{Precision} = \frac{TP}{TP + FP}'
+limit = "Eine hohe Precision ist leicht, wenn das Modell fast nichts markiert. Sie muss zusammen mit dem Recall gelesen werden."
+
+[glossary.recall]
+term = "Recall"
+group = "quality"
+what = "Von allen Krediten, die wirklich ausfallen, der Anteil, den das Modell markiert. Er zeigt, wie viele Ausfälle erkannt werden."
+how_to_read = "Nahe 1 heißt wenige übersehene Ausfälle."
+formula = '\mathrm{Recall} = \frac{TP}{TP + FN}'
+limit = "Der Recall hängt vom Cut-off ab. Bei kalibrierten Wahrscheinlichkeiten erreicht kaum ein Kredit 0,5, der Recall bei 0,5 ist daher selbst bei einem guten Modell niedrig. Es braucht einen niedrigeren Cut-off."
+
+[glossary.f1]
+term = "F1-Score"
+group = "quality"
+what = "Eine einzelne Zahl, die Precision und Recall verbindet. Sie ist nur hoch, wenn beide einigermaßen hoch sind."
+how_to_read = "0 ist am schlechtesten, 1 am besten."
+formula = 'F_1 = 2\cdot\frac{\mathrm{Precision}\cdot\mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}'
+limit = "Er behandelt einen übersehenen Ausfall und einen Fehlalarm als gleich schlimm. Bei Krediten sind sie es nicht: Ein übersehener Ausfall kostet meist viel mehr."
+
+[glossary.accuracy]
+term = "Accuracy"
+group = "quality"
+what = "Der Anteil aller Kredite, die das Modell richtig einordnet. Das klingt überzeugend, führt aber in die Irre, wenn eine Klasse viel seltener ist als die andere."
+how_to_read = "Vergleiche sie mit der Accuracy eines Modells, das immer die häufigere Klasse vorhersagt."
+in_project = "Bei einer Ausfallrate von {default_rate} liegt die Regel „niemand fällt aus“ schon in {accuracy_naive} der Fälle richtig."
+formula = '\mathrm{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}'
+limit = "Eine hohe Accuracy kann verbergen, dass überhaupt kein Ausfall gefunden wird."
+
+[glossary.pd]
+term = "Ausfallwahrscheinlichkeit (PD)"
+group = "calibration"
+what = "Die Chance, dass ein Kreditnehmer ausfällt, als Zahl zwischen 0 und 1. Eine PD von 0,2 heißt: Von 100 solchen Krediten fallen erwartungsgemäß etwa 20 aus."
+how_to_read = "Nur ein kalibrierter Score ist eine PD. Rohausgaben eines Modells sind es nicht."
+limit = "Die PD gilt hier für die ganze Kreditlaufzeit und die Ausfalldefinition der Plattform. Eine aufsichtliche PD ist eine Einjahreszahl mit anderer Definition."
+
+[glossary.base_rate]
+term = "Basisrate"
+group = "calibration"
+what = "Der Gesamtanteil der Ausfälle in den Daten. Sie ist der Maßstab für alles andere: Ein Modell muss besser sein, als für jeden Kreditnehmer einfach die Basisrate zu nennen."
+in_project = "{default_rate} der Testkredite fallen aus."
+limit = "Die Basisrate gehört zu diesem Datensatz, einer Plattform und einem Zeitfenster. Ein anderer Kreditgeber hat eine andere."
+
+[glossary.calibration]
+term = "Kalibrierung"
+group = "calibration"
+what = "Ein Modell ist kalibriert, wenn seine Wahrscheinlichkeiten zur Wirklichkeit passen: Von allen Krediten mit Score 0,2 fallen etwa 20 Prozent aus. Das ist eine andere Frage als die, wie gut das Modell Kredite ordnet."
+how_to_read = "Im Reliability-Diagramm heißt kalibriert: Die Punkte liegen auf der Diagonale."
+limit = "Ein kalibriertes Modell stimmt im Durchschnitt für eine Gruppe von Krediten, nicht für den einzelnen Kredit. Die Kalibrierung altert außerdem, wenn sich die Wirtschaft ändert."
+
+[glossary.reliability_diagram]
+term = "Reliability-Diagramm"
+group = "calibration"
+what = "Ein Diagramm, das Kredite nach vorhergesagter Wahrscheinlichkeit gruppiert und für jede Gruppe den Anteil zeigt, der wirklich ausgefallen ist. Es zeigt, ob man den Wahrscheinlichkeiten trauen kann."
+how_to_read = "Punkte auf der Diagonale stimmen. Punkte unter der Diagonale heißen: Das Modell ist zu pessimistisch, Punkte darüber: zu optimistisch."
+limit = "Gruppen mit wenigen Krediten schwanken zufällig, einzelne Punkte weit neben der Diagonale müssen daher kein Problem sein."
+
+[glossary.isotonic_regression]
+term = "Isotonische Regression"
+group = "calibration"
+what = "Eine Methode, die Rohscores in Wahrscheinlichkeiten umrechnet. Sie lernt auf Krediten, auf denen das Modell nicht trainiert wurde, eine treppenförmige Kurve, die nur ansteigt. Ein höherer Rohscore gibt nie eine niedrigere Wahrscheinlichkeit."
+limit = "Sie braucht genug Daten und kann flache Stufen erzeugen. Die Trennkraft ändert sich kaum, es können aber Gleichstände entstehen."
+
+[glossary.feature_importance]
+term = "Feature Importance"
+group = "explain"
+what = "Eine Rangliste der Eingaben danach, wie stark der Forest sie nutzt, um Kredite aufzuteilen. Sie zeigt, welche Eingaben insgesamt am wichtigsten sind."
+limit = "Sie zeigt nicht die Richtung eines Effekts und bevorzugt Eingaben mit vielen verschiedenen Werten. Für einen einzelnen Kredit nimmt man SHAP."
+
+[glossary.shap]
+term = "SHAP"
+group = "explain"
+what = "Eine Methode, die den Score eines Kredits in Beiträge seiner Eingaben zerlegt. Jede Eingabe schiebt den Score vom Durchschnitt aus nach oben (mehr Risiko) oder nach unten (weniger Risiko)."
+how_to_read = "Ein langer Balken nach rechts heißt starker Schub Richtung Ausfall, nach links Richtung Rückzahlung."
+limit = "SHAP erklärt, was das Modell tut, nicht was in der Welt wahr ist. Ein Beitrag ist keine Ursache."
+
+[glossary.shap_base_value]
+term = "SHAP-Basiswert"
+group = "explain"
+what = "Der Startpunkt einer Erklärung: der durchschnittliche Score des Modells. Die Beiträge der Eingaben werden darauf addiert und ergeben den Score des einzelnen Kredits."
+how_to_read = "Basiswert plus alle Beiträge ergibt den Score des Kredits."
+limit = "Der Basiswert hängt von den Referenzdaten und beim Forest von der Skala der Modellausgabe ab."
+
+[glossary.beeswarm]
+term = "Beeswarm-Diagramm"
+group = "explain"
+what = "Ein Diagramm mit einem Punkt je Kredit und Eingabe. Die Lage zeigt, wie stark die Eingabe den Score verschoben hat, die Farbe, ob der Wert der Eingabe hoch oder niedrig war."
+how_to_read = "Zeilen sind Eingaben, nach Wichtigkeit geordnet. Eine klare Farbtrennung links und rechts heißt: Die Richtung ist durchgehend gleich."
+limit = "Es fasst viele Kredite zusammen und kann keine einzelne Entscheidung erklären."
+
+[glossary.waterfall]
+term = "Waterfall-Diagramm"
+group = "explain"
+what = "Ein Diagramm, das einen Kredit Schritt für Schritt erklärt: Ausgehend vom Durchschnittsscore fügt jede Eingabe etwas Risiko hinzu oder nimmt etwas weg, bis der Endscore erreicht ist."
+how_to_read = "Lies vom Startwert bis zum Endscore. Schritte, die den Score erhöhen, bringen Risiko, Schritte, die ihn senken, nehmen Risiko weg."
+limit = "Es erklärt einen Kredit für ein Modell. Ein anderes Modell kann bei gleichem Score eine andere Geschichte erzählen."
+
+[glossary.scorecard_points]
+term = "Scorecard-Punkte"
+group = "explain"
+what = "Die Scorecard in Punkte übersetzt: Jede Antwort eines Kreditnehmers bringt eine Anzahl Punkte, die Summe ist der Score. So machen Banken die Entscheidung eines Modells leicht nachvollziehbar."
+how_to_read = "Vergleiche die Punkte der Bins: Je größer der Unterschied, desto stärker der Effekt dieser Eingabe."
+limit = "Punkte sind nur eine Umskalierung des Modells. Sie machen das Modell nicht richtiger."
+
+[glossary.score_band]
+term = "Score-Band (Dezil)"
+group = "economics"
+what = "Die Kredite werden nach Score sortiert und in zehn gleich große Gruppen geteilt, die Dezile. Für jede Gruppe lässt sich die vorhergesagte mit der beobachteten Ausfallrate vergleichen."
+how_to_read = "Ein gutes Modell zeigt von der sichersten zur riskantesten Gruppe eine stetig steigende Ausfallrate."
+limit = "Die Bänder beziehen sich auf diesen Datensatz. Ein Band ist keine Ratingklasse und hat keine feste Bedeutung."
+
+[glossary.cutoff]
+term = "Cut-off"
+group = "economics"
+what = "Der Score, ab dem ein Kredit abgelehnt wird. Das ist eine geschäftliche Entscheidung, die den Verlust durch einen Ausfall gegen den entgangenen Gewinn bei einem abgelehnten guten Kredit abwägt."
+how_to_read = "Ein niedrigerer Cut-off lehnt mehr Kredite ab: Weniger Ausfälle kommen durch, aber es gehen auch mehr gute Kunden verloren."
+limit = "Das Modell wählt den Cut-off nicht. Ein sinnvoller Cut-off auf kalibrierten Wahrscheinlichkeiten liegt weit unter 0,5, weil die meisten Kredite eine niedrige Ausfallwahrscheinlichkeit haben."
+
+[glossary.approval_rate]
+term = "Annahmequote"
+group = "economics"
+what = "Der Anteil der Antragsteller, deren Kredit bei einem bestimmten Cut-off angenommen wird. Sie ist die andere Seite des Cut-offs: Je niedriger der Cut-off, desto niedriger die Annahmequote."
+limit = "Die Quote wird auf Krediten berechnet, die die Plattform früher angenommen hat. Damals abgelehnte Antragsteller fehlen in den Daten."
+
+[glossary.expected_loss]
+term = "Expected Loss (EL)"
+group = "economics"
+what = "Der Verlust, den ein Kreditgeber bei einem Kredit im Durchschnitt erwartet: die Wahrscheinlichkeit des Ausfalls mal den Anteil der Forderung, der verloren geht, mal die Forderung zum Zeitpunkt des Ausfalls."
+how_to_read = "Die EL ist ein Durchschnitt, nicht der Verlust in einem schlechten Jahr. Unerwartete Verluste brauchen darüber hinaus Kapital."
+formula = '\mathrm{EL} = \mathrm{PD}\cdot\mathrm{LGD}\cdot\mathrm{EAD}'
+limit = "Dieses Projekt modelliert nur die PD. LGD und EAD werden nicht modelliert, eine EL braucht hier daher Annahmen dafür."
+
+[glossary.lgd]
+term = "Loss Given Default (LGD)"
+group = "economics"
+what = "Der Anteil der Forderung, der bei einem Ausfall nach Rückflüssen verloren geht. Gehen von 100 Franken 40 verloren, beträgt die LGD 40 Prozent."
+how_to_read = "0 heißt, alles wird zurückgeholt, 1 heißt, alles ist verloren."
+limit = "Die LGD wird in diesem Projekt nicht modelliert. Rückflüsse bei unbesicherten Konsumkrediten sind ein eigenes Modellierungsproblem."
+
+[glossary.ead]
+term = "Exposure at Default (EAD)"
+group = "economics"
+what = "Der Betrag, den ein Kreditgeber im Moment des Ausfalls noch ausstehen hat. Bei einem voll ausgezahlten Ratenkredit liegt er nahe am Restsaldo."
+limit = "Die EAD wird in diesem Projekt nicht modelliert. Sie ist bei Kreditlinien, die der Kunde noch ziehen kann, deutlich schwieriger."
+
+[glossary.basel_irb]
+term = "Basel IRB"
+group = "regulatory"
+what = "Beim auf internen Ratings basierenden Ansatz darf eine Bank eigene Schätzungen für PD, LGD und EAD verwenden, um das nötige Eigenkapital zu berechnen. Dafür braucht sie die ausdrückliche Zulassung der Aufsicht."
+limit = "Dieses Projekt liefert einen der drei Bausteine, die PD, und ist kein von der Aufsicht zugelassenes Modell. Details stehen im README."
+
+[glossary.ifrs9]
+term = "IFRS 9"
+group = "regulatory"
+what = "Ein Rechnungslegungsstandard, der von Banken verlangt, erwartete Kreditverluste im Voraus zu buchen. Kredite kommen in drei Stufen: Stufe 1 nutzt den erwarteten Verlust über 12 Monate, die Stufen 2 und 3 über die gesamte Laufzeit."
+limit = "IFRS 9 braucht Point-in-time-PDs, die auf die Wirtschaftslage reagieren. Dieses Projekt modelliert eine PD über die volle Kreditlaufzeit bei Vergabe. Details stehen im README."
+
+[glossary.finma]
+term = "FINMA"
+group = "regulatory"
+what = "Die Eidgenössische Finanzmarktaufsicht. Sie beaufsichtigt Banken, Versicherungen und andere Institute in der Schweiz und setzt dafür die Basel-Regeln um."
+limit = "In der Schweiz überwiegt der Standardansatz, bei dem keine interne PD in die Kapitalberechnung eingeht. Details stehen im README."
+
+[glossary.model_card]
+term = "Model Card"
+group = "regulatory"
+what = "Ein kurzes Dokument, das festhält, wofür ein Modell gedacht ist, auf welchen Daten es gebaut wurde, wie gut es funktioniert und wo es versagt. Es macht die Grenzen eines Modells für seine Nutzer sichtbar."
+limit = "Eine Model Card beschreibt ein Modell, sie validiert es nicht. Sie ersetzt keine unabhängige Prüfung."
+
+[glossary.model_validation]
+term = "Modellvalidierung"
+group = "regulatory"
+what = "Die unabhängige Prüfung eines Modells durch Personen, die es nicht gebaut haben: Daten, Methode, Güte, Stabilität und Verwendung. Banken müssen sie vor dem Einsatz eines Modells durchführen und regelmäßig wiederholen."
+limit = "Dieses Projekt hat keine Validierung im aufsichtlichen Sinn: keine unabhängige Funktion, keinen Out-of-Time-Test, kein laufendes Monitoring. Details stehen im README."
