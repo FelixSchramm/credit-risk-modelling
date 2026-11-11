@@ -30,8 +30,22 @@ next section.
   fixture, `bundle_env` sets `BUNDLE_PATH`), `tests/test_scoring.py`,
   `tests/test_app_smoke.py`. `streamlit==1.66.1` pinned, CI black covers
   `app` and `streamlit_app.py`. **Open PR for #31:** #49, state: reviewed, ready to merge (see "Review of #49").
-- **Next:** merge #49, then #40 (design system, adds `plotly`).
-  #30 (full run) can start any time.
+- **#40 implemented** (design system): `src/ci.json`, `static/` (font, OFL
+  licence) copied unchanged from stock_treemap at 02a9c98 (blob SHAs
+  verified), `.streamlit/config.toml` (light and dark, Questrial via
+  `fontFaces`), `src/design.py` (`series_color`, `model_color`,
+  `style_figure`), `app/ui.py` (`current_mode`, `show_chart`),
+  `tests/test_design.py`, `plotly==7.1.0` pinned, README section "Design".
+  **Open PR for #40:** #51, state: reviewed, ready to merge (see "Review of
+  #51"). Not verifiable without a
+  browser: Questrial visible in both modes and in charts, immediate switch via
+  the menu (orchestrator checks).
+- **Next:** #41 (i18n). #30 (full run) can start any time.
+- **Pitfalls from #40:** pages draw charts only via `show_chart(fig)` and take
+  colours from `model_color` / `series_color` with `current_mode()`; no hex
+  codes in `app/` (tested). `show_chart` uses `width="stretch"` because
+  `use_container_width` is deprecated in streamlit 1.66.1. Bar corner radius
+  is set through `marker_cornerradius` (plotly 7.1.0).
 - **Notes for #40 and later pages:** `PAGES` is a dict `key -> file`; the menu
   title is `key.capitalize()` for now, #41 translates it. `get_bundle()` is
   called once in `streamlit_app.py`, so a missing bundle stops every page; pages
@@ -42,6 +56,18 @@ next section.
   portfolio median, and a dummy default is the mode of that dummy, so the
   default forest row is not necessarily a real loan. Assumption: valid input
   fields are exactly the keys of `bundle["input_spec"]`.
+- **Review of #51:** all acceptance criteria of #40 met except the two that
+  need a browser. Blob SHAs of the three copied files equal the issue table and
+  the source at 02a9c98 (fetched via the GitHub API); every config value matches
+  `ci.json`. Tests discriminate: setting a background or font colour in
+  `style_figure`, moving the scorecard to slot 3, and adding a hex code to
+  `app/ui.py` each made a test fail. `use_container_width` is deprecated in
+  streamlit 1.66.1 (confirmed in source), so `width="stretch"` is right. No
+  code changes needed. Verdicts: the line width on marker-only scatter traces
+  is harmless (no line is drawn); legend at `y=1.02` sits in the top margin
+  below the left-aligned title at plotly's default margins (not rendered, no
+  overlap by layout values). Open, minor and not done: the legend has no test,
+  and `series_color(0, ...)` silently wraps to slot 7.
 - **Review of #49:** all acceptance criteria of #31 met; AppTest from outside
   the repo and a real headless start (health `ok`, no traceback) reproduced.
   Fixed: four tests did not discriminate (removing the scaler, the dummy

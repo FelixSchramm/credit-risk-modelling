@@ -126,6 +126,8 @@ credit-risk-modelling/
 │   ├── train.py                  # split, scaling, forest, scorecard, persistence
 │   ├── bundle.py                 # calibrated artefact bundle for the dashboard
 │   ├── scoring.py                # one application to a calibrated PD (no Streamlit)
+│   ├── design.py                 # chart rules and series colours of the design CI
+│   ├── ci.json                   # design tokens (copied from stock_treemap)
 │   └── evaluate.py               # ROC AUC, Gini, KS, classification report
 │
 ├── scripts/
@@ -133,12 +135,16 @@ credit-risk-modelling/
 │
 ├── streamlit_app.py              # dashboard entry point: sidebar and navigation
 ├── app/
-│   ├── ui.py                     # bundle loading and the page list (PAGES)
+│   ├── ui.py                     # bundle loading, page list, show_chart
 │   └── views/                    # one file per dashboard page
+│
+├── .streamlit/config.toml        # light and dark theme, static serving
+├── static/                       # Questrial web font and its licence
 │
 ├── tests/                        # pytest suite for src/, the script and the app
 │   ├── conftest.py               # synthetic bundle fixture
 │   ├── test_scoring.py
+│   ├── test_design.py
 │   ├── test_app_smoke.py
 │   ├── test_data_processing.py
 │   ├── test_features.py
@@ -159,6 +165,16 @@ credit-risk-modelling/
 `docs/`, `HANDOVER.md` and the `CLAUDE*.md` files at the repository root are
 working material for the ongoing rework of this repository, not part of the
 analysis.
+
+### Design
+
+The dashboard uses a personal design system (colours, chart rules,
+colour-vision-checked palettes) taken unchanged from
+[`FelixSchramm/stock_treemap`](https://github.com/FelixSchramm/stock_treemap)
+at commit `02a9c982127ba6a0e70cb090e9889d8dcb6e21fd` (`src/ci.json`). Light and
+dark theme are defined in `.streamlit/config.toml`; switch them in the
+Streamlit menu (System / Light / Dark). The font Questrial is licensed under
+the SIL Open Font License 1.1; the licence text is in `static/OFL-Questrial.txt`.
 
 ## Workflow
 
