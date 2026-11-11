@@ -128,6 +128,7 @@ credit-risk-modelling/
 │   ├── scoring.py                # one application to a calibrated PD (no Streamlit)
 │   ├── design.py                 # chart rules and series colours of the design CI
 │   ├── i18n.py                   # translations and number formats (no Streamlit)
+│   ├── glossary.py               # glossary entries, tooltips, project figures (no Streamlit)
 │   ├── locales/                  # en.toml and de.toml, same keys
 │   ├── ci.json                   # design tokens (copied from stock_treemap)
 │   └── evaluate.py               # ROC AUC, Gini, KS, classification report
@@ -148,6 +149,7 @@ credit-risk-modelling/
 │   ├── test_scoring.py
 │   ├── test_design.py
 │   ├── test_i18n.py
+│   ├── test_glossary.py
 │   ├── test_app_smoke.py
 │   ├── test_data_processing.py
 │   ├── test_features.py
@@ -184,6 +186,11 @@ the SIL Open Font License 1.1; the licence text is in `static/OFL-Questrial.txt`
 The dashboard is available in English (default) and German. Switch with the
 switcher at the top of the sidebar or open a page with `?lang=de`. Texts are in
 `src/locales/en.toml` and `src/locales/de.toml`.
+
+The glossary page explains every term of the dashboard in both languages (42
+entries in seven groups). Its entries are the `[glossary.<key>]` tables of the
+same two files; the short text of an entry is also the tooltip of the matching
+figure (`help_text(key)` in `app/ui.py`).
 
 ## Workflow
 
