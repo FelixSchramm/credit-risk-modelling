@@ -30,8 +30,21 @@ next section.
   fixture, `bundle_env` sets `BUNDLE_PATH`), `tests/test_scoring.py`,
   `tests/test_app_smoke.py`. `streamlit==1.66.1` pinned, CI black covers
   `app` and `streamlit_app.py`. **Open PR for #31:** #49, state: reviewed, ready to merge (see "Review of #49").
-- **Next:** merge #49, then #40 (design system, adds `plotly`).
-  #30 (full run) can start any time.
+- **#40 implemented** (design system): `src/ci.json`, `static/` (font, OFL
+  licence) copied unchanged from stock_treemap at 02a9c98 (blob SHAs
+  verified), `.streamlit/config.toml` (light and dark, Questrial via
+  `fontFaces`), `src/design.py` (`series_color`, `model_color`,
+  `style_figure`), `app/ui.py` (`current_mode`, `show_chart`),
+  `tests/test_design.py`, `plotly==7.1.0` pinned, README section "Design".
+  **Open PR for #40:** state: review pending. Not verifiable without a
+  browser: Questrial visible in both modes and in charts, immediate switch via
+  the menu (orchestrator checks).
+- **Next:** #41 (i18n). #30 (full run) can start any time.
+- **Pitfalls from #40:** pages draw charts only via `show_chart(fig)` and take
+  colours from `model_color` / `series_color` with `current_mode()`; no hex
+  codes in `app/` (tested). `show_chart` uses `width="stretch"` because
+  `use_container_width` is deprecated in streamlit 1.66.1. Bar corner radius
+  is set through `marker_cornerradius` (plotly 7.1.0).
 - **Notes for #40 and later pages:** `PAGES` is a dict `key -> file`; the menu
   title is `key.capitalize()` for now, #41 translates it. `get_bundle()` is
   called once in `streamlit_app.py`, so a missing bundle stops every page; pages
