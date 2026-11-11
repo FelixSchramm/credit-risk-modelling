@@ -1,0 +1,26 @@
+[server]
+# Serves the folder static/ next to streamlit_app.py under the URL prefix
+# app/static/ (unrelated to this repo's app/ folder).
+enableStaticServing = true
+
+[theme]
+font = "Questrial"
+headingFont = "Questrial"
+
+[[theme.fontFaces]]
+family = "Questrial"
+url = "app/static/Questrial-Regular.ttf"
+weight = 400
+style = "normal"
+
+[theme.dark]
+primaryColor = "#8EBC91"
+backgroundColor = "#0F120F"
+secondaryBackgroundColor = "#161A17"
+textColor = "#EDEFEA"
+
+[theme.light]
+primaryColor = "#2E5A2E"
+backgroundColor = "#F6F7F4"
+secondaryBackgroundColor = "#FBFBF8"
+textColor = "#1A1A1A"
