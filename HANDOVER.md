@@ -44,8 +44,8 @@ next section.
   `fmt_percent`, `SEPARATORS`), `src/locales/{en,de}.toml`, `app/ui.py`
   (`init_language`, `current_lang`, `t`, `num`, `pct`; `show_chart` passes the
   separators), language `st.radio` (key `lang`) at the top of the sidebar,
-  `tests/test_i18n.py`, extended smoke tests. **Open PR for #41:** see the PR
-  list, state: review pending. Not verifiable without a browser: switcher
+  `tests/test_i18n.py`, extended smoke tests. **Open PR for #41:** #52,
+  state: review pending. Not verifiable without a browser: switcher
   position and look, German texts rendered, `?lang=de` direct link in a real
   browser (AppTest and a headless start only).
 - **Next:** #42 (glossary). #30 (full run) can start any time.
