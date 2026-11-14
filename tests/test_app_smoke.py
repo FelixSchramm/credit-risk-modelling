@@ -6,6 +6,8 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from app.ui import PAGES
+from src.bundle import load_bundle
+from src.i18n import fmt_number, fmt_percent, translate
 
 ENTRY = str(Path(__file__).resolve().parents[1] / "streamlit_app.py")
 
@@ -96,3 +98,28 @@ def test_glossary_search_without_hits_shows_a_message(bundle_env):
     assert not at.exception
     assert len(at.expander) == 0
     assert at.info[0].value == "No entry matches your search."
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_start_page_shows_four_tiles_with_bundle_values(lang, bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = AppTest.from_file(ENTRY, default_timeout=30)
+    at.query_params["lang"] = lang
+    at.run()
+    assert not at.exception
+    rf = bundle["metrics"]["rf"]
+    expected = [
+        fmt_number(rf["roc_auc"], 3, lang),
+        fmt_number(rf["gini"], 3, lang),
+        fmt_number(rf["ks"], 3, lang),
+        fmt_percent(bundle["y_test"].mean(), 1, lang),
+    ]
+    assert [metric.value for metric in at.metric] == expected
+    assert all(metric.help for metric in at.metric)
+
+
+def test_start_page_guide_describes_every_other_page(bundle_env):
+    at = AppTest.from_file(ENTRY, default_timeout=30).run()
+    captions = [caption.value for caption in at.caption]
+    for key in PAGES.keys() - {"home"}:
+        assert translate(f"nav_desc.{key}", "en") in captions
