@@ -17,6 +17,30 @@ def _purpose_dummies(bundle: dict) -> list[str]:
     return [n for n in bundle["feature_names"] if n.startswith("purpose_")]
 
 
+COUPLED = ["funded_amnt", "funded_amnt_inv", "installment", "fico_range_high"]
+
+
+@pytest.fixture
+def coupled_bundle(bundle) -> dict:
+    """The synthetic bundle with the four coupled columns, as in the real one."""
+    zeros = dict.fromkeys(COUPLED, 0.0)
+    return {
+        **bundle,
+        "feature_names": bundle["feature_names"] + COUPLED,
+        "feature_defaults": {**bundle["feature_defaults"], **zeros},
+        "scorecard_columns": bundle["scorecard_columns"] + COUPLED,
+        "scorecard_defaults": {**bundle["scorecard_defaults"], **zeros},
+    }
+
+
+def _coupled_rows(user_input: dict, bundle: dict) -> list[pd.Series]:
+    """Forest vector and scorecard row of one application."""
+    return [
+        build_feature_vector(user_input, bundle).iloc[0],
+        build_scorecard_row(user_input, bundle).iloc[0],
+    ]
+
+
 def test_vector_has_exactly_the_feature_names_in_order(bundle):
     vector = build_feature_vector({"loan_amnt": 5000}, bundle)
     assert list(vector.columns) == bundle["feature_names"]
@@ -89,6 +113,43 @@ def test_scorecard_row_keeps_raw_categories_and_column_order(bundle):
     assert row.iloc[0]["purpose"] == "car"
     assert row.iloc[0]["term"] == " 60 months"
     assert row.iloc[0]["annual_inc"] == bundle["scorecard_defaults"]["annual_inc"]
+
+
+def test_funded_amounts_follow_the_loan_amount(coupled_bundle):
+    for row in _coupled_rows({"loan_amnt": 7500}, coupled_bundle):
+        assert row["funded_amnt"] == row["funded_amnt_inv"] == 7500
+
+
+def test_fico_range_high_is_low_plus_four(coupled_bundle):
+    for row in _coupled_rows({"fico_range_low": 720}, coupled_bundle):
+        assert row["fico_range_high"] == 724
+
+
+def test_installment_is_the_annuity_for_both_terms(coupled_bundle):
+    # 12,000 at 12.74 % over 36 months costs 402.83 a month (the real bundle's
+    # median installment 373.77 is a median of different loans, not this one);
+    # the 60-month loan is checked by paying it off: the balance ends at zero.
+    user_input = {"loan_amnt": 12000, "int_rate": 12.74, "term": " 36 months"}
+    for row in _coupled_rows(user_input, coupled_bundle):
+        assert row["installment"] == pytest.approx(402.83, abs=0.005)
+    user_input["term"] = " 60 months"
+    for row in _coupled_rows(user_input, coupled_bundle):
+        monthly_rate = 0.1274 / 12
+        balance = 12000.0
+        for _ in range(60):
+            balance = balance * (1 + monthly_rate) - row["installment"]
+        assert balance == pytest.approx(0, abs=1e-6)
+
+
+def test_coupled_columns_use_the_defaults_for_missing_inputs(coupled_bundle):
+    defaults = coupled_bundle["scorecard_defaults"]
+    for row in _coupled_rows({"purpose": "car"}, coupled_bundle):
+        assert row["funded_amnt"] == defaults["loan_amnt"]
+        assert row["fico_range_high"] == defaults["fico_range_low"] + 4
+
+
+def test_coupled_columns_are_left_alone_if_the_bundle_has_none(bundle):
+    assert "funded_amnt" not in build_feature_vector({"loan_amnt": 5000}, bundle)
 
 
 def test_score_returns_probabilities_for_both_models(bundle):
