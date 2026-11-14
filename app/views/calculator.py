@@ -159,6 +159,9 @@ def _labels(table: pd.DataFrame) -> list[str]:
     for feature, value in zip(table["feature"], table.get("value", [])):
         if pd.isna(value):
             labels.append(feature)
+        elif feature == "issue_year":
+            # A year is not a quantity: no thousands separator.
+            labels.append(f"{feature}: {int(value)}")
         elif isinstance(value, str):
             labels.append(f"{feature}: {value.strip()}")
         else:
@@ -205,6 +208,7 @@ def _waterfall(table: pd.DataFrame, base: float) -> go.Figure:
     pad = (high - low) * 0.25 or 0.01
     fig.update_xaxes(title=t("calculator.rf_axis"), range=[low - pad, high + pad])
     fig.update_yaxes(autorange="reversed")
+    fig.update_layout(margin={"t": 20})
     return fig
 
 
@@ -232,8 +236,12 @@ def _contribution_bars(table: pd.DataFrame) -> go.Figure:
             hoverinfo="text",
         )
     )
-    fig.update_xaxes(title=t("calculator.sc_axis"))
+    # Room on both sides so the outside labels of the longest bars are not cut off.
+    low, high = min(0, contributions.min()), max(0, contributions.max())
+    pad = (high - low) * 0.15
+    fig.update_xaxes(title=t("calculator.sc_axis"), range=[low - pad, high + pad])
     fig.update_yaxes(autorange="reversed")
+    fig.update_layout(margin={"t": 20})
     return fig
 
 
