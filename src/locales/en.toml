@@ -4,6 +4,7 @@ title = "Credit risk dashboard"
 [nav]
 home = "Home"
 glossary = "Glossary"
+calculator = "Calculator"
 
 [common]
 language = "Language"
@@ -31,6 +32,7 @@ link_github = "GitHub repository"
 
 [nav_desc]
 glossary = "Every term and figure explained in plain language."
+calculator = "Enter an application and see the default probability of both models."
 
 [glossary_page]
 title = "Glossary"
@@ -348,3 +350,30 @@ term = "Model validation"
 group = "regulatory"
 what = "The independent review of a model by people who did not build it: data, method, performance, stability and use. Banks must do it before a model goes live and repeat it regularly."
 limit = "This project has no validation in the supervisory sense: no independent function, no out-of-time test, no ongoing monitoring. Details are in the README."
+
+[calculator]
+title = "Applicant calculator"
+notice = "This is not a credit decision. You enter {n_inputs} of {n_features} model inputs, every other input stays at the portfolio median. The result compares applications, all else being equal; it does not assess a real applicant. The models were trained on US retail loans from 2015-2018."
+inputs_title = "Application"
+derived = "Funded amount, installment and FICO high are derived from your inputs."
+compare = "Compare with a second variant"
+variant_a = "Variant A"
+variant_b = "Variant B"
+results_title = "Default probability"
+label_loan_amnt = "Loan amount (USD)"
+label_term = "Term"
+label_int_rate = "Interest rate (% per year)"
+label_annual_inc = "Annual income (USD)"
+label_dti = "Debt-to-income ratio (%)"
+label_fico_range_low = "FICO score"
+label_emp_length = "Employment length"
+label_purpose = "Purpose"
+term_months = "{months} months"
+model_rf = "Random forest"
+model_scorecard = "WOE scorecard"
+metric_pd = "Default probability"
+metric_band = "Risk band"
+band_value = "{band} of {n_bands}"
+percentile = "Riskier than {share} of the test loans."
+delta_pp = "{value} pp vs. variant A"
+models_differ = "The two models rate this application in clearly different risk bands. That is a finding, not an error: they weigh the inputs differently."
