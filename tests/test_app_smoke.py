@@ -1,5 +1,6 @@
 """Smoke tests of the Streamlit app with ``streamlit.testing.v1.AppTest``."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -153,7 +154,8 @@ def test_calculator_shows_both_calibrated_pds_and_the_notice(lang, bundle_env):
     expected = score(defaults, bundle)
     pds = [at.metric[0].value, at.metric[2].value]
     assert pds == [fmt_percent(expected[m], 1, lang) for m in ("rf", "scorecard")]
-    assert len(at.metric) == 4
+    # Four result metrics, then the two of the forest explanation.
+    assert len(at.metric) == 4 + 2
     assert all(metric.help for metric in at.metric)
     notice = translate(
         "calculator.notice",
@@ -183,9 +185,51 @@ def test_calculator_variant_b_shows_the_pd_difference(bundle_env):
     at.toggle(key="compare").set_value(True).run()
     at.number_input(key="b_int_rate").set_value(25.0).run()
     assert not at.exception
-    assert len(at.metric) == 8
+    assert len(at.metric) == 8 + 2
     assert at.metric[4].delta.startswith("+")
     assert at.metric[4].delta.endswith("pp vs. variant A")
+
+
+def _charts(at) -> list[dict]:
+    """The Plotly figures of the page as dicts (data and layout)."""
+    return [json.loads(chart.proto.spec) for chart in at.get("plotly_chart")]
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_calculator_explains_the_score_with_two_plotly_charts(lang, bundle_env):
+    at = _calculator(lang, bundle_env)
+    assert not at.exception
+    waterfall, bars = _charts(at)
+    assert waterfall["data"][0]["type"] == "waterfall"
+    assert bars["data"][0]["type"] == "bar"
+    # Direction is readable without colour: signed labels on every step.
+    assert all(s.startswith(("+", "-")) for s in waterfall["data"][0]["text"][1:-1])
+    assert all(s.startswith(("+", "-")) for s in bars["data"][0]["text"])
+    bundle = load_bundle(bundle_env)
+    note = translate(
+        "calculator.rf_uncalibrated",
+        lang,
+        base_rate=fmt_percent(bundle["base_rate"], 1, lang),
+    )
+    assert note in [info.value for info in at.info]
+
+
+def test_calculator_waterfall_ends_at_base_plus_all_steps(bundle_env):
+    waterfall = _charts(_calculator("en", bundle_env))[0]["data"][0]
+    base, *steps, total = waterfall["x"]
+    assert waterfall["measure"][0] == "absolute" and waterfall["measure"][-1] == "total"
+    assert base + sum(steps) == pytest.approx(total)
+
+
+def test_calculator_explanation_follows_variant_a_in_compare_mode(bundle_env):
+    at = _calculator("en", bundle_env)
+    before = _charts(at)[1]["data"][0]["x"]
+    at.toggle(key="compare").set_value(True).run()
+    at.number_input(key="b_int_rate").set_value(20.0).run()
+    assert len(_charts(at)) == 2
+    assert _charts(at)[1]["data"][0]["x"] == before
+    at.number_input(key="a_int_rate").set_value(20.0).run()
+    assert _charts(at)[1]["data"][0]["x"] != before
 
 
 @pytest.mark.parametrize("start, target", [("en", "de"), ("de", "en")])
