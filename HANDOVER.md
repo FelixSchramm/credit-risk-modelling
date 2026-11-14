@@ -94,10 +94,20 @@ next section.
   from the bundle with `num`/`pct`/`help_text`, notice, five "what I did"
   points incl. the leakage story, guide, link buttons), `LINKS` in `app/ui.py`,
   `[home]` and `[nav_desc]` in both locale files, two smoke tests. **Open PR
-  for #43:** #54, state: review pending. Headless start and a
+  for #43:** #54, state: reviewed, ready to merge (see "Review of PR #54"). Headless start and a
   1280x800 Chromium check (synthetic bundle, DE and EN): problem sentence and
   all four tiles end at y=412, no scrolling needed. Not verifiable without a
   browser: both themes visually, tooltips on hover, `page_link` click.
+- **Review of PR #54:** all acceptance criteria of #43 met; first screen
+  checked with Playwright at 1280x800 in light and dark, DE and EN (tiles,
+  notice and first bullets visible); README facts (0.9999 leakage story,
+  calibration, 2015-2018 window) verified; DE/EN key parity; pytest, black,
+  ruff, AppTest in both languages, headless health `ok`. Fixed: German
+  "Datenleck" (data breach) to "Data Leakage", EN "20 %" to "20%", and a test
+  for the notice (removing it was not caught). Judged acceptable: the guide
+  skips the home page. Open, minor: the guide test only asserts a superset, so
+  dropping the `key != "home"` condition is not caught. Not checked: tooltip
+  hover, `page_link` click.
 - **Open point (user):** LinkedIn and website URLs were not provided (no
   comment on #43), so those links are left out. To add one: entry in `LINKS`
   (`app/ui.py`) and `home.link_<key>` in both locale files.
