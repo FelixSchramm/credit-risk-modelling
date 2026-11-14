@@ -30,6 +30,32 @@ def _check_input(user_input: dict[str, object], bundle: dict[str, object]) -> No
             raise ValueError(f"Unknown category {value!r} for {field!r}")
 
 
+def _coupled_columns(values: dict[str, object], term_months: int) -> dict[str, float]:
+    """Derive the model columns that are tied to the inputs.
+
+    Decision: ``funded_amnt``, ``funded_amnt_inv``, ``fico_range_high`` and
+    ``installment`` are model features, but the user cannot enter them. Left at
+    the portfolio median they would describe an impossible loan (e.g. a funded
+    amount unequal to the loan amount), so they follow the effective values
+    (input, else default): both amounts equal ``loan_amnt``, ``fico_range_high``
+    is ``fico_range_low`` + 4, ``installment`` is the annuity of ``loan_amnt``
+    at ``int_rate`` (percent per year) over ``term_months``.
+
+    :param values: Effective values of one application, including the defaults.
+    :param term_months: Term in months (36 or 60).
+    :return: Derived value per column, only for columns that are in ``values``.
+    """
+    amount = values["loan_amnt"]
+    monthly_rate = values["int_rate"] / 1200
+    derived = {
+        "funded_amnt": amount,
+        "funded_amnt_inv": amount,
+        "fico_range_high": values["fico_range_low"] + 4,
+        "installment": amount * monthly_rate / (1 - (1 + monthly_rate) ** -term_months),
+    }
+    return {name: value for name, value in derived.items() if name in values}
+
+
 def build_feature_vector(
     user_input: dict[str, object], bundle: dict[str, object]
 ) -> pd.DataFrame:
@@ -62,6 +88,7 @@ def build_feature_vector(
             for name in names:
                 if name.startswith(f"{field}_") and name not in raw_columns:
                     values[name] = name == f"{field}_{value}"
+    values.update(_coupled_columns(values, values["term"]))
     return pd.DataFrame([values])[names]
 
 
@@ -78,6 +105,8 @@ def build_scorecard_row(
     """
     _check_input(user_input, bundle)
     values = {**bundle["scorecard_defaults"], **user_input}
+    term_months = int(values["term"].split()[0])
+    values.update(_coupled_columns(values, term_months))
     return pd.DataFrame([values])[bundle["scorecard_columns"]]
 
 

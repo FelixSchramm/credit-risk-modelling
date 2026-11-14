@@ -4,6 +4,7 @@ title = "Kreditrisiko-Dashboard"
 [nav]
 home = "Start"
 glossary = "Glossar"
+calculator = "Rechner"
 
 [common]
 language = "Sprache"
@@ -31,6 +32,7 @@ link_github = "GitHub-Repository"
 
 [nav_desc]
 glossary = "Alle Begriffe und Kennzahlen in einfacher Sprache erklärt."
+calculator = "Antrag eingeben und die Ausfallwahrscheinlichkeit beider Modelle sehen."
 
 [glossary_page]
 title = "Glossar"
@@ -348,3 +350,29 @@ term = "Modellvalidierung"
 group = "regulatory"
 what = "Die unabhängige Prüfung eines Modells durch Personen, die es nicht gebaut haben: Daten, Methode, Güte, Stabilität und Verwendung. Banken müssen sie vor dem Einsatz eines Modells durchführen und regelmäßig wiederholen."
 limit = "Dieses Projekt hat keine Validierung im aufsichtlichen Sinn: keine unabhängige Funktion, keinen Out-of-Time-Test, kein laufendes Monitoring. Details stehen im README."
+
+[calculator]
+title = "Antragsteller-Rechner"
+notice = "Das ist keine Kreditentscheidung. Du gibst {n_inputs} von {n_features} Modelleingaben ein, alle anderen bleiben auf dem Portfolio-Median. Das Ergebnis vergleicht Anträge unter sonst gleichen Bedingungen und beurteilt keinen echten Antragsteller. Die Modelle wurden mit US-Konsumentenkrediten aus 2015-2018 trainiert."
+inputs_title = "Antrag"
+derived = "Ausgezahlter Betrag, Rate und FICO high werden aus deinen Eingaben abgeleitet."
+compare = "Mit Variante B vergleichen"
+variant_a = "Variante A"
+variant_b = "Variante B"
+results_title = "Ausfallwahrscheinlichkeit"
+label_loan_amnt = "Kreditbetrag (USD)"
+label_term = "Laufzeit"
+label_int_rate = "Zinssatz (% pro Jahr)"
+label_annual_inc = "Jahreseinkommen (USD)"
+label_dti = "Schulden im Verhältnis zum Einkommen (%)"
+label_fico_range_low = "FICO-Score"
+label_emp_length = "Beschäftigungsdauer"
+label_purpose = "Verwendungszweck"
+model_rf = "Random Forest"
+model_scorecard = "WOE-Scorecard"
+metric_pd = "Ausfallwahrscheinlichkeit"
+metric_band = "Risikoband"
+band_value = "{band} von {n_bands}"
+percentile = "Riskanter als {share} der Testkredite."
+delta_pp = "{value} Pp. ggü. Variante A"
+models_differ = "Die beiden Modelle ordnen diesen Antrag in deutlich verschiedene Risikobänder ein. Das ist ein Befund, kein Fehler: Sie gewichten die Eingaben unterschiedlich."
