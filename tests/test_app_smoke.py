@@ -81,6 +81,12 @@ def test_glossary_search_reduces_the_entries(lang, bundle_env):
     at.text_input(key="glossary_search").set_value("gini").run()
     assert not at.exception
     assert 0 < len(at.expander) < all_entries
+    lower_hits = len(at.expander)
+    at.text_input(key="glossary_search").set_value("GINI").run()
+    assert len(at.expander) == lower_hits
+    # "FINMA" appears only in capitals, so the text must be lower-cased as well.
+    at.text_input(key="glossary_search").set_value("finma").run()
+    assert [expander.label for expander in at.expander] == ["FINMA"]
 
 
 def test_glossary_search_without_hits_shows_a_message(bundle_env):
