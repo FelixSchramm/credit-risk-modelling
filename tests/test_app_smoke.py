@@ -118,6 +118,14 @@ def test_start_page_shows_four_tiles_with_bundle_values(lang, bundle_env):
     assert all(metric.help for metric in at.metric)
 
 
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_start_page_shows_the_demo_notice(lang, bundle_env):
+    at = AppTest.from_file(ENTRY, default_timeout=30)
+    at.query_params["lang"] = lang
+    at.run()
+    assert [w.value for w in at.warning] == [translate("home.notice", lang)]
+
+
 def test_start_page_guide_describes_every_other_page(bundle_env):
     at = AppTest.from_file(ENTRY, default_timeout=30).run()
     captions = [caption.value for caption in at.caption]
