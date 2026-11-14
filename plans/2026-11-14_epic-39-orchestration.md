@@ -20,8 +20,8 @@ is lost when a session ends unexpectedly.
 | Issue | Content | State |
 |---|---|---|
 | #42 | Glossary | merged (PR #53, d6cc1a0), issue closed |
-| #43 | Start page | PR #54, review running (LinkedIn/website URLs from the user pending) |
-| #32 | Applicant calculator, incl. derived coupled features | open |
+| #43 | Start page | merged (PR #54, 02d63b2); LinkedIn/website URLs from the user still pending |
+| #32 | Applicant calculator, incl. derived coupled features | worker running |
 | #33 | Single-score explanation | open |
 | #34 | Model quality | open |
 | #35 | Cut-off and expected loss | open |
