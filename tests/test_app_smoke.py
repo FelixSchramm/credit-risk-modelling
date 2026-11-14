@@ -8,6 +8,7 @@ from streamlit.testing.v1 import AppTest
 from app.ui import PAGES
 from src.bundle import load_bundle
 from src.i18n import fmt_number, fmt_percent, translate
+from src.scoring import score
 
 ENTRY = str(Path(__file__).resolve().parents[1] / "streamlit_app.py")
 
@@ -131,3 +132,57 @@ def test_start_page_guide_describes_every_other_page(bundle_env):
     captions = [caption.value for caption in at.caption]
     for key in PAGES.keys() - {"home"}:
         assert translate(f"nav_desc.{key}", "en") in captions
+
+
+def _calculator(lang, bundle_env):
+    at = AppTest.from_file(ENTRY, default_timeout=30)
+    at.query_params["lang"] = lang
+    at.run()
+    return at.switch_page(PAGES["calculator"]).run()
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_calculator_shows_both_calibrated_pds_and_the_notice(lang, bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = _calculator(lang, bundle_env)
+    assert not at.exception
+    defaults = {
+        field: spec.get("median", spec.get("default"))
+        for field, spec in bundle["input_spec"].items()
+    }
+    expected = score(defaults, bundle)
+    pds = [at.metric[0].value, at.metric[2].value]
+    assert pds == [fmt_percent(expected[m], 1, lang) for m in ("rf", "scorecard")]
+    assert len(at.metric) == 4
+    assert all(metric.help for metric in at.metric)
+    notice = translate(
+        "calculator.notice",
+        lang,
+        n_inputs=fmt_number(len(bundle["input_spec"]), 0, lang),
+        n_features=fmt_number(len(bundle["feature_names"]), 0, lang),
+    )
+    assert [w.value for w in at.warning] == [notice]
+
+
+def test_calculator_variant_b_shows_the_pd_difference(bundle_env):
+    at = _calculator("en", bundle_env)
+    at.toggle(key="compare").set_value(True).run()
+    at.number_input(key="b_int_rate").set_value(25.0).run()
+    assert not at.exception
+    assert len(at.metric) == 8
+    assert at.metric[4].delta.startswith("+")
+    assert at.metric[4].delta.endswith("pp vs. variant A")
+
+
+def test_calculator_input_survives_a_language_switch(bundle_env):
+    # English to German only: AppTest cannot interact with a page whose
+    # selectbox options are translated (it compares raw values with them).
+    at = _calculator("en", bundle_env)
+    at.number_input(key="a_int_rate").set_value(21.5).run()
+    # By index: AppTest sees the translated option texts, not the raw values.
+    at.selectbox(key="a_term").select_index(1).run()
+    at.sidebar.radio(key="lang").set_value("de").run()
+    assert not at.exception
+    assert at.number_input(key="a_int_rate").value == 21.5
+    assert at.selectbox(key="a_term").value == " 60 months"
+    assert at.title[0].value == translate("calculator.title", "de")
