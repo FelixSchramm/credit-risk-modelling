@@ -127,7 +127,7 @@ next section.
   B's PD metrics carry the difference to A as delta (`delta_color="inverse"`).
   Hint when the models are `DIVERGENCE_BANDS` (2) bands apart. The limitation
   notice is an `st.warning` directly under the title (bottom edge at y=289 at
-  1280x800, DE and EN). **Open PR for #32:** #PR, state: review pending.
+  1280x800, DE and EN). **Open PR for #32:** #55, state: review pending.
 - **Coupled-feature fix (open point of the review of #49: resolved):**
   `_coupled_columns` in `src/scoring.py` derives `funded_amnt`,
   `funded_amnt_inv` (= `loan_amnt`), `fico_range_high` (= low + 4) and
