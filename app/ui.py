@@ -33,6 +33,10 @@ DEFAULT_BUNDLE_PATH = (
 #: All pages: key and file. Navigation, start page and smoke test read this.
 PAGES = {"home": "app/views/home.py", "glossary": "app/views/glossary.py"}
 
+#: External links of the start page. LinkedIn and website are added here (plus
+#: ``home.link_<key>`` in both locale files) once the owner provides the URLs.
+LINKS = {"github": "https://github.com/FelixSchramm/credit-risk-modelling"}
+
 
 @st.cache_resource
 def _load(path: str) -> dict[str, object]:

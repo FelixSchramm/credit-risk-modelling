@@ -12,7 +12,25 @@ bundle_missing = "Model bundle not found at `{path}`. Build it with `python scri
 
 [home]
 title = "Credit risk dashboard"
-intro = "Probability of default on LendingClub loans: random forest and scorecard."
+problem = "How likely is a consumer loan to default? This dashboard estimates the probability of default (PD) of LendingClub loans with a random forest and compares it with a classical scorecard."
+metrics_title = "How good is the model? (random forest, test loans)"
+metric_auc = "ROC AUC"
+metric_gini = "Gini"
+metric_ks = "KS"
+metric_base_rate = "Default rate (test set)"
+notice = "Demo on historical US data (LendingClub, loans issued 2015-2018). This is not a real credit decision."
+done_title = "What I did"
+done_leakage = "**Removed data leakage.** The first model reached a ROC AUC of 0.9999 because it contained columns that are only known after the loan outcome. I removed them, so the AUC is now realistic instead of flattering."
+done_calibration = "**Calibrated the scores** to real probabilities, so a score of 0.2 means about 20% of such loans default."
+done_comparison = "**Compared the random forest with a WOE scorecard**, the classical method in banks."
+done_explain = "**Explained every single score**, so each decision can be traced to its inputs."
+done_limits = "**Stated the model limits openly**, including what the data cannot show."
+guide_title = "Where to read on"
+links_title = "Links"
+link_github = "GitHub repository"
+
+[nav_desc]
+glossary = "Every term and figure explained in plain language."
 
 [glossary_page]
 title = "Glossary"

@@ -12,7 +12,25 @@ bundle_missing = "Modell-Bundle nicht gefunden unter `{path}`. Erzeuge es mit `p
 
 [home]
 title = "Kreditrisiko-Dashboard"
-intro = "Ausfallwahrscheinlichkeit von LendingClub-Krediten: Random Forest und Scorecard."
+problem = "Wie wahrscheinlich fällt ein Konsumentenkredit aus? Dieses Dashboard schätzt die Ausfallwahrscheinlichkeit (PD) von LendingClub-Krediten mit einem Random Forest und vergleicht sie mit einer klassischen Scorecard."
+metrics_title = "Wie gut ist das Modell? (Random Forest, Testkredite)"
+metric_auc = "ROC AUC"
+metric_gini = "Gini"
+metric_ks = "KS"
+metric_base_rate = "Ausfallrate (Testset)"
+notice = "Demo auf historischen US-Daten (LendingClub, Kredite aus 2015-2018). Keine echte Kreditentscheidung."
+done_title = "Was ich gemacht habe"
+done_leakage = "**Data Leakage beseitigt.** Die erste Modellversion erreichte eine ROC AUC von 0,9999, weil Spalten enthalten waren, die erst nach dem Kreditausgang bekannt sind. Ich habe sie entfernt, deshalb ist die AUC jetzt realistisch statt geschönt."
+done_calibration = "**Scores kalibriert**, sodass sie echte Wahrscheinlichkeiten sind: Ein Score von 0,2 heißt, dass etwa 20 % solcher Kredite ausfallen."
+done_comparison = "**Random Forest mit einer WOE-Scorecard verglichen**, der klassischen Methode in Banken."
+done_explain = "**Jeden Einzelscore erklärt**, sodass sich jede Entscheidung auf ihre Eingaben zurückführen lässt."
+done_limits = "**Modellgrenzen offen benannt**, auch das, was die Daten nicht zeigen können."
+guide_title = "Hier geht es weiter"
+links_title = "Links"
+link_github = "GitHub-Repository"
+
+[nav_desc]
+glossary = "Alle Begriffe und Kennzahlen in einfacher Sprache erklärt."
 
 [glossary_page]
 title = "Glossar"

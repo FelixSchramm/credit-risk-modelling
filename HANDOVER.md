@@ -89,7 +89,34 @@ next section.
   historical AUC 0.9999 as text (a README fact, not a bundle value);
   `glossary.py` imports the private `_texts` from `i18n`; the README link text
   stays English in both languages.
-- **Next:** #43 (start page). #30 (full run) can start any time.
+- **#43 implemented** (start page): `app/views/home.py` (problem sentence, four
+  `st.metric(border=True)` tiles for forest AUC, Gini, KS and test default rate
+  from the bundle with `num`/`pct`/`help_text`, notice, five "what I did"
+  points incl. the leakage story, guide, link buttons), `LINKS` in `app/ui.py`,
+  `[home]` and `[nav_desc]` in both locale files, two smoke tests. **Open PR
+  for #43:** #54, state: reviewed, ready to merge (see "Review of PR #54"). Headless start and a
+  1280x800 Chromium check (synthetic bundle, DE and EN): problem sentence and
+  all four tiles end at y=412, no scrolling needed. Not verifiable without a
+  browser: both themes visually, tooltips on hover, `page_link` click.
+- **Review of PR #54:** all acceptance criteria of #43 met; first screen
+  checked with Playwright at 1280x800 in light and dark, DE and EN (tiles,
+  notice and first bullets visible); README facts (0.9999 leakage story,
+  calibration, 2015-2018 window) verified; DE/EN key parity; pytest, black,
+  ruff, AppTest in both languages, headless health `ok`. Fixed: German
+  "Datenleck" (data breach) to "Data Leakage", EN "20 %" to "20%", and a test
+  for the notice (removing it was not caught). Judged acceptable: the guide
+  skips the home page. Open, minor: the guide test only asserts a superset, so
+  dropping the `key != "home"` condition is not caught. Not checked: tooltip
+  hover, `page_link` click.
+- **Open point (user):** LinkedIn and website URLs were not provided (no
+  comment on #43), so those links are left out. To add one: entry in `LINKS`
+  (`app/ui.py`) and `home.link_<key>` in both locale files.
+- **Pitfalls from #43:** the guide is built from `PAGES` and skips `home`; each
+  new page in `PAGES` (#32-#37) needs `nav.<key>` and `nav_desc.<key>` in both
+  locale files, otherwise the start page raises `KeyError`. The 0.9999 AUC in
+  `home.done_leakage` is a README fact quoted as text, like in the glossary.
+  The German texts use "ß" like the existing ones.
+- **Next:** #32 (applicant calculator). #30 (full run) can start any time.
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:
