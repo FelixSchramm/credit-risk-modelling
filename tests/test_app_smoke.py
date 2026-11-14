@@ -174,15 +174,13 @@ def test_calculator_variant_b_shows_the_pd_difference(bundle_env):
     assert at.metric[4].delta.endswith("pp vs. variant A")
 
 
-def test_calculator_input_survives_a_language_switch(bundle_env):
-    # English to German only: AppTest cannot interact with a page whose
-    # selectbox options are translated (it compares raw values with them).
-    at = _calculator("en", bundle_env)
+@pytest.mark.parametrize("start, target", [("en", "de"), ("de", "en")])
+def test_calculator_input_survives_a_language_switch(start, target, bundle_env):
+    at = _calculator(start, bundle_env)
     at.number_input(key="a_int_rate").set_value(21.5).run()
-    # By index: AppTest sees the translated option texts, not the raw values.
-    at.selectbox(key="a_term").select_index(1).run()
-    at.sidebar.radio(key="lang").set_value("de").run()
+    at.selectbox(key="a_term").select(" 60 months").run()
+    at.sidebar.radio(key="lang").set_value(target).run()
     assert not at.exception
     assert at.number_input(key="a_int_rate").value == 21.5
     assert at.selectbox(key="a_term").value == " 60 months"
-    assert at.title[0].value == translate("calculator.title", "de")
+    assert at.title[0].value == translate("calculator.title", target)

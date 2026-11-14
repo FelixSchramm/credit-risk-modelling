@@ -48,17 +48,13 @@ def _input(field: str, spec: dict[str, object], variant: str) -> object:
         categories = sorted(categories, key=convert_emp_length)
     # Variant B starts with the other term: the typical what-if is 36 vs. 60.
     default = categories[-1] if field == "term" and variant == "b" else spec["default"]
-    format_func = str
-    if field == "term":
-
-        def format_func(value: str) -> str:
-            return t("calculator.term_months", months=value.split()[0])
-
+    # Categories are data values and stay untranslated; strip only the padding
+    # (" 36 months") that the raw column carries.
     return st.selectbox(
         label,
         categories,
         categories.index(default),
-        format_func=format_func,
+        format_func=str.strip,
         key=key,
     )
 
