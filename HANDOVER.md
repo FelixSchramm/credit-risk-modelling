@@ -49,6 +49,19 @@ next section.
   a browser: switcher position and look, German texts rendered, `?lang=de`
   direct link in a real browser, highlighting of the active `page_link`
   (AppTest and a headless start only).
+- **Review of PR #53:** all acceptance criteria of #42 met except those that
+  need a browser (KaTeX, look, tooltips). Checked: 42 keys in the right groups,
+  DE/EN key and placeholder parity, formulas, project facts against README and
+  `src/bundle.py`, regulatory texts against "Regulatory context"; pytest (91),
+  black, ruff, headless start (health `ok`) and AppTest of the glossary in both
+  languages (42 expanders, 9 formulas, no placeholder left). Fixed: "hundreds of
+  trees" (the forest has 100) in both languages; two surviving mutations got
+  tests (swapped metric sources in `project_figures`; dropped lower-casing in
+  the search). Open, debatable: (1) `scorecard.in_project` states "separates
+  slightly better than the forest" as fixed text, true per README today but stale
+  after #30 if the numbers flip; (2) the search matches the raw `in_project` text
+  including `{placeholders}`; (3) `glossary.py` imports the private `_texts`;
+  (4) no test for the README link in regulatory entries.
 - **Review of PR #52 (no clear-cut findings, nothing changed in the code):**
   open, minor, debatable: (1) `init_language()` in `streamlit_app.py` is
   redundant because `t()` calls it through `current_lang()`; (2) `fmt_number`
@@ -63,7 +76,7 @@ next section.
   in both locale files, `app/views/glossary.py` (search field key
   `glossary_search`, group headings, expanders, `st.latex`), `help_text(key)` in
   `app/ui.py`, `tests/test_glossary.py`, two smoke tests. **Open PR for #42:**
-  #53, state: review pending. Not verifiable without a browser:
+  #53, state: reviewed, ready to merge (see "Review of PR #53"). Not verifiable without a browser:
   KaTeX rendering of the formulas, look of the page, tooltips in a browser.
 - **Pitfalls from #42:** `group` is a group id (`data`, `models`, `quality`,
   `calibration`, `explain`, `economics`, `regulatory`), the titles are in
