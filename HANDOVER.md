@@ -123,7 +123,8 @@ next section.
   `input_spec` (bounds, median, categories; only the step sizes are in the
   page), widget keys `a_<field>` / `b_<field>` / `compare`. Per model: PD
   (`help_text("pd")`), band of N (`help_text("score_band")`), percentile caption;
-  a toggle adds variant B (term preset to the last category, i.e. 60 months);
+  a toggle adds variant B (`_start_variant_b`, `on_change` of the toggle,
+  copies the `a_*` values into `b_*` and sets the other term);
   B's PD metrics carry the difference to A as delta (`delta_color="inverse"`).
   Hint when the models are `DIVERGENCE_BANDS` (2) bands apart. The limitation
   notice is an `st.warning` directly under the title (bottom edge at y=289 at
@@ -154,8 +155,8 @@ next section.
   EN -> DE and DE -> EN. Income/DTI on the real bundle: model property (forest
   `max_depth=10`, `min_samples_leaf=100`, income importance 0.97 %, isotonic
   calibration gives plateaus), not a page or scoring bug; mention on the
-  model-limits page (#36). Open, debatable: variant B starts at the median, not
-  at A's values; the percentile caption has no tooltip (no glossary entry);
+  model-limits page (#36). Variant B now starts as a copy of A with the other
+  term (orchestrator decision, one smoke test). Open, debatable: the percentile caption has no tooltip (no glossary entry);
   `delta_color="inverse"` is untested (AppTest does not expose it).
 - **Pitfalls for #33-#37:** keep category values from the data as raw option
   texts (`format_func=str.strip` at most), so AppTest can select by value in
