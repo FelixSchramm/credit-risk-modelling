@@ -67,7 +67,7 @@ term = "Random forest"
 group = "models"
 what = "A model made of many decision trees. Each tree votes on a loan and the share of votes is the score. It finds non-linear effects and interactions on its own."
 in_project = "ROC AUC {auc_rf}, Gini {gini_rf}, KS {ks_rf} on the test loans (the depth-limited forest in the bundle)."
-limit = "Hard to explain: hundreds of trees cannot be read like a rule list. Banks therefore often prefer a scorecard for the decision itself."
+limit = "Hard to explain: many trees cannot be read like a rule list. Banks therefore often prefer a scorecard for the decision itself."
 
 [glossary.logistic_regression]
 term = "Logistic regression"

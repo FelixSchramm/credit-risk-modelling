@@ -67,7 +67,7 @@ term = "Random Forest"
 group = "models"
 what = "Ein Modell aus vielen Entscheidungsbäumen. Jeder Baum stimmt über einen Kredit ab, der Anteil der Stimmen ist der Score. Es findet nichtlineare Effekte und Wechselwirkungen selbst."
 in_project = "ROC AUC {auc_rf}, Gini {gini_rf}, KS {ks_rf} auf den Testkrediten (der tiefenbegrenzte Forest im Bundle)."
-limit = "Schwer zu erklären: Hunderte Bäume lassen sich nicht wie eine Regelliste lesen. Banken bevorzugen für die Entscheidung selbst deshalb oft eine Scorecard."
+limit = "Schwer zu erklären: Viele Bäume lassen sich nicht wie eine Regelliste lesen. Banken bevorzugen für die Entscheidung selbst deshalb oft eine Scorecard."
 
 [glossary.logistic_regression]
 term = "Logistische Regression"
