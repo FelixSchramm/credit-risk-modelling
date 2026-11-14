@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-10 (planning session for epic #39)
+**Last updated:** 2026-11-14 (worker session for #32)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -116,7 +116,46 @@ next section.
   locale files, otherwise the start page raises `KeyError`. The 0.9999 AUC in
   `home.done_leakage` is a README fact quoted as text, like in the glossary.
   The German texts use "ß" like the existing ones.
-- **Next:** #32 (applicant calculator). #30 (full run) can start any time.
+- **#32 implemented** (applicant calculator): `app/views/calculator.py`
+  (`_input`, `_results`), registered in `PAGES` after `home` (menu order),
+  `[calculator]`, `nav.calculator`, `nav_desc.calculator` in both locale files,
+  three smoke tests, `plans/2026-11-14_calculator.md`. Inputs come from
+  `input_spec` (bounds, median, categories; only the step sizes are in the
+  page), widget keys `a_<field>` / `b_<field>` / `compare`. Per model: PD
+  (`help_text("pd")`), band of N (`help_text("score_band")`), percentile caption;
+  a toggle adds variant B (term preset to the last category, i.e. 60 months);
+  B's PD metrics carry the difference to A as delta (`delta_color="inverse"`).
+  Hint when the models are `DIVERGENCE_BANDS` (2) bands apart. The limitation
+  notice is an `st.warning` directly under the title (bottom edge at y=289 at
+  1280x800, DE and EN). **Open PR for #32:** #PR, state: review pending.
+- **Coupled-feature fix (open point of the review of #49: resolved):**
+  `_coupled_columns` in `src/scoring.py` derives `funded_amnt`,
+  `funded_amnt_inv` (= `loan_amnt`), `fico_range_high` (= low + 4) and
+  `installment` (annuity) from the effective values for the forest vector and
+  the scorecard row, only for columns present in the defaults. Pitfall: the
+  real median installment 373.77 is a median of different loans; 12,000 at
+  12.74 % over 36 months is 402.83, so the default application is now not
+  exactly the median row.
+- **Plausibility on the real bundle** (base: 12,000 USD, 36 months, 12.74 %,
+  70,000 USD, DTI 18, FICO 690): forest/scorecard PD 18.1 %/17.9 % (band 5);
+  rate 7 %: 10.5/9.1; rate 25 %: 23.7/31.3; FICO 660: 21.0/18.2; FICO 780:
+  12.8/14.0; 60 months: 23.7/21.8; amount 35,000: 23.1/21.8; DTI 35: 21.0/21.8.
+  All in the expected direction. The forest barely reacts to income (30k: 18.2,
+  200k: 18.1) and DTI 5 (18.1): depth limit, not a bug. Extremes: good
+  (FICO 780, 7 %, DTI 5) 5.8/4.6, bad (FICO 660, 25 %, DTI 35, 60 m) 43.4/46.1.
+- **Pitfalls for #33-#37:** AppTest cannot interact (any `run()` after
+  `set_value`) with a page that has a selectbox with `format_func` in German,
+  because it compares the raw default with the translated options; interact in
+  English, assert in German (see `test_calculator_input_survives_a_language_switch`).
+  In compare mode A and B stack in the results column, so the delta is below the
+  first screen. Page code runs at import, so `bundle = get_bundle()` sits at
+  module level like in `home.py`. Pages needing the scored application of the
+  calculator should read `st.session_state["a_<field>"]` (reset when leaving
+  the page, see issue #32 addendum).
+- **Not verifiable without a browser:** tooltip hover, light/dark look of the
+  page, selectbox/number input behaviour on real clicks beyond the toggle
+  (Playwright: toggle clicked, both variants render).
+- **Next:** #33. #30 is done (PR #50).
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:
