@@ -94,7 +94,7 @@ next section.
   from the bundle with `num`/`pct`/`help_text`, notice, five "what I did"
   points incl. the leakage story, guide, link buttons), `LINKS` in `app/ui.py`,
   `[home]` and `[nav_desc]` in both locale files, two smoke tests. **Open PR
-  for #43:** see the PR list, state: review pending. Headless start and a
+  for #43:** #54, state: review pending. Headless start and a
   1280x800 Chromium check (synthetic bundle, DE and EN): problem sentence and
   all four tiles end at y=412, no scrolling needed. Not verifiable without a
   browser: both themes visually, tooltips on hover, `page_link` click.
