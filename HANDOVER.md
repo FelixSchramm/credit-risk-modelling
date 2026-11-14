@@ -49,6 +49,19 @@ next section.
   a browser: switcher position and look, German texts rendered, `?lang=de`
   direct link in a real browser, highlighting of the active `page_link`
   (AppTest and a headless start only).
+- **Review of PR #53:** all acceptance criteria of #42 met except those that
+  need a browser (KaTeX, look, tooltips). Checked: 42 keys in the right groups,
+  DE/EN key and placeholder parity, formulas, project facts against README and
+  `src/bundle.py`, regulatory texts against "Regulatory context"; pytest (91),
+  black, ruff, headless start (health `ok`) and AppTest of the glossary in both
+  languages (42 expanders, 9 formulas, no placeholder left). Fixed: "hundreds of
+  trees" (the forest has 100) in both languages; two surviving mutations got
+  tests (swapped metric sources in `project_figures`; dropped lower-casing in
+  the search). Open, debatable: (1) `scorecard.in_project` states "separates
+  slightly better than the forest" as fixed text, true per README today but stale
+  after #30 if the numbers flip; (2) the search matches the raw `in_project` text
+  including `{placeholders}`; (3) `glossary.py` imports the private `_texts`;
+  (4) no test for the README link in regulatory entries.
 - **Review of PR #52 (no clear-cut findings, nothing changed in the code):**
   open, minor, debatable: (1) `init_language()` in `streamlit_app.py` is
   redundant because `t()` calls it through `current_lang()`; (2) `fmt_number`
@@ -58,7 +71,25 @@ next section.
   frontend behaviour, not checked in the review. Mutation checks: key parity,
   missing key, unknown language, DE swap, no-break space, EN percent and
   placeholder parity each make a test fail.
-- **Next:** #42 (glossary). #30 (full run) can start any time.
+- **#42 implemented** (glossary): `src/glossary.py` (`glossary_entries`,
+  `glossary_help`, `project_figures`, `GROUPS`), 42 `[glossary.<key>]` entries
+  in both locale files, `app/views/glossary.py` (search field key
+  `glossary_search`, group headings, expanders, `st.latex`), `help_text(key)` in
+  `app/ui.py`, `tests/test_glossary.py`, two smoke tests. **Open PR for #42:**
+  #53, state: reviewed, ready to merge (see "Review of PR #53"). Not verifiable without a browser:
+  KaTeX rendering of the formulas, look of the page, tooltips in a browser.
+- **Pitfalls from #42:** `group` is a group id (`data`, `models`, `quality`,
+  `calibration`, `explain`, `economics`, `regulatory`), the titles are in
+  `[glossary_groups]`. Pages use `help=help_text("<key>")`; formulas are not
+  passed through `translate` (LaTeX braces). `in_project` placeholders:
+  `auc/gini/ks_{rf,scorecard}`, `default_rate`, `accuracy_naive`, `n_train`,
+  `n_test`, `iv_top`, `iv_top_name`; a new placeholder needs an entry in
+  `project_figures`. Assumptions: 42 keys as listed in the issue (the issue's
+  "seven groups" list has 42 terms); `data_leakage.in_project` quotes the
+  historical AUC 0.9999 as text (a README fact, not a bundle value);
+  `glossary.py` imports the private `_texts` from `i18n`; the README link text
+  stays English in both languages.
+- **Next:** #43 (start page). #30 (full run) can start any time.
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:
