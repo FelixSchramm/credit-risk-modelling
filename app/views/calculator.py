@@ -46,16 +46,27 @@ def _input(field: str, spec: dict[str, object], variant: str) -> object:
     categories = spec["categories"]
     if field == "emp_length":
         categories = sorted(categories, key=convert_emp_length)
-    # Variant B starts with the other term: the typical what-if is 36 vs. 60.
-    default = categories[-1] if field == "term" and variant == "b" else spec["default"]
     # Categories are data values and stay untranslated; strip only the padding
     # (" 36 months") that the raw column carries.
     return st.selectbox(
         label,
         categories,
-        categories.index(default),
+        categories.index(spec["default"]),
         format_func=str.strip,
         key=key,
+    )
+
+
+def _start_variant_b() -> None:
+    """Start variant B as a copy of A with the other term (the typical what-if).
+
+    Runs as ``on_change`` of the compare toggle, before the page reruns.
+    """
+    for field in bundle["input_spec"]:
+        st.session_state[f"b_{field}"] = st.session_state[f"a_{field}"]
+    terms = bundle["input_spec"]["term"]["categories"]
+    st.session_state["b_term"] = next(
+        term for term in terms if term != st.session_state["a_term"]
     )
 
 
@@ -116,7 +127,9 @@ st.warning(
 inputs_column, results_column = st.columns([1, 2])
 with inputs_column:
     st.subheader(t("calculator.inputs_title"))
-    compare = st.toggle(t("calculator.compare"), key="compare")
+    compare = st.toggle(
+        t("calculator.compare"), key="compare", on_change=_start_variant_b
+    )
     variants = ["a", "b"] if compare else ["a"]
     applications = {}
     for variant in variants:
