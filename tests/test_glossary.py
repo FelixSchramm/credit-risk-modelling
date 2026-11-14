@@ -119,3 +119,16 @@ def test_glossary_help_returns_the_short_text():
 def test_glossary_help_raises_key_error_for_an_unknown_key():
     with pytest.raises(KeyError, match="nope"):
         glossary_help("nope", "en")
+
+
+def test_project_figures_come_from_the_bundle(bundle):
+    figures = project_figures(bundle, "en")
+    for model in ("rf", "scorecard"):
+        metrics = bundle["metrics"][model]
+        assert figures[f"auc_{model}"] == f"{metrics['roc_auc']:.3f}"
+        assert figures[f"gini_{model}"] == f"{metrics['gini']:.3f}"
+        assert figures[f"ks_{model}"] == f"{metrics['ks']:.3f}"
+    default_rate = bundle["y_test"].mean()
+    assert figures["default_rate"] == f"{default_rate * 100:.1f}%"
+    assert figures["accuracy_naive"] == f"{(1 - default_rate) * 100:.1f}%"
+    assert figures["n_test"] == f"{bundle['n_test']:,}"
