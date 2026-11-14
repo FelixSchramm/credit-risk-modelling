@@ -164,6 +164,20 @@ def test_calculator_shows_both_calibrated_pds_and_the_notice(lang, bundle_env):
     assert [w.value for w in at.warning] == [notice]
 
 
+def test_calculator_variant_b_starts_as_a_with_the_other_term(bundle_env):
+    at = _calculator("en", bundle_env)
+    at.number_input(key="a_int_rate").set_value(21.5).run()
+    at.selectbox(key="a_purpose").select("car").run()
+    at.toggle(key="compare").set_value(True).run()
+    assert not at.exception
+    fields = ["loan_amnt", "int_rate", "annual_inc", "dti", "fico_range_low"]
+    for field in fields + ["emp_length", "purpose"]:
+        a, b = at.session_state[f"a_{field}"], at.session_state[f"b_{field}"]
+        assert a == b, field
+    assert at.session_state["a_term"] == " 36 months"
+    assert at.session_state["b_term"] == " 60 months"
+
+
 def test_calculator_variant_b_shows_the_pd_difference(bundle_env):
     at = _calculator("en", bundle_env)
     at.toggle(key="compare").set_value(True).run()
