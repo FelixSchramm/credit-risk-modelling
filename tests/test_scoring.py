@@ -8,8 +8,12 @@ from src.scoring import (
     band_of,
     build_feature_vector,
     build_scorecard_row,
+    explain_forest,
+    explain_scorecard,
+    forest_explainer,
     percentile_of,
     score,
+    top_contributions,
 )
 
 
@@ -185,3 +189,88 @@ def test_band_of_covers_bands_gaps_and_extremes():
     assert band_of(0.1, bands) == 1
     assert band_of(0.2, bands) == 2  # between score_max of band 1 and 2
     assert band_of(0.9, bands) == 3  # above the last band
+
+
+HIGH_RISK = {"int_rate": 22.0, "term": " 60 months", "dti": 30.0}
+
+
+@pytest.fixture(scope="module")
+def explainer(bundle):
+    return forest_explainer(bundle)
+
+
+@pytest.mark.parametrize("user_input", [{}, HIGH_RISK])
+def test_forest_shap_values_add_up_to_the_uncalibrated_probability(
+    user_input, bundle, explainer
+):
+    table, base = explain_forest(user_input, bundle, explainer)
+    forest = bundle["rf"].calibrated_classifiers_[0].estimator.estimator
+    x = bundle["scaler"].transform(build_feature_vector(user_input, bundle))
+    assert base + table["contribution"].sum() == pytest.approx(
+        forest.predict_proba(x)[0, 1]
+    )
+
+
+def test_forest_explanation_lists_every_feature_with_its_unscaled_value(
+    bundle, explainer
+):
+    table, _ = explain_forest(HIGH_RISK, bundle, explainer)
+    assert list(table["feature"]) == bundle["feature_names"]
+    assert table.set_index("feature").loc["int_rate", "value"] == 22.0
+
+
+def test_forest_shap_blames_the_interest_rate_for_a_high_rate(bundle, explainer):
+    low, _ = explain_forest({"int_rate": 8.0}, bundle, explainer)
+    high, _ = explain_forest({"int_rate": 22.0}, bundle, explainer)
+    contribution = lambda table: table.set_index("feature").loc["int_rate"][
+        "contribution"
+    ]
+    assert contribution(high) > 0 > contribution(low)
+
+
+@pytest.mark.parametrize("user_input", [{}, HIGH_RISK])
+def test_scorecard_contributions_add_up_to_the_log_odds(user_input, bundle):
+    table, intercept = explain_scorecard(user_input, bundle)
+    pipeline = bundle["scorecard"].calibrated_classifiers_[0].estimator.estimator
+    row = build_scorecard_row(user_input, bundle)
+    assert intercept + table["contribution"].sum() == pytest.approx(
+        pipeline.decision_function(row)[0]
+    )
+
+
+def test_scorecard_contribution_is_coefficient_times_woe(bundle):
+    table, _ = explain_scorecard(HIGH_RISK, bundle)
+    logit = bundle["scorecard"].calibrated_classifiers_[0].estimator.estimator[-1]
+    assert np.allclose(table["contribution"], logit.coef_[0] * table["woe"])
+
+
+def test_scorecard_explanation_keeps_raw_values_of_kept_features(bundle):
+    table, _ = explain_scorecard(HIGH_RISK, bundle)
+    kept = bundle["scorecard"].calibrated_classifiers_[0].estimator.estimator[0]
+    assert list(table["feature"]) == list(kept.get_support(names=True))
+    assert table.set_index("feature").loc["int_rate", "value"] == 22.0
+
+
+def test_scorecard_high_rate_raises_the_risk_contribution(bundle):
+    low, _ = explain_scorecard({"int_rate": 8.0}, bundle)
+    high, _ = explain_scorecard({"int_rate": 22.0}, bundle)
+    contribution = lambda table: table.set_index("feature").loc["int_rate"][
+        "contribution"
+    ]
+    assert contribution(high) > 0 > contribution(low)
+
+
+def test_top_contributions_keeps_the_largest_and_sums_the_rest():
+    table = pd.DataFrame(
+        {"feature": list("abcde"), "contribution": [0.1, -0.5, 0.2, 0.05, -0.3]}
+    )
+    top = top_contributions(table, 2, "rest")
+    assert list(top["feature"]) == ["b", "e", "rest"]
+    assert top["contribution"].iloc[-1] == pytest.approx(0.1 + 0.2 + 0.05)
+    assert top["contribution"].sum() == pytest.approx(table["contribution"].sum())
+
+
+def test_top_contributions_without_remainder_adds_no_row():
+    table = pd.DataFrame({"feature": ["a", "b"], "contribution": [0.1, -0.2]})
+    top = top_contributions(table, 5, "rest")
+    assert list(top["feature"]) == ["b", "a"]
