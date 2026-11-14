@@ -19,8 +19,8 @@ is lost when a session ends unexpectedly.
 
 | Issue | Content | State |
 |---|---|---|
-| #42 | Glossary | PR #53, review running |
-| #43 | Start page | open (LinkedIn/website URLs from the user pending) |
+| #42 | Glossary | merged (PR #53, d6cc1a0), issue closed |
+| #43 | Start page | worker running (LinkedIn/website URLs from the user pending) |
 | #32 | Applicant calculator, incl. derived coupled features | open |
 | #33 | Single-score explanation | open |
 | #34 | Model quality | open |
