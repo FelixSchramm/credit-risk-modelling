@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-14 (worker session for #32)
+**Last updated:** 2026-11-14 (reviewer session for PR #55)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -127,7 +127,7 @@ next section.
   B's PD metrics carry the difference to A as delta (`delta_color="inverse"`).
   Hint when the models are `DIVERGENCE_BANDS` (2) bands apart. The limitation
   notice is an `st.warning` directly under the title (bottom edge at y=289 at
-  1280x800, DE and EN). **Open PR for #32:** #55, state: review pending.
+  1280x800, DE and EN). **Open PR for #32:** #55, state: reviewed, ready to merge (see "Review of PR #55").
 - **Coupled-feature fix (open point of the review of #49: resolved):**
   `_coupled_columns` in `src/scoring.py` derives `funded_amnt`,
   `funded_amnt_inv` (= `loan_amnt`), `fico_range_high` (= low + 4) and
@@ -143,10 +143,23 @@ next section.
   All in the expected direction. The forest barely reacts to income (30k: 18.2,
   200k: 18.1) and DTI 5 (18.1): depth limit, not a bug. Extremes: good
   (FICO 780, 7 %, DTI 5) 5.8/4.6, bad (FICO 660, 25 %, DTI 35, 60 m) 43.4/46.1.
-- **Pitfalls for #33-#37:** AppTest cannot interact (any `run()` after
-  `set_value`) with a page that has a selectbox with `format_func` in German,
-  because it compares the raw default with the translated options; interact in
-  English, assert in German (see `test_calculator_input_survives_a_language_switch`).
+- **Review of PR #55:** all acceptance criteria of #32 and the Ergänzung met
+  except those that need a browser (tooltip look, Questrial; screenshots at
+  1280x800 light and dark show the notice, both PDs, bands and percentiles
+  without scrolling). Checked: coupled features for forest and scorecard (five
+  mutations on the tests all killed), DE/EN key and placeholder parity,
+  pytest (109), black, ruff, headless start (health `ok`). Fixed: the `term`
+  options are no longer translated (`format_func=str.strip`, `term_months` key
+  removed); AppTest can select by value, so the language-switch test covers
+  EN -> DE and DE -> EN. Income/DTI on the real bundle: model property (forest
+  `max_depth=10`, `min_samples_leaf=100`, income importance 0.97 %, isotonic
+  calibration gives plateaus), not a page or scoring bug; mention on the
+  model-limits page (#36). Open, debatable: variant B starts at the median, not
+  at A's values; the percentile caption has no tooltip (no glossary entry);
+  `delta_color="inverse"` is untested (AppTest does not expose it).
+- **Pitfalls for #33-#37:** keep category values from the data as raw option
+  texts (`format_func=str.strip` at most), so AppTest can select by value in
+  both languages.
   In compare mode A and B stack in the results column, so the delta is below the
   first screen. Page code runs at import, so `bundle = get_bundle()` sits at
   module level like in `home.py`. Pages needing the scored application of the
