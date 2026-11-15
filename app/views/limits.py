@@ -64,7 +64,13 @@ with st.container(border=True):
 
 st.subheader(t("limits.calculator_title"))
 st.markdown(t("limits.calculator_median"))
-st.markdown(t("limits.calculator_flat"))
+st.markdown(
+    t(
+        "limits.calculator_flat",
+        max_depth=forest.max_depth,
+        min_samples_leaf=forest.min_samples_leaf,
+    )
+)
 for column, (label, feature) in zip(
     st.columns(3),
     (

@@ -523,7 +523,7 @@ intrate_importance = "In the random forest of this dashboard the interest rate i
 intrate_clean = """A clean run would train the same pipeline without `int_rate`, score it on the same test loans and compare ROC AUC, Gini and KS with the values on the page "Model quality". A bank building a scorecard would look at how much discriminatory power survives without it. This run has not been made, so no numbers are quoted here."""
 calculator_title = "7. Limits of the calculator"
 calculator_median = """The calculator asks for a few inputs. All other model inputs stay at the portfolio median. The result therefore compares applications with each other, all else being equal; it does not assess a real applicant."""
-calculator_flat = """The deployed forest is depth-limited (`max_depth=10`, `min_samples_leaf=100`) to keep the bundle small and explanations fast. As a result it barely reacts to annual income and debt-to-income ratio, while the scorecard does. The importances below are read from the bundle. The isotonic calibration additionally turns small differences in the score into plateaus."""
+calculator_flat = """The deployed forest is depth-limited (`max_depth={max_depth}`, `min_samples_leaf={min_samples_leaf}`) to keep the bundle small and explanations fast. As a result it barely reacts to annual income and debt-to-income ratio, while the scorecard does. The importances below are read from the bundle. The isotonic calibration additionally turns small differences in the score into plateaus."""
 calculator_metric_int_rate = "Importance: interest rate"
 calculator_metric_dti = "Importance: DTI"
 calculator_metric_income = "Importance: annual income"
