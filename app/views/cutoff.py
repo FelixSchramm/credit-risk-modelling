@@ -7,9 +7,12 @@ are not modelled, one loan amount stands for all loans.
 
 import math
 
+import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
-from app.ui import get_bundle, help_text, num, pct, t
+from app.ui import current_mode, get_bundle, help_text, num, pct, show_chart, t
+from src.design import model_color
 from src.scoring import cutoff_table
 
 #: Models in display order.
@@ -23,6 +26,9 @@ LOSS_SHARES = [i / 100 for i in range(0, 101, 5)]
 DEFAULT_LOSS_SHARE = 0.6
 MARGIN_SHARES = [i / 100 for i in range(51)]
 DEFAULT_MARGIN_SHARE = 0.1
+
+#: Neutral colour of the reference line (a CSS name, so no hex code).
+REFERENCE_COLOR = "gray"
 
 bundle = get_bundle()
 y_test = bundle["y_test"]
@@ -41,6 +47,66 @@ def _show(metrics: list[tuple[str, str, str]]) -> None:
         column.metric(
             t(f"cutoff.metric_{key}"), value, help=help_text(term), border=True
         )
+
+
+def _million(value: float) -> str:
+    """Format a USD amount in millions in the current language.
+
+    :param value: Amount in USD.
+    :return: E.g. ``"12.3 million USD"``.
+    """
+    return t("cutoff.million_usd", value=num(value / 1e6, 1))
+
+
+def _net_result_chart(
+    model: str, curve: pd.DataFrame, threshold: float, best: pd.Series
+) -> go.Figure:
+    """Draw the net result over the cut-off with the best cut-off marked.
+
+    The optimum carries a marker and a label, not only a colour. One y axis
+    only: the curve is the single quantity.
+
+    :param model: ``"rf"`` or ``"scorecard"``.
+    :param curve: Output of ``cutoff_table`` over all cut-offs.
+    :param threshold: Selected cut-off.
+    :param best: Row of ``curve`` with the highest net result.
+    :return: The figure.
+    """
+    mode = current_mode()
+    fig = go.Figure()
+    fig.add_scatter(
+        x=curve["threshold"],
+        y=curve["net_result"] / 1e6,
+        mode="lines",
+        name=t("cutoff.chart_curve"),
+        line={"color": model_color(model, mode)},
+    )
+    fig.add_scatter(
+        x=[threshold, threshold],
+        y=[curve["net_result"].min() / 1e6, curve["net_result"].max() / 1e6],
+        mode="lines",
+        name=t("cutoff.chart_selected"),
+        line={"color": REFERENCE_COLOR, "dash": "dot"},
+    )
+    fig.add_scatter(
+        x=[best["threshold"]],
+        y=[best["net_result"] / 1e6],
+        mode="markers+text",
+        name=t("cutoff.chart_best_name"),
+        marker={"color": model_color(model, mode), "size": 12, "symbol": "diamond"},
+        text=[
+            t(
+                "cutoff.chart_best",
+                threshold=num(best["threshold"], 2),
+                value=_million(best["net_result"]),
+            )
+        ],
+        textposition="top center",
+        cliponaxis=False,
+    )
+    fig.update_xaxes(title=t("cutoff.chart_x"), range=[0, 1])
+    fig.update_yaxes(title=t("cutoff.chart_y"))
+    return fig
 
 
 st.title(t("cutoff.title"))
@@ -130,3 +196,16 @@ _show(
         ("recall", pct(row["recall"]), "recall"),
     ]
 )
+
+best = curve.loc[curve["net_result"].idxmax()]
+st.subheader(t("cutoff.money_title"), help=help_text("expected_loss"))
+st.write(t("cutoff.money_intro", amount=num(loan_amount)))
+_show(
+    [
+        ("net_result", _million(row["net_result"]), "expected_loss"),
+        ("loan_amount", t("cutoff.usd", value=num(loan_amount)), "ead"),
+        ("best_cutoff", num(best["threshold"], 2), "cutoff"),
+        ("best_net_result", _million(best["net_result"]), "expected_loss"),
+    ]
+)
+show_chart(_net_result_chart(model, curve, threshold, best))
