@@ -23,7 +23,7 @@ is lost when a session ends unexpectedly.
 | #43 | Start page | merged (PR #54, 02d63b2); LinkedIn/website links are added in the #34 branch (own commit) |
 | #32 | Applicant calculator, incl. derived coupled features | merged (PR #55, b9aa721) |
 | #33 | Single-score explanation | merged (PR #56, 7478562) |
-| #34 | Model quality | worker running |
+| #34 | Model quality (+ start page links, commit 44c70a2) | PR #57, review running |
 | #35 | Cut-off and expected loss | open |
 | #36 | Model card | open |
 | #37 | Random forest vs. scorecard | open |
