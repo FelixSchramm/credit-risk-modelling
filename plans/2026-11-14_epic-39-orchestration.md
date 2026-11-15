@@ -24,8 +24,8 @@ is lost when a session ends unexpectedly.
 | #32 | Applicant calculator, incl. derived coupled features | merged (PR #55, b9aa721) |
 | #33 | Single-score explanation | merged (PR #56, 7478562) |
 | #34 | Model quality (+ start page links, commit 44c70a2) | merged (PR #57, 5b942b0) |
-| #35 | Cut-off and expected loss | PR #58, review running |
-| #36 | Model card | open |
+| #35 | Cut-off and expected loss | merged (PR #58, 8126a7a) |
+| #36 | Model card | worker running |
 | #37 | Random forest vs. scorecard | open |
 | #38 | Deployment | needs the user's Streamlit Community Cloud account |
 
