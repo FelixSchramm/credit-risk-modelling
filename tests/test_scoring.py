@@ -4,10 +4,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from src.evaluate import charged_off_metrics
 from src.scoring import (
     band_of,
     build_feature_vector,
     build_scorecard_row,
+    cutoff_table,
     explain_forest,
     explain_scorecard,
     forest_explainer,
@@ -274,3 +276,69 @@ def test_top_contributions_without_remainder_adds_no_row():
     table = pd.DataFrame({"feature": ["a", "b"], "contribution": [0.1, -0.2]})
     top = top_contributions(table, 5, "rest")
     assert list(top["feature"]) == ["b", "a"]
+
+
+def _toy_cutoff_table(thresholds=(0.0, 0.25, 0.5, 1.0)):
+    """Eight loans, four defaults, ties at 0.5."""
+    proba = np.array([0.1, 0.2, 0.2, 0.5, 0.5, 0.6, 0.8, 0.9])
+    y = np.array([0, 0, 1, 0, 1, 1, 1, 0])
+    return y, proba, cutoff_table(y, proba, np.array(thresholds), 0.5, 0.1, 1000)
+
+
+def test_cutoff_table_counts_match_a_direct_count():
+    y, proba, table = _toy_cutoff_table()
+    for _, row in table.iterrows():
+        reject = proba > row["threshold"]
+        assert row["rejected"] == reject.sum()
+        assert row["accepted"] == (~reject).sum()
+        assert row["caught"] == (y[reject] == 1).sum()
+        assert row["missed"] == (y[~reject] == 1).sum()
+        assert row["rejected_good"] == (y[reject] == 0).sum()
+
+
+def test_cutoff_table_conserves_loans_and_defaults():
+    y, _, table = _toy_cutoff_table()
+    assert (table["accepted"] + table["rejected"] == len(y)).all()
+    assert (table["caught"] + table["missed"] == y.sum()).all()
+    assert (table["caught"] + table["rejected_good"] == table["rejected"]).all()
+
+
+def test_cutoff_table_ties_go_to_the_accepted_part():
+    _, _, table = _toy_cutoff_table()
+    at_half = table.set_index("threshold").loc[0.5]
+    assert at_half["rejected"] == 3
+    assert at_half["accepted"] == 5
+
+
+def test_cutoff_table_rates_and_edges():
+    y, _, table = _toy_cutoff_table()
+    rows = table.set_index("threshold")
+    assert rows.loc[0.0, "approval_rate"] == 0.0
+    assert np.isnan(rows.loc[0.0, "default_rate_accepted"])
+    assert rows.loc[0.0, "recall"] == 1.0
+    assert rows.loc[1.0, "approval_rate"] == 1.0
+    assert rows.loc[1.0, "default_rate_accepted"] == y.mean()
+    assert rows.loc[1.0, "precision"] == 0.0
+    assert rows.loc[1.0, "recall"] == 0.0
+    assert rows.loc[0.25, "default_rate_accepted"] == pytest.approx(1 / 3)
+
+
+def test_cutoff_table_net_result_by_hand():
+    _, _, table = _toy_cutoff_table()
+    rows = table.set_index("threshold")
+    # Accept all: 4 good loans earn 100 each, 4 defaults lose 500 each.
+    assert rows.loc[1.0, "net_result"] == 4 * 100 - 4 * 500
+    # Reject all: nothing earned, nothing lost.
+    assert rows.loc[0.0, "net_result"] == 0
+    # Threshold 0.5 accepts 0.1, 0.2, 0.2, 0.5, 0.5: 3 good loans, 2 defaults.
+    assert rows.loc[0.5, "net_result"] == 3 * 100 - 2 * 500
+
+
+def test_cutoff_table_matches_charged_off_metrics(bundle):
+    y, proba = bundle["y_test"], bundle["proba_rf"]
+    table = cutoff_table(y, proba, np.array([0.1, 0.3, 0.5]), 0.6, 0.1, 10_000)
+    for _, row in table.iterrows():
+        expected = charged_off_metrics(y, proba, row["threshold"])
+        assert row["precision"] == pytest.approx(expected["precision"])
+        assert row["recall"] == pytest.approx(expected["recall"])
+        assert row["accepted"] + row["rejected"] == len(y)

@@ -35,6 +35,7 @@ PAGES = {
     "home": "app/views/home.py",
     "calculator": "app/views/calculator.py",
     "performance": "app/views/performance.py",
+    "cutoff": "app/views/cutoff.py",
     "glossary": "app/views/glossary.py",
 }
 

@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-14 (worker session for #34)
+**Last updated:** 2026-11-15 (worker session for #35)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -245,7 +245,56 @@ next section.
   table. Not checked: tooltip hover.
 - **Not verifiable without a browser (#34):** tooltip hover on metrics, table
   headers and subheaders, the theme switch in the menu.
-- **Next:** #35. #30 is done (PR #50).
+- **#35 implemented** (cut-off and expected loss page): `cutoff_table` in
+  `src/scoring.py` (vectorised: sorted scores, cumulative sums, `searchsorted`;
+  columns `accepted`, `rejected`, `caught`, `missed`, `rejected_good`,
+  `approval_rate`, `default_rate_accepted`, `precision`, `recall`,
+  `net_result`), `app/views/cutoff.py` registered in `PAGES` after
+  `performance`, `[cutoff]`, `nav.cutoff`, `nav_desc.cutoff` in both locale
+  files, link from the performance page note, 13 new tests (suite at 157),
+  `plans/2026-11-15_cutoff.md`. No glossary additions (all keys existed).
+  **Open PR for #35:** #58, state: reviewed, ready to merge (see "Review of PR #58"). Real bundle (loss 60%,
+  margin 10%, 12,000 USD): forest at cut-off 0.1 / 0.2 / 0.3 accepts 23,665 /
+  64,726 / 93,293 of 125,381 loans and misses 1,347 / 7,263 / 14,241 of 27,090
+  defaults; net-result optimum forest 0.15 (21.2 m USD), scorecard 0.14
+  (22.3 m USD); accepted + declined and caught + missed add up for all 101
+  cut-offs; precision and recall at 0.5 equal the stored report. 1280x800
+  Chromium, light and dark, EN and DE: no truncation after the tile layout fix.
+- **Pitfalls from #35 for #36-#37:** a loan is rejected if its score is
+  strictly above the threshold. The bundle has no per-loan amount for the test
+  set; the page uses the median `loan_amnt` of `input_spec` for every loan
+  (stated on the page). Net result = margin share x amount per accepted good
+  loan minus loss share x amount per accepted default (declined loans earn and
+  lose nothing, so the optimum equals the minimum of missed-default loss plus
+  foregone margin). Start values 60% loss and 10% margin are my choice, not from
+  data. Inputs are `select_slider` (the numbers follow the language through
+  `format_func`; keys `cutoff_model`, `cutoff_threshold`, `cutoff_loss`,
+  `cutoff_margin`). AppTest cannot set a `select_slider` by value once the
+  option texts use a decimal comma, nor re-run a page after that, so the
+  language-switch test only drives EN to DE. Metric tiles truncate long values
+  (a quarter of the width fits about 10 characters at tile size): use at most
+  three tiles per row and short labels, "16.7 million USD" needs half a row.
+  The page-level unit is millions of USD (`cutoff.million_usd`). Page links in
+  AppTest: use `at.main.get("page_link")`, the sidebar has its own.
+- **Review of PR #58:** all acceptance criteria of #35 and the Ergänzung met.
+  Checked: `cutoff_table` (sort, cumsum, `searchsorted(side="right")`, edges at
+  0 and 1), mutations `side="left"`, sign of the loss term and swapped
+  missed/caught are all caught by the tests; real bundle for both models:
+  accepted + rejected = 125,381, caught + missed = 27,090 at every threshold,
+  precision/recall at 0.5 equal the stored report; pytest (157), black, ruff,
+  headless start (health `ok`, stopped), AppTest and 1280x800 screenshots in
+  light and dark. Fixed: the performance note claimed the cut-off page shows
+  precision and recall "for every threshold" (now: the chosen one, EN + DE);
+  wrong reason in the comment of the language-switch test. Left open: DE to EN
+  switch test. A numeric `select_slider` with `format_func` is already used;
+  AppTest runs the page's `format_func` in the test process (language falls
+  back to EN), so any rerun of the DE page raises at the `st.radio`, and a plain
+  `st.slider` cannot show a decimal comma. Assumptions (12,000 USD median
+  amount, 60 % loss, 10 % margin) are labelled as illustration, nothing is
+  presented as a portfolio calculation. Not checked: tooltip hover.
+- **Not verifiable without a browser (#35):** tooltip hover, theme switch in
+  the menu, dragging the sliders.
+- **Next:** #36. #30 is done (PR #50).
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:

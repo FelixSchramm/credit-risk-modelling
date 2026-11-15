@@ -12,7 +12,7 @@ from streamlit.testing.v1 import AppTest
 from app.ui import LINKS, PAGES
 from src.bundle import load_bundle
 from src.i18n import fmt_number, fmt_percent, translate
-from src.scoring import score
+from src.scoring import cutoff_table, score
 
 ENTRY = str(Path(__file__).resolve().parents[1] / "streamlit_app.py")
 
@@ -335,3 +335,114 @@ def test_performance_page_states_monotonicity_and_the_threshold_caveat(
         translate("performance.report_threshold_note", lang)
     ]
     assert len(at.dataframe) == 3
+
+
+def _cutoff(lang):
+    at = AppTest.from_file(ENTRY, default_timeout=30)
+    at.query_params["lang"] = lang
+    at.run()
+    return at.switch_page(PAGES["cutoff"]).run()
+
+
+def _cutoff_row(bundle, threshold, model="rf", loss=0.6, margin=0.1):
+    """The expected table row for one cut-off, computed from the bundle."""
+    amount = bundle["input_spec"]["loan_amnt"]["median"]
+    table = cutoff_table(
+        bundle["y_test"],
+        bundle[f"proba_{model}"],
+        np.array([threshold]),
+        loss,
+        margin,
+        amount,
+    )
+    return table.iloc[0]
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_cutoff_page_shows_the_table_figures_with_tooltips(lang, bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = _cutoff(lang)
+    assert not at.exception
+    row = _cutoff_row(bundle, 0.2)
+    shown = [metric.value for metric in at.metric]
+    assert shown[0] == fmt_percent(row["approval_rate"], 1, lang)
+    assert shown[1] == fmt_number(row["accepted"], 0, lang)
+    assert shown[2] == fmt_number(row["rejected"], 0, lang)
+    assert shown[3:6] == [
+        fmt_number(row[key], 0, lang) for key in ("caught", "missed", "rejected_good")
+    ]
+    assert all(metric.help for metric in at.metric)
+    assert at.warning[0].value == translate("cutoff.notice", lang)
+
+
+def test_cutoff_page_slider_and_model_change_the_figures(bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = _cutoff("en")
+    before = [metric.value for metric in at.metric]
+    at.select_slider(key="cutoff_threshold").set_value(0.1).run()
+    row = _cutoff_row(bundle, 0.1)
+    assert at.metric[1].value == fmt_number(row["accepted"], 0, "en")
+    assert [metric.value for metric in at.metric] != before
+    at.radio(key="cutoff_model").set_value("scorecard").run()
+    row = _cutoff_row(bundle, 0.1, model="scorecard")
+    assert at.metric[1].value == fmt_number(row["accepted"], 0, "en")
+
+
+def test_cutoff_page_economics_parameters_change_the_net_result(bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = _cutoff("en")
+    at.select_slider(key="cutoff_loss").set_value(0.9).run()
+    at.select_slider(key="cutoff_margin").set_value(0.2).run()
+    row = _cutoff_row(bundle, 0.2, loss=0.9, margin=0.2)
+    expected = translate(
+        "cutoff.million_usd", "en", value=fmt_number(row["net_result"] / 1e6, 1, "en")
+    )
+    assert at.metric[9].value == expected
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_cutoff_page_marks_the_optimum_on_a_single_axis(lang, bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = _cutoff(lang)
+    chart = json.loads(at.get("plotly_chart")[0].proto.spec)
+    assert "yaxis2" not in chart["layout"]
+    curve, _, best = chart["data"]
+    assert best["mode"] == "markers+text"
+    assert best["text"][0]
+    thresholds = np.arange(101) / 100
+    table = cutoff_table(
+        bundle["y_test"],
+        bundle["proba_rf"],
+        thresholds,
+        0.6,
+        0.1,
+        bundle["input_spec"]["loan_amnt"]["median"],
+    )
+    top = table.loc[table["net_result"].idxmax()]
+    assert best["x"][0] == pytest.approx(top["threshold"])
+    assert best["y"][0] == pytest.approx(top["net_result"] / 1e6)
+    assert max(_decode(curve["y"])) == pytest.approx(best["y"][0])
+
+
+def test_cutoff_page_inputs_survive_a_language_switch(bundle_env):
+    # Only EN -> DE: AppTest runs the page's format_func in the test process,
+    # where the language falls back to EN, so reruns on the DE page raise.
+    at = _cutoff("en")
+    at.select_slider(key="cutoff_threshold").set_value(0.35).run()
+    at.select_slider(key="cutoff_loss").set_value(0.8).run()
+    at.select_slider(key="cutoff_margin").set_value(0.25).run()
+    at.radio(key="cutoff_model").set_value("scorecard").run()
+    at.sidebar.radio(key="lang").set_value("de").run()
+    assert not at.exception
+    assert at.select_slider(key="cutoff_threshold").value == 0.35
+    assert at.select_slider(key="cutoff_loss").value == 0.8
+    assert at.select_slider(key="cutoff_margin").value == 0.25
+    assert at.radio(key="cutoff_model").value == "scorecard"
+    assert at.title[0].value == translate("cutoff.title", "de")
+
+
+def test_performance_page_links_to_the_cutoff_page(bundle_env):
+    links = [link.proto for link in _performance("en").main.get("page_link")]
+    assert [(link.label, link.page) for link in links] == [
+        ("Cut-off and loss", "cutoff")
+    ]
