@@ -26,7 +26,7 @@ is lost when a session ends unexpectedly.
 | #34 | Model quality (+ start page links, commit 44c70a2) | merged (PR #57, 5b942b0) |
 | #35 | Cut-off and expected loss | merged (PR #58, 8126a7a) |
 | #36 | Model card | merged (PR #59, 21f228a) |
-| #37 | Random forest vs. scorecard | worker resumed after usage limit (5 commits pushed on issue-37-comparison) |
+| #37 | Random forest vs. scorecard | PR #60, review running |
 | #38 | Deployment | needs the user's Streamlit Community Cloud account |
 
 ## Decisions
