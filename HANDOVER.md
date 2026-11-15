@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-15 (worker session for #35)
+**Last updated:** 2026-11-15 (worker session for #36)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -294,7 +294,35 @@ next section.
   presented as a portfolio calculation. Not checked: tooltip hover.
 - **Not verifiable without a browser (#35):** tooltip hover, theme switch in
   the menu, dragging the sliders.
-- **Next:** #36. #30 is done (PR #50).
+- **#36 implemented** (model limits page): `app/views/limits.py`, registered in
+  `PAGES` after `cutoff`, `[limits]`, `nav.limits`, `nav_desc.limits` in both
+  locale files (multi-line TOML strings, EN follows the README, DE translates),
+  two parametrised smoke tests (en/de), `plans/2026-11-15_limits.md`. Sections:
+  leakage before/after (0.9999 as text, today's AUC from the bundle), default
+  definition, horizon, PD/LGD/EAD with IFRS 9 and Switzerland in two short
+  paragraphs, population, int_rate caveat in its own bordered section, limits of
+  the calculator, what the project is not, link to the README section
+  "Regulatory context". **Open PR for #36:** #59, state: review pending.
+- **Income/DTI finding from #32 is documented on the page** (section 7):
+  importances read from the inner forest of the bundle (real bundle: int_rate
+  26.8 %, DTI 3.9 %, annual income 0.97 %, `issue_year` 0.82 %), stated as
+  depth-limit property (`max_depth=10`, `min_samples_leaf=100`) plus the isotonic
+  plateaus. `issue_year` not settable in the calculator is stated as an open
+  question. The page does not say how a run without `int_rate` performs (not run,
+  no numbers in README or notebook); that needs a local retrain.
+- **Pitfalls from #36 for #37:** the importance figures come from
+  `bundle["rf"].calibrated_classifiers_[0].estimator.estimator.feature_importances_`
+  (impurity importance, `feature_names` order); texts that quote the forest depth
+  limit (`max_depth=10`, `min_samples_leaf=100`) are in
+  `limits.calculator_flat` and would go stale if #30 is rerun with other values.
+  The README bullet "No calibration" is stale against the bundle (scores are
+  recalibrated); the page says "no TTC/PIT calibration on top" instead. The
+  page has no link from other pages yet except the start page guide (built from
+  `PAGES`); `limits.intrate_clean` links to the performance page.
+- **Not verifiable without a browser (#36):** tooltip hover (about 12 help icons),
+  look of the bordered int_rate section in both themes below the first screen
+  (Playwright only checked that no exception shows and the first screen in dark EN).
+- **Next:** #37. #30 is done (PR #50).
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:
