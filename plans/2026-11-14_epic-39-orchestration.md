@@ -27,7 +27,7 @@ is lost when a session ends unexpectedly.
 | #35 | Cut-off and expected loss | merged (PR #58, 8126a7a) |
 | #36 | Model card | merged (PR #59, 21f228a) |
 | #37 | Random forest vs. scorecard | merged (PR #60, a60091b) |
-| #38 | Deployment | prep worker running (visual check, screenshots, checklist); app URL from the user pending |
+| #38 | Deployment | prep PR #61 in review (Part of #38); app URL from the user pending, then a final worker adds the link and closes #38 |
 
 ## Decisions
 
