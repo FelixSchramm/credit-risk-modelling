@@ -1,9 +1,12 @@
 """Smoke tests of the Streamlit app with ``streamlit.testing.v1.AppTest``."""
 
+import base64
 import json
 from pathlib import Path
 
+import numpy as np
 import pytest
+from sklearn.calibration import calibration_curve
 from streamlit.testing.v1 import AppTest
 
 from app.ui import LINKS, PAGES
@@ -291,6 +294,23 @@ def test_performance_page_draws_roc_calibration_and_two_band_charts(lang, bundle
     assert all(chart["layout"]["xaxis"]["title"]["text"] for chart in charts)
     # Monotonicity is shown by bars, not by status colours.
     assert charts[2]["data"][0]["type"] == "bar"
+
+
+def _decode(array):
+    """Decode a plotly array, which the spec ships base64-encoded."""
+    raw = base64.b64decode(array["bdata"])
+    return np.frombuffer(raw, dtype=array["dtype"])
+
+
+def test_performance_page_plots_quantile_calibration_points(bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = _performance("en")
+    trace = json.loads(at.get("plotly_chart")[1].proto.spec)["data"][-1]
+    observed, predicted = calibration_curve(
+        bundle["y_test"], bundle["proba_scorecard"], n_bins=10, strategy="quantile"
+    )
+    assert _decode(trace["x"]) == pytest.approx(predicted)
+    assert _decode(trace["y"]) == pytest.approx(observed)
 
 
 @pytest.mark.parametrize("lang", ["en", "de"])
