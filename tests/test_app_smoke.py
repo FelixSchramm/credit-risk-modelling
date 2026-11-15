@@ -439,3 +439,10 @@ def test_cutoff_page_inputs_survive_a_language_switch(bundle_env):
     assert at.select_slider(key="cutoff_margin").value == 0.25
     assert at.radio(key="cutoff_model").value == "scorecard"
     assert at.title[0].value == translate("cutoff.title", "de")
+
+
+def test_performance_page_links_to_the_cutoff_page(bundle_env):
+    links = [link.proto for link in _performance("en").main.get("page_link")]
+    assert [(link.label, link.page) for link in links] == [
+        ("Cut-off and loss", "cutoff")
+    ]

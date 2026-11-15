@@ -9,7 +9,7 @@ import streamlit as st
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import roc_curve
 
-from app.ui import current_mode, get_bundle, help_text, num, pct, show_chart, t
+from app.ui import PAGES, current_mode, get_bundle, help_text, num, pct, show_chart, t
 from src.design import model_color
 from src.evaluate import charged_off_metrics
 
@@ -218,6 +218,7 @@ st.dataframe(
     },
 )
 st.info(t("performance.report_threshold_note"))
+st.page_link(PAGES["cutoff"], label=t("nav.cutoff"))
 with st.expander(t("performance.report_text")):
     for model in MODELS:
         st.markdown(f"**{t(f'performance.model_{model}')}**")
