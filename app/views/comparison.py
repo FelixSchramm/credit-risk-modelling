@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from app.ui import PAGES, current_mode, get_bundle, help_text, num, show_chart, t
-from src.comparison import better_model, default_min_iv, dropped_features, iv_overview
+from src.comparison import better_model, default_min_iv
 from src.design import model_color
 
 #: Models in display order.
@@ -19,6 +19,7 @@ METRICS = (("auc", "roc_auc"), ("gini", "gini"), ("ks", "ks"))
 
 bundle = get_bundle()
 mode = current_mode()
+iv_sorted = bundle["iv_table"].sort_values("iv", ascending=False, ignore_index=True)
 
 
 def _metrics_table() -> pd.DataFrame:
@@ -67,13 +68,12 @@ def _iv_table() -> pd.DataFrame:
 
     :return: One row per candidate feature.
     """
-    overview = iv_overview(bundle["iv_table"])
     return pd.DataFrame(
         {
-            t("comparison.col_feature"): overview["name"],
-            t("comparison.col_bins"): overview["n_bins"].map(num),
-            t("comparison.col_iv"): overview["iv"].map(lambda iv: num(iv, 3)),
-            t("comparison.col_selected"): overview["selected"],
+            t("comparison.col_feature"): iv_sorted["name"],
+            t("comparison.col_bins"): iv_sorted["n_bins"].map(num),
+            t("comparison.col_iv"): iv_sorted["iv"].map(lambda iv: num(iv, 3)),
+            t("comparison.col_selected"): iv_sorted["selected"],
         }
     )
 
@@ -106,7 +106,7 @@ st.markdown(t("comparison.binning_text"), help=help_text("binning"))
 st.markdown(t("comparison.woe_why"))
 
 min_iv = num(default_min_iv(), 2)
-dropped = dropped_features(bundle["iv_table"])
+dropped = iv_sorted.loc[~iv_sorted["selected"], "name"]
 st.subheader(t("comparison.iv_title"), help=help_text("iv"))
 st.markdown(t("comparison.iv_text", min_iv=min_iv))
 st.markdown(f"**{t('comparison.iv_reading')}** {t('glossary.iv.how_to_read')}")

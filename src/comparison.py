@@ -1,15 +1,13 @@
 """Helpers of the forest vs. scorecard page (no Streamlit import).
 
-The page text must follow the numbers, so the one decision that depends on
-them (which model separates better) and the reading of the IV table live here
-where they can be tested.
+The page text must follow the numbers, so the decision that depends on them
+(which model separates better) and the threshold live here where they can be
+tested.
 """
 
 from __future__ import annotations
 
 import inspect
-
-import pandas as pd
 
 from src.train import train_scorecard
 
@@ -23,27 +21,6 @@ def default_min_iv() -> float:
     :return: The Information Value a feature needs to be kept.
     """
     return inspect.signature(train_scorecard).parameters["min_iv"].default
-
-
-def iv_overview(iv_table: pd.DataFrame) -> pd.DataFrame:
-    """Sort the IV table by Information Value, highest first.
-
-    :param iv_table: ``bundle["iv_table"]`` with the columns ``name``,
-        ``n_bins``, ``iv`` and ``selected``.
-    :return: Those four columns, sorted, with a fresh index.
-    """
-    columns = ["name", "n_bins", "iv", "selected"]
-    return iv_table[columns].sort_values("iv", ascending=False, ignore_index=True)
-
-
-def dropped_features(iv_table: pd.DataFrame) -> list[str]:
-    """List the features that fell below the ``min_iv`` threshold.
-
-    :param iv_table: ``bundle["iv_table"]``.
-    :return: Feature names, highest IV first.
-    """
-    overview = iv_overview(iv_table)
-    return overview.loc[~overview["selected"], "name"].tolist()
 
 
 def better_model(metrics: dict[str, dict[str, float]]) -> str:
