@@ -51,7 +51,7 @@ def test_style_figure_wraps_a_long_x_axis_title():
     style_figure(fig)
     lines = fig.layout.xaxis.title.text.split("<br>")
     assert len(lines) > 1
-    assert all(len(line) <= 45 for line in lines)
+    assert all(len(line) <= 28 for line in lines)
 
 
 def test_config_colors_come_from_ci():

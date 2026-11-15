@@ -80,7 +80,7 @@ def style_figure(fig: go.Figure, separators: str = ".,") -> go.Figure:
     )
     x_title = fig.layout.xaxis.title.text
     if x_title:
-        fig.update_xaxes(title_text="<br>".join(textwrap.wrap(x_title, 45)))
+        fig.update_xaxes(title_text="<br>".join(textwrap.wrap(x_title, 28)))
     fig.update_traces(line_width=chart["line_width_px"], selector={"type": "scatter"})
     fig.update_traces(
         marker_cornerradius=chart["bar_corner_radius_px"], selector={"type": "bar"}
