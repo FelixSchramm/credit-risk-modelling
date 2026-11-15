@@ -214,7 +214,7 @@ next section.
   report at 0.5, tested), new tests (4 evaluate, 6 page, 1 link; suite at 139),
   `plans/2026-11-15_performance.md`. No glossary additions (all keys existed).
   Also: LinkedIn and website links on the start page (#43 follow-up, own
-  commit). **Open PR for #34:** see the PR list, state: review pending.
+  commit). **Open PR for #34:** #57, state: review pending.
   Real bundle: forest AUC 0.720 / Gini 0.439 / KS 0.318, scorecard 0.722 /
   0.445 / 0.324; observed default rate rises monotonically over all ten bands
   for both models; at 0.5 the forest has precision 58.4 %, recall 7.4 %,
