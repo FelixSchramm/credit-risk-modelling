@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-15 (worker session for #38)
+**Last updated:** 2026-11-15 (reviewer session for PR #61)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -397,6 +397,17 @@ next section.
   (`docs/images/`) and the placeholder `<!-- APP_URL: ... -->` under the title.
   Open points: the term options show "36 months" also in German (raw option
   texts by design, see pitfalls of #33).
+- **Review of PR #61:** no blocking findings. Checked: title wrapping is the
+  minimal form (`textwrap.wrap` + `<br>`, no built-in alternative, `automargin`
+  does not wrap titles); README change surgical, placeholder is an HTML comment,
+  screenshots 22-24 KB with correct relative paths, no invented URL; checklist
+  matches Streamlit Community Cloud; 180 tests, black, ruff green; headless app
+  healthy; at 390 px (calculator, performance, cutoff, en and de)
+  `scrollWidth == innerWidth`, no exceptions, axis titles and value labels
+  visible. Nothing fixed by the reviewer. Left open as PR comments (cosmetic):
+  the wrap at 28 also makes some titles three lines at 1280 px; in DE at 390 px
+  the y label `home_ownership_MORTGAGE: 1` of the waterfall is clipped by a few
+  pixels at the left edge. #38 stays open until the app is live.
 - **Checklist for the user (deployment, about 5 minutes):**
   1. Open https://share.streamlit.io and click "Continue with GitHub" (sign in
      with the account that owns `FelixSchramm/credit-risk-modelling`; authorise
