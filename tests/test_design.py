@@ -45,6 +45,15 @@ def test_style_figure_sets_rules_but_no_surface_colors():
     assert fig.layout.font.color is None
 
 
+def test_style_figure_wraps_a_long_x_axis_title():
+    fig = go.Figure(go.Bar(x=[1], y=[1]))
+    fig.update_xaxes(title="word " * 20)
+    style_figure(fig)
+    lines = fig.layout.xaxis.title.text.split("<br>")
+    assert len(lines) > 1
+    assert all(len(line) <= 28 for line in lines)
+
+
 def test_config_colors_come_from_ci():
     config = (ROOT / ".streamlit" / "config.toml").read_text(encoding="utf-8")
     ci_text = (ROOT / "src" / "ci.json").read_text(encoding="utf-8").upper()

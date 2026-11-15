@@ -3,6 +3,12 @@ title = "Credit risk dashboard"
 
 [nav]
 home = "Home"
+glossary = "Glossary"
+calculator = "Calculator"
+performance = "Model quality"
+comparison = "Forest vs. scorecard"
+cutoff = "Cut-off and loss"
+limits = "Model limits"
 
 [common]
 language = "Language"
@@ -11,4 +17,572 @@ bundle_missing = "Model bundle not found at `{path}`. Build it with `python scri
 
 [home]
 title = "Credit risk dashboard"
-intro = "Probability of default on LendingClub loans: random forest and scorecard."
+problem = "How likely is a consumer loan to default? This dashboard estimates the probability of default (PD) of LendingClub loans with a random forest and compares it with a classical scorecard."
+metrics_title = "How good is the model? (random forest, test loans)"
+metric_auc = "ROC AUC"
+metric_gini = "Gini"
+metric_ks = "KS"
+metric_base_rate = "Default rate (test set)"
+notice = "Demo on historical US data (LendingClub, loans issued 2015-2018). This is not a real credit decision."
+done_title = "What I did"
+done_leakage = "**Removed data leakage.** The first model reached a ROC AUC of 0.9999 because it contained columns that are only known after the loan outcome. I removed them, so the AUC is now realistic instead of flattering."
+done_calibration = "**Calibrated the scores** to real probabilities, so a score of 0.2 means about 20% of such loans default."
+done_comparison = "**Compared the random forest with a WOE scorecard**, the classical method in banks."
+done_explain = "**Explained every single score**, so each decision can be traced to its inputs."
+done_limits = "**Stated the model limits openly**, including what the data cannot show."
+guide_title = "Where to read on"
+links_title = "Links"
+link_github = "GitHub repository"
+link_linkedin = "LinkedIn"
+link_website = "Website"
+
+[nav_desc]
+glossary = "Every term and figure explained in plain language."
+calculator = "Enter an application and see the default probability of both models."
+performance = "How well the models rank and how right their probabilities are: ROC curve, calibration and score bands."
+comparison = "Random forest and WOE scorecard on the same test loans: metrics, information value and the question which model a bank would use."
+cutoff = "Choose the cut-off and see what it means in loans and in money."
+limits = "What the model can and cannot do: leakage, default definition, horizon, the interest rate caveat and regulation."
+
+[glossary_page]
+title = "Glossary"
+intro = "Every term used in this dashboard, explained in plain language. The short text is also the tooltip next to each figure."
+search = "Search terms and explanations"
+no_results = "No entry matches your search."
+what = "What is it?"
+how_to_read = "How to read it"
+in_project = "In this project"
+limit = "Limit"
+regulatory_link = "More in the README: Regulatory context"
+
+[glossary_groups]
+data = "Data"
+models = "Models"
+quality = "Model quality"
+calibration = "Calibration"
+explain = "Explainability"
+economics = "Credit risk economics"
+regulatory = "Regulation"
+
+[glossary.target]
+term = "Target variable: Charged Off / Fully Paid"
+group = "data"
+what = "The outcome the models predict. A loan that the lender wrote off as lost (Charged Off) counts as 1, a loan that was repaid in full (Fully Paid) counts as 0. Only finished loans issued 2015-2018 are used."
+in_project = "{default_rate} of the {n_test} test loans are Charged Off."
+limit = "Charged Off is the platform's write-off status, not the regulatory definition of default (90 days past due or unlikely to pay). Loans still running are left out."
+
+[glossary.data_leakage]
+term = "Data leakage"
+group = "data"
+what = "Leakage means a model sees information that is only known after the outcome, for example payments received. It then looks brilliant on paper and is useless for a real decision."
+in_project = "The first version of this project reached a ROC AUC of 0.9999 because columns such as total_pymnt, recoveries and out_prncp were still in the data. They are removed now."
+limit = "Removing the known columns does not prove that no subtle leak is left. Very strong single features deserve suspicion (see IV)."
+
+[glossary.train_test_split]
+term = "Train/test split"
+group = "data"
+what = "The loans are divided into a part the model learns from (training) and a part it has never seen (test). Quality figures are only honest when they are measured on the test part."
+how_to_read = "A figure measured on the training data itself is too optimistic and says little about new loans."
+in_project = "{n_train} training loans (including the calibration split) and {n_test} test loans, a random 70/30 split."
+limit = "The split is random, not by time. It does not show how the model would perform on future loans."
+
+[glossary.out_of_time]
+term = "Out-of-time validation"
+group = "data"
+what = "A check where the model is trained on older loans and tested on newer ones, as it would be used in practice. It reveals whether the model survives a change of the economy or of the lender's policy."
+limit = "This project has no out-of-time validation. The split is random, so the figures may be more optimistic than a test on later loans would be."
+
+[glossary.random_forest]
+term = "Random forest"
+group = "models"
+what = "A model made of many decision trees. Each tree votes on a loan and the share of votes is the score. It finds non-linear effects and interactions on its own."
+in_project = "ROC AUC {auc_rf}, Gini {gini_rf}, KS {ks_rf} on the test loans (the depth-limited forest in the bundle)."
+limit = "Hard to explain: many trees cannot be read like a rule list. Banks therefore often prefer a scorecard for the decision itself."
+
+[glossary.logistic_regression]
+term = "Logistic regression"
+group = "models"
+what = "A classic model that adds up weighted inputs and turns the sum into a probability between 0 and 1. Each weight shows how strongly an input pushes the risk up or down."
+limit = "It only captures effects that add up. Interactions have to be built in by hand, for example through binning."
+
+[glossary.scorecard]
+term = "Scorecard"
+group = "models"
+what = "The classic bank model: every input is cut into bins, each bin gets a weight of evidence, and a logistic regression combines them. The result can be shown as points per answer."
+in_project = "ROC AUC {auc_scorecard}, Gini {gini_scorecard}, KS {ks_scorecard}. In this project it separates slightly better than the forest."
+limit = "It is only as good as its bins. Effects across several inputs are not captured."
+
+[glossary.binning]
+term = "Binning"
+group = "models"
+what = "Cutting a continuous input, such as income, into a few ranges (bins) so that each bin has a clearly different default rate. The bins make the scorecard easy to read."
+limit = "Few, coarse bins lose detail, many fine bins overfit to chance. Bins must be checked for stability over time."
+
+[glossary.woe]
+term = "Weight of evidence (WOE)"
+group = "models"
+what = "A number per bin that tells how much better or worse the bin is than the average: the logarithm of the share of repaid loans divided by the share of defaulted loans in that bin."
+how_to_read = "Positive means safer than average, negative means riskier, 0 means average."
+formula = '\mathrm{WOE}_{bin} = \ln\frac{\text{share of all non-defaults in the bin}}{\text{share of all defaults in the bin}}'
+limit = "WOE describes the past of one bin. It does not say why the bin is risky."
+
+[glossary.iv]
+term = "Information value (IV)"
+group = "models"
+what = "A single number per input that says how well its bins separate defaults from repaid loans. It is used to select inputs for the scorecard."
+how_to_read = "Below 0.02 useless, 0.02 to 0.1 weak, 0.1 to 0.3 medium, 0.3 to 0.5 strong, above 0.5 suspected leakage."
+in_project = "The highest value is {iv_top} for {iv_top_name}."
+formula = '\mathrm{IV} = \sum_{bins}\left(\text{share of non-defaults} - \text{share of defaults}\right)\cdot\mathrm{WOE}'
+limit = "A high IV does not prove a causal link, and a very high IV can mean that the input already contains the lender's own risk judgement."
+
+[glossary.class_weight]
+term = 'class_weight="balanced"'
+group = "models"
+what = "A training setting that makes the rare class, the defaults, count more. The model then pays attention to defaults, but its raw outputs are no longer probabilities: they average near 0.5, not near the real default rate."
+how_to_read = "Raw scores of a balanced model are rankings. Only calibrated scores can be read as probabilities."
+limit = "It improves the detection of defaults at the cost of honest probabilities. That is why the bundle calibrates the scores afterwards."
+
+[glossary.roc_curve]
+term = "ROC curve"
+group = "quality"
+what = "A curve that shows, for every possible cut-off, how many of the defaults the model catches (vertical) against how many good loans it wrongly flags (horizontal)."
+how_to_read = "The closer the curve bends to the top left corner, the better. The diagonal line is a coin toss."
+limit = "The curve ignores how large the default rate is and says nothing about whether the probabilities are correct."
+
+[glossary.auc]
+term = "ROC AUC"
+group = "quality"
+what = "The area under the ROC curve. It is the chance that the model gives a higher risk score to a randomly chosen default than to a randomly chosen repaid loan."
+how_to_read = "0.5 is a coin toss, 1.0 is perfect. Realistic credit models on this kind of data lie between 0.65 and 0.75."
+in_project = "Forest {auc_rf}, scorecard {auc_scorecard} on the test loans."
+limit = "AUC measures ranking only. A model can rank well and still output wrong probabilities."
+
+[glossary.gini]
+term = "Gini"
+group = "quality"
+what = "The same information as the ROC AUC on a scale that starts at zero for a coin toss, which is how banks usually quote it."
+how_to_read = "0 means no separation, 1 means perfect separation."
+in_project = "Forest {gini_rf}, scorecard {gini_scorecard}."
+formula = '\mathrm{Gini} = 2\cdot\mathrm{AUC} - 1'
+limit = "Not to be confused with the Gini coefficient of income inequality. It carries no more information than the AUC."
+
+[glossary.ks]
+term = "KS statistic"
+group = "quality"
+what = "The largest gap between two cumulative curves: the share of defaults and the share of repaid loans, both sorted by score. It shows the point where the model separates the two groups best."
+how_to_read = "0 means no separation, 1 means perfect separation."
+in_project = "Forest {ks_rf}, scorecard {ks_scorecard}."
+formula = '\mathrm{KS} = \max_{s}\left|F_{\text{default}}(s) - F_{\text{repaid}}(s)\right|'
+limit = "It looks at one single point of the score range and says nothing about the rest."
+
+[glossary.confusion_matrix]
+term = "Confusion matrix"
+group = "quality"
+what = "A table of four counts for a chosen cut-off: defaults caught, defaults missed, good loans correctly accepted, and good loans wrongly flagged."
+how_to_read = "The diagonal holds the correct decisions, the other two cells the two kinds of mistakes."
+limit = "The counts change with the cut-off. A matrix is always tied to one cut-off."
+
+[glossary.precision]
+term = "Precision"
+group = "quality"
+what = "Of all loans the model flags as defaults, the share that really default. It says how many of the alarms are justified."
+how_to_read = "Close to 1 means few false alarms."
+formula = '\mathrm{Precision} = \frac{TP}{TP + FP}'
+limit = "High precision is easy if the model flags almost nothing. It must be read together with recall."
+
+[glossary.recall]
+term = "Recall"
+group = "quality"
+what = "Of all loans that really default, the share the model flags. It says how many defaults are caught."
+how_to_read = "Close to 1 means few missed defaults."
+formula = '\mathrm{Recall} = \frac{TP}{TP + FN}'
+limit = "Recall depends on the cut-off. With calibrated probabilities hardly any loan reaches 0.5, so recall at 0.5 is low even for a good model. A lower cut-off is needed."
+
+[glossary.f1]
+term = "F1 score"
+group = "quality"
+what = "A single number that combines precision and recall. It is only high when both are reasonably high."
+how_to_read = "0 is worst, 1 is best."
+formula = 'F_1 = 2\cdot\frac{\mathrm{Precision}\cdot\mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}'
+limit = "It treats a missed default and a false alarm as equally bad. In lending they are not: a missed default usually costs far more."
+
+[glossary.accuracy]
+term = "Accuracy"
+group = "quality"
+what = "The share of all loans the model classifies correctly. It sounds convincing but is misleading when one class is much rarer than the other."
+how_to_read = "Compare it with the accuracy of a model that always predicts the majority class."
+in_project = "With a default rate of {default_rate}, the rule that nobody defaults is already right {accuracy_naive} of the time."
+formula = '\mathrm{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}'
+limit = "A high accuracy can hide that no default is found at all."
+
+[glossary.pd]
+term = "Probability of default (PD)"
+group = "calibration"
+what = "The chance that a borrower defaults, as a number between 0 and 1. A PD of 0.2 means that of 100 such loans about 20 are expected to default."
+how_to_read = "Only a calibrated score is a PD. Raw model outputs are not."
+limit = "Here the PD covers the whole loan term and the platform's definition of default. A regulatory PD is a one-year figure with a different definition."
+
+[glossary.base_rate]
+term = "Base rate"
+group = "calibration"
+what = "The overall share of defaults in the data. It is the benchmark for everything else: a model must do better than quoting the base rate for every borrower."
+in_project = "{default_rate} of the test loans default."
+limit = "The base rate belongs to this data set, one platform and one time window. Another lender will have a different one."
+
+[glossary.calibration]
+term = "Calibration"
+group = "calibration"
+what = "A model is calibrated when its probabilities match reality: of all loans scored 0.2, about 20 percent really default. It is a separate question from how well the model ranks loans."
+how_to_read = "In the reliability diagram, calibrated means the points lie on the diagonal."
+limit = "A calibrated model is correct on average for a group of loans, not for the single loan. Calibration also ages when the economy changes."
+
+[glossary.reliability_diagram]
+term = "Reliability diagram"
+group = "calibration"
+what = "A chart that groups loans by predicted probability and plots, for each group, the share that really defaulted. It shows whether the probabilities can be trusted."
+how_to_read = "Points on the diagonal are correct. Points below the diagonal mean the model is too pessimistic, points above mean it is too optimistic."
+limit = "Groups with few loans scatter by chance, so single points far off the diagonal need not be a problem."
+
+[glossary.isotonic_regression]
+term = "Isotonic regression"
+group = "calibration"
+what = "A method that turns raw scores into probabilities. It learns, on loans the model has not been trained on, a step-shaped curve that only ever goes up. A higher raw score never gives a lower probability."
+limit = "It needs enough data and can produce flat steps. Ranking power is hardly changed, but ties can appear."
+
+[glossary.feature_importance]
+term = "Feature importance"
+group = "explain"
+what = "A ranking of the inputs by how much the forest uses them to split loans. It tells which inputs matter most overall."
+limit = "It does not show the direction of an effect and favours inputs with many distinct values. For a single loan use SHAP."
+
+[glossary.shap]
+term = "SHAP"
+group = "explain"
+what = "A method that splits the score of one loan into contributions of its inputs. Each input pushes the score up (more risk) or down (less risk) from the average."
+how_to_read = "A long bar to the right means a strong push towards default, to the left towards repayment."
+limit = "SHAP explains what the model does, not what is true in the world. A contribution is not a cause."
+
+[glossary.shap_base_value]
+term = "SHAP base value"
+group = "explain"
+what = "The starting point of an explanation: the average score of the model. The contributions of the inputs are added to it and give the score of the single loan."
+how_to_read = "Base value plus all contributions equals the score of the loan."
+limit = "The base value depends on the data used as reference and, for the forest, on the scale of the model output."
+
+[glossary.beeswarm]
+term = "Beeswarm plot"
+group = "explain"
+what = "A chart with one dot per loan and input. The position shows how much the input pushed the score, the colour shows whether the value of the input was high or low."
+how_to_read = "Rows are inputs, ordered by importance. A clear colour split left and right means a consistent direction."
+limit = "It summarises many loans and cannot explain a single decision."
+
+[glossary.waterfall]
+term = "Waterfall plot"
+group = "explain"
+what = "A chart that explains one loan step by step: starting from the average score, each input adds or removes some risk until the final score is reached."
+how_to_read = "Read from the start value to the final score. Steps that raise the score add risk, steps that lower it reduce risk."
+limit = "It explains one loan for one model. Another model can give a different story with the same score."
+
+[glossary.scorecard_points]
+term = "Scorecard points"
+group = "explain"
+what = "The scorecard translated into points: each answer of a borrower earns a number of points and the sum is the score. This is how banks make a model's decision easy to follow."
+how_to_read = "Compare the points of the bins: the larger the difference, the stronger the effect of that input."
+limit = "Points are only a rescaling of the model. They do not make the model more correct."
+
+[glossary.score_band]
+term = "Score band (decile)"
+group = "economics"
+what = "Loans are sorted by score and divided into ten equally large groups, the deciles. For each group one can compare the predicted with the observed default rate."
+how_to_read = "A good model shows a steadily rising default rate from the safest to the riskiest band."
+limit = "Bands are relative to this data set. A band is not a rating grade and has no fixed meaning."
+
+[glossary.cutoff]
+term = "Cut-off"
+group = "economics"
+what = "The score above which a loan is declined. It is a business decision that weighs the loss from a default against the profit lost by declining a good loan."
+how_to_read = "A lower cut-off declines more loans: fewer defaults get through, but also more good customers are lost."
+limit = "The model does not choose the cut-off. A sensible cut-off on calibrated probabilities is far below 0.5, because most loans have a low default probability."
+
+[glossary.approval_rate]
+term = "Approval rate"
+group = "economics"
+what = "The share of applicants whose loan is accepted at a given cut-off. It is the other side of the cut-off: the lower the cut-off, the lower the approval rate."
+limit = "The rate is computed on loans that were approved by the platform in the past. Applicants that were declined then are not in the data."
+
+[glossary.expected_loss]
+term = "Expected loss (EL)"
+group = "economics"
+what = "The loss a lender expects on average on a loan: the probability that it defaults, times the share of the exposure that is lost, times the exposure at the moment of default."
+how_to_read = "EL is an average, not the loss in a bad year. Unexpected losses need capital beyond it."
+formula = '\mathrm{EL} = \mathrm{PD}\cdot\mathrm{LGD}\cdot\mathrm{EAD}'
+limit = "This project models only the PD. LGD and EAD are not modelled, so an EL here needs an assumption for them."
+
+[glossary.lgd]
+term = "Loss given default (LGD)"
+group = "economics"
+what = "The share of the exposure that is lost when a borrower defaults, after recoveries. If 40 of 100 francs are lost, the LGD is 40 percent."
+how_to_read = "0 means everything is recovered, 1 means everything is lost."
+limit = "LGD is not modelled in this project. Recoveries on unsecured consumer debt are a modelling problem of their own."
+
+[glossary.ead]
+term = "Exposure at default (EAD)"
+group = "economics"
+what = "The amount a lender has outstanding at the moment the borrower defaults. For a fully drawn instalment loan it is close to the remaining balance."
+limit = "EAD is not modelled in this project. It is much harder for credit lines that the borrower can still draw on."
+
+[glossary.basel_irb]
+term = "Basel IRB approach"
+group = "regulatory"
+what = "The internal ratings-based approach lets a bank use its own estimates of PD, LGD and EAD to calculate the capital it must hold. It needs explicit approval by the supervisor."
+limit = "This project delivers one of the three inputs, the PD, and is not a supervisory-approved model. Details are in the README."
+
+[glossary.ifrs9]
+term = "IFRS 9"
+group = "regulatory"
+what = "An accounting standard that requires banks to book expected credit losses in advance. Loans are placed in three stages: stage 1 uses the expected loss over 12 months, stages 2 and 3 over the whole lifetime."
+limit = "IFRS 9 needs point-in-time PDs that react to the economy. This project models a PD over the full loan term at origination. Details are in the README."
+
+[glossary.finma]
+term = "FINMA"
+group = "regulatory"
+what = "The Swiss Financial Market Supervisory Authority. It supervises banks, insurers and other institutions in Switzerland and implements the Basel rules for them."
+limit = "In Switzerland the standardised approach dominates, where no internal PD enters the capital calculation. Details are in the README."
+
+[glossary.model_card]
+term = "Model card"
+group = "regulatory"
+what = "A short document that states what a model is for, which data it was built on, how well it works and where it fails. It makes the limits of a model visible to those who use it."
+limit = "A model card describes a model, it does not validate it. It is no substitute for an independent review."
+
+[glossary.model_validation]
+term = "Model validation"
+group = "regulatory"
+what = "The independent review of a model by people who did not build it: data, method, performance, stability and use. Banks must do it before a model goes live and repeat it regularly."
+limit = "This project has no validation in the supervisory sense: no independent function, no out-of-time test, no ongoing monitoring. Details are in the README."
+
+[calculator]
+title = "Applicant calculator"
+notice = "This is not a credit decision. You enter {n_inputs} of {n_features} model inputs, every other input stays at the portfolio median. The result compares applications, all else being equal; it does not assess a real applicant. The models were trained on US retail loans from 2015-2018."
+inputs_title = "Application"
+derived = "Funded amount, installment and FICO high are derived from your inputs."
+compare = "Compare with variant B"
+variant_a = "Variant A"
+variant_b = "Variant B"
+results_title = "Default probability"
+label_loan_amnt = "Loan amount (USD)"
+label_term = "Term"
+label_int_rate = "Interest rate (% per year)"
+label_annual_inc = "Annual income (USD)"
+label_dti = "Debt-to-income ratio (%)"
+label_fico_range_low = "FICO score"
+label_emp_length = "Employment length"
+label_purpose = "Purpose"
+model_rf = "Random forest"
+model_scorecard = "WOE scorecard"
+metric_pd = "Default probability"
+metric_band = "Risk band"
+band_value = "{band} of {n_bands}"
+percentile = "Riskier than {share} of the test loans."
+delta_pp = "{value} pp vs. variant A"
+models_differ = "The two models rate this application in clearly different risk bands. That is a finding, not an error: they weigh the inputs differently."
+explain_title = "Why this score?"
+explain_for_a = "The explanations refer to variant A."
+explain_feature_note = "Inputs are shown with the technical column names of the dataset. Inputs you did not enter stay at the portfolio median."
+tab_rf = "Random forest: SHAP"
+tab_scorecard = "Scorecard: WOE contributions"
+rest = "{n} other inputs"
+rf_title = "Which inputs move the forest score"
+rf_read = "Read the waterfall from top to bottom: it starts at the base value, every bar adds risk (to the right) or removes risk (to the left), and the last bar is the raw forest score of this application. The inputs with the smallest effect are summed up in the last step. The axis does not start at zero."
+rf_uncalibrated = "SHAP explains the raw, uncalibrated forest score, not the calibrated default probability shown above. The raw score is a ranking, not a probability. Because of `class_weight=\"balanced\"` the forest is trained as if defaults and repayments were equally frequent, so its average score is close to 0.5 and not near the real default rate of {base_rate}. Calibration maps the raw score to the default probability afterwards."
+rf_metric_base = "Base value"
+rf_metric_score = "Raw forest score"
+rf_axis = "Raw forest score (uncalibrated)"
+rf_base_label = "Base value"
+rf_total_label = "Raw score"
+sc_title = "Which inputs move the scorecard"
+sc_read = "Each bar is the contribution of one input: the weight of evidence (WOE) of the bin your value falls into, multiplied by the coefficient of the model. Bars to the right (+) raise the default risk, bars to the left (-) lower it. All contributions plus the intercept add up to the log-odds of default."
+sc_uncalibrated = "Like the forest, the scorecard is shown before calibration, and the contributions are log-odds, not percentage points and not scorecard points (points would only be a linear rescaling of the same numbers). The scorecard is additive by construction: these contributions are the model itself, not an approximation."
+sc_axis = "Contribution to the log-odds of default (negative lowers, positive raises the risk)"
+sc_hover = "WOE {woe}"
+sc_sum = "Intercept {intercept} plus the sum of all contributions {total} gives log-odds {log_odds}."
+compare_title = "Two kinds of explanation"
+compare_text = "The forest needs a second method on top (SHAP) to be explained at all, and the explanation describes its behaviour for one application. The scorecard explains itself: its score is a sum of bin contributions that can each be checked against economic expectation. That is why regulated banks often prefer the scorecard even when a forest ranks better, the same trade-off as in section 7 of the notebook."
+
+[performance]
+title = "Model quality"
+intro = "How good are the two models on loans they have never seen? Ranking and correct probabilities are two different properties, and a PD model needs both."
+metrics_title = "Discriminatory power"
+model_rf = "Random forest"
+model_scorecard = "WOE scorecard"
+metric_auc = "ROC AUC"
+metric_gini = "Gini"
+metric_ks = "KS"
+roc_title = "ROC curve"
+roc_intro = "Does the model give defaults a higher score than repaid loans? The curve shows how many defaults it catches for each share of good loans it flags by mistake."
+roc_x = "Share of repaid loans flagged (false positive rate)"
+roc_y = "Share of defaults caught (recall)"
+roc_diagonal = "Coin toss"
+calibration_title = "Calibration"
+calibration_intro = "Are the probabilities right? Loans are grouped by predicted probability, and the observed default rate of each group is plotted against it. On the diagonal, a score of 0.2 means 20% of such loans default."
+calibration_x = "Mean predicted probability"
+calibration_y = "Observed default rate"
+calibration_perfect = "Perfect calibration"
+calibration_before = "{model}, before calibration"
+calibration_after = "{model}, after calibration"
+calibration_note = "Solid lines show the calibrated scores used everywhere in this dashboard, dashed lines the raw scores. Both models were trained with balanced class weights, which inflate the raw probabilities well above the real default rate. Calibration moves them back to the diagonal practically without changing the ranking."
+bands_title = "Score bands"
+bands_intro = "The test loans are sorted by score and split into ten equally large bands. If the observed default rate rises from band to band, the model ranks."
+band_x = "Risk band (1 = lowest scores)"
+band_y = "Default rate and mean score"
+band_observed = "Observed default rate"
+band_mean = "Mean score"
+col_band = "Band"
+col_n = "Loans"
+col_mean_score = "Mean score"
+col_default_rate = "Observed default rate"
+monotonic_yes = "The observed default rate rises in every band: the model ({model}) ranks without a single reversal."
+monotonic_no = "The observed default rate does not rise in every band (reversal after band {band}): the model ({model}) ranks well on the whole, but not strictly."
+report_title = "Classification at the 0.5 threshold"
+report_intro = "The figures below treat every loan with a score above 0.5 as a predicted default and refer to the class Charged Off."
+report_threshold_note = "0.5 is not a sensible threshold here. After calibration hardly any loan has a default probability above 0.5, because only about one in five loans defaults. The recall is therefore very low, even though the models rank well. The threshold is set, not optimised: the cut-off page shows precision and recall for the threshold you choose."
+col_model = "Model"
+col_precision = "Precision"
+col_recall = "Recall"
+col_f1 = "F1 score"
+col_accuracy = "Accuracy"
+report_text = "Full classification report"
+
+[cutoff]
+title = "Cut-off and expected loss"
+intro = "A PD model decides nothing by itself. Someone has to say from which score on a loan is declined. This page shows what each choice means in loans and in money."
+notice = "An illustration of the logic, not a portfolio calculation. Loss given default (LGD) and exposure at default (EAD) are not modelled in this project: the loss share and the loan amount used here are assumptions."
+controls_title = "Your decision"
+model_label = "Model"
+model_rf = "Random forest"
+model_scorecard = "WOE scorecard"
+threshold_label = "Cut-off: decline loans with a score above"
+loss_label = "Loss per defaulted loan (share of the loan amount)"
+margin_label = "Income per good loan (share of the loan amount)"
+margin_help = "What a good loan earns the lender in net terms, e.g. interest minus funding and running costs. A declined good customer forgoes this income."
+portfolio_title = "What the cut-off does to the test loans"
+portfolio_intro = "{n} loans the models have never seen, {defaults} of them defaulted. Without a cut-off all are accepted and {base_rate} of them default. Every figure follows the cut-off at once."
+metric_approval_rate = "Approval rate"
+metric_accepted = "Accepted loans"
+metric_rejected = "Declined loans"
+metric_default_rate_accepted = "Default rate (accepted)"
+metric_caught = "Defaults caught"
+metric_missed = "Defaults missed"
+metric_rejected_good = "Good customers declined"
+metric_precision = "Precision"
+metric_recall = "Recall"
+none_accepted = "no loan accepted"
+money_title = "What it means in money"
+money_intro = "Net result = income from the accepted good loans minus the losses on the accepted defaults, for a loan amount of {amount} USD each. That is the median loan amount of the portfolio: the bundle holds no individual amounts."
+metric_net_result = "Net result at this cut-off"
+metric_loan_amount = "Assumed loan amount"
+metric_best_cutoff = "Best cut-off"
+metric_best_net_result = "Net result at the best cut-off"
+million_usd = "{value} million USD"
+usd = "{value} USD"
+chart_x = "Cut-off (decline above)"
+chart_y = "Net result (million USD)"
+chart_curve = "Net result"
+chart_selected = "Selected cut-off"
+chart_best_name = "Best cut-off"
+chart_best = "Best: cut-off {threshold}, {value}"
+reading_title = "Why the cut-off is a business decision"
+reading = "The model only ranks loans. How much a missed default costs, compared with a good customer who is declined, is not in the data: the lender sets it. A lender with a high loss per default or a thin margin declines more loans and chooses a lower cut-off. A lender with a high margin or a small loss accepts more. Move the two sliders and watch the best cut-off move: the model stays the same, only the decision changes."
+
+[limits]
+title = "Model limits"
+intro = """A model whose limits its author cannot name is not usable in a bank. This page says what this model is good for and what it is not. It is the model card of the project."""
+notice = "A demonstration of method on public historical data, not a PD model that a bank could use."
+leakage_title = "1. The leakage story"
+leakage_intro = """The first version of this project reported a ROC AUC of 0.9999. In credit risk, an almost perfect AUC is a warning sign, not a success. The feature set still contained columns that are only filled once a loan has been repaid or has defaulted: `total_pymnt`, `recoveries`, `out_prncp`, `last_fico_range_*` and others. They leak the target into the features."""
+leakage_before_label = "First version (with leakage)"
+leakage_before_value = "0.9999"
+leakage_after_label = "Today (random forest, test loans)"
+leakage_text = """After removing all post-outcome columns the AUC is in the range that can be expected for a realistic PD model on LendingClub data (0.65-0.75). That is the number that can be defended. Removing the known columns does not prove that no subtle leak is left, which is why very strong single features deserve suspicion."""
+default_title = "2. The default definition is not the regulatory one"
+default_text = """The target is LendingClub's `Charged Off` status, a write-off. Basel defines default as 90 days past due or unlikeliness to pay. A write-off is a later and stricter event that a loan reaches long after it would already have counted as defaulted under the regulatory definition. The two are not interchangeable, and a model trained on one does not estimate the other. The figures here are therefore not directly comparable with Basel PDs."""
+horizon_title = "3. The horizon is not the regulatory one"
+horizon_text = """An IRB PD is a one-year probability. This model is fitted at origination against the outcome over the loan's entire 36- or 60-month term, which makes it closer to a lifetime PD than to the one-year PD used under Basel."""
+pd_title = "4. PD is only one third of the question"
+pd_text = """Expected loss is `PD x LGD x EAD`:
+
+- **PD** (probability of default): modelled here.
+- **LGD** (loss given default): not modelled. Recovery on unsecured consumer debt is a modelling problem of its own.
+- **EAD** (exposure at default): not modelled. For a fully drawn, amortising consumer loan it is close to the outstanding balance."""
+pd_ifrs = """Under IFRS 9, PD feeds the loss allowance and the staging: stage 1 uses the 12-month expected credit loss, stages 2 and 3 the lifetime loss. IFRS 9 PDs are point-in-time and forward-looking, Basel IRB PDs are long-run averages by design. One estimate cannot be both, which is why banks keep separate PD models for the two purposes."""
+pd_swiss = """In Switzerland the standardised approach dominates, where no internal PD enters the capital calculation; internal PD models need explicit FINMA approval."""
+population_title = "5. Population"
+population_text = """The data are accepted loan applications of a US peer-to-peer platform, issued 2015-2018. Nothing has been established about how that relates to the portfolio of a Swiss bank. There is no point-in-time or through-the-cycle calibration and no validation in the supervisory sense."""
+intrate_title = "6. Caveat: the interest rate as an input"
+intrate_notice = "Whoever enters the interest rate feeds the model LendingClub's own risk assessment."
+intrate_why = """`grade` and `sub_grade` were removed from the feature set as irrelevant. But the interest rate is LendingClub's own rating in the form of a price: the platform set it according to its own risk assessment. A model that takes it as an input is partly reproducing someone else's scorecard, so its discrimination looks better than an independent assessment of the borrower would be."""
+intrate_importance = "In the random forest of this dashboard the interest rate is the strongest single feature with an importance of {share}."
+intrate_clean = """A clean run would train the same pipeline without `int_rate`, score it on the same test loans and compare ROC AUC, Gini and KS with the values on the page "Model quality". A bank building a scorecard would look at how much discriminatory power survives without it. This run has not been made, so no numbers are quoted here."""
+calculator_title = "7. Limits of the calculator"
+calculator_median = """The calculator asks for a few inputs. All other model inputs stay at the portfolio median. The result therefore compares applications with each other, all else being equal; it does not assess a real applicant."""
+calculator_flat = """The deployed forest is depth-limited (`max_depth={max_depth}`, `min_samples_leaf={min_samples_leaf}`) to keep the bundle small and explanations fast. As a result it barely reacts to annual income and debt-to-income ratio, while the scorecard does. The importances below are read from the bundle. The isotonic calibration additionally turns small differences in the score into plateaus."""
+calculator_metric_int_rate = "Importance: interest rate"
+calculator_metric_dti = "Importance: DTI"
+calculator_metric_income = "Importance: annual income"
+calculator_year = """`issue_year` is still a feature of the model, but the calculator cannot set it, so it stays at the median. It is known at origination and therefore not leakage, but as a time index it lets the model learn the vintage instead of the risk. Whether it should stay is an open question from the leakage review."""
+not_title = "8. What this project is not"
+not_text = """A learning and portfolio project on a public historical dataset. It is **not** a supervisory-approved model and makes no claim to satisfy any regulatory requirement:
+
+- **No through-the-cycle or point-in-time calibration.** The scores are recalibrated on a held-out part of the training data, so they work as probabilities, but there is no calibration to a rating philosophy on top.
+- **No rating system.** No grades, no masterscale, no margin of conservatism.
+- **No validation in the supervisory sense.** No out-of-time testing, no independent validation function, no ongoing monitoring, no override policy.
+- **No representativeness argument.** One platform, one country, one time window."""
+not_closing = "None of this makes the exercise idle: the steps are the ones a real PD project runs. It is a demonstration of method, not a PD."
+readme_text = "The regulatory background is summarised here and written out in the README."
+readme_link = "README: Regulatory context"
+
+[comparison]
+title = "Random forest vs. scorecard"
+intro = """The random forest is the modern model. The one a bank usually has to defend in front of a supervisor is the older one: a **scorecard**, meaning logistic regression on Weight-of-Evidence-transformed features. Putting both side by side turns a single result into a comparison."""
+model_rf = "Random forest"
+model_scorecard = "WOE scorecard"
+model_rf_text = "Many decision trees vote on a loan. It finds non-linear effects and interactions on its own. This is the depth-limited, calibrated forest of the dashboard."
+model_scorecard_text = "Every feature is cut into bins, each bin is replaced by its weight of evidence, and a logistic regression combines them. Additive and readable bin by bin."
+metrics_title = "Same test loans, same three metrics"
+metrics_intro = "Both models are evaluated on the same {n_test} test loans with the same three metrics, so the numbers are directly comparable. Either of them may come out ahead, which is the informative part."
+col_model = "Model"
+col_auc = "ROC AUC"
+col_gini = "Gini"
+col_ks = "KS"
+chart_x = "Metric"
+chart_y = "Value (0 = no separation, 1 = perfect)"
+metrics_more = "ROC curves, calibration and score bands of both models:"
+mechanics_title = "How the scorecard works"
+woe_text = """**Weight of Evidence (WOE)** bins a feature and replaces every value by the log-odds of its bin: `WOE = ln(share of non-defaults in the bin / share of defaults in the bin)`. A bin that holds relatively many repaid loans gets a positive WOE, one that holds relatively many defaults a negative one."""
+binning_text = "The binning itself is left to `optbinning`, which solves it as an optimisation problem (maximise IV subject to a minimum bin size and monotonicity) rather than cutting at fixed quantiles."
+woe_why = """The transformation is what makes the approach acceptable to a model validation function:
+
+- The relationship between feature and target no longer has to be linear. The bins absorb the shape, and the regression stays linear in the WOE values.
+- Outliers cannot move a coefficient; they fall into an edge bin. Credit data is full of them (`annual_inc` in particular).
+- Missing values are not imputed but get their own bin, so "not reported" becomes an explicit risk statement rather than a silent guess. That bin stays empty here, because the cleaning step already dropped the rows with missing values.
+- Every score is traceable: the applicant landed in this bin, which adds this much to the score. That is exactly what an adverse-action notice needs."""
+iv_title = "Information value: which features the scorecard keeps"
+iv_text = """**Information Value (IV)** aggregates the WOE of a feature into one number that says how much it separates the two classes. The table is the feature selection, made explicit: `selected` is off for every feature whose IV stays under {min_iv}. Those features are dropped before the regression sees them, which is the classical way a scorecard keeps itself small enough to be reviewed by hand."""
+iv_reading = "How to read the IV:"
+iv_leakage = "Anything above 0.5 is a prompt to look, not a verdict. A feature that separates defaults almost perfectly is usually a feature that already knows the outcome."
+col_feature = "Feature"
+col_bins = "Bins"
+col_iv = "IV"
+col_selected = "Selected"
+dropped_text = "{n_dropped} of {n_total} candidate features stay under the threshold of {min_iv} and are dropped."
+dropped_expander = "Show the dropped features"
+iv_notes_title = "Two things worth checking in the table"
+iv_note_int_rate = "**`int_rate`** is the feature to expect at the top. LendingClub sets the rate from its own risk grade, so a high IV here is the platform's own credit assessment showing through rather than a post-outcome column that the leakage check missed. It is known at origination, so it stays, but a model leaning on it is partly reproducing someone else's scorecard, and a model document has to say so."
+iv_note_fico = "**`fico_range_low` and `fico_range_high`** are the two ends of a four-point band, so they carry almost the same information and report almost the same IV. IV is computed per feature and cannot see that; a production build would keep one of the pair and drop the other rather than hand the regression two copies of the same variable."
+practice_title = "Which model would be used in practice"
+conclusion_scorecard = "**What the numbers say:** on these test loans the scorecard separates better than the forest, with a ROC AUC of {auc_scorecard} against {auc_rf} (a gap of {gap}). A scorecard that matches or beats the forest says that the relationships in this data are close enough to monotone that flexibility buys nothing, and the simpler model is simply the better one. So the numbers support the rule of thumb: if the forest does not separate clearly better, the scorecard is often the right choice in a bank."
+conclusion_rf = "**What the numbers say:** on these test loans the forest separates better than the scorecard, with a ROC AUC of {auc_rf} against {auc_scorecard} (a gap of {gap}). The forest can use interactions between features that the scorecard, being additive in the WOE values, cannot represent at all, so a clear win means non-linear structure that the scorecard is missing. The usual response is not to abandon the scorecard but to bin differently or to add the interaction as its own feature. The rule of thumb that a bank often prefers the scorecard holds as long as this gap stays marginal; the next paragraphs say what else counts."
+practice_scorecard = """**When the scorecard wins on grounds other than the metric.** For a regulatory PD model, an IRB rating system under Basel or the PD feeding an IFRS 9 expected-loss calculation, the model has to be explained, validated and defended for years. The scorecard is additive and bin-wise, so every decision decomposes into a handful of statements of the form "this applicant is in this bin, which adds this much to the score". Rejected applicants can be given a reason, a validation unit can check each bin against its own expectation of the risk direction, and monitoring can watch bin populations drift over time. The coefficients are few and stable, and the whole model fits on a page."""
+practice_forest = """**When the forest wins.** Where the output is a ranking used internally and the cost of a wrong decision is bounded (portfolio triage, collections prioritisation, an early-warning list, or a challenger model testing whether the scorecard leaves signal on the table), extra discrimination is worth more than explainability, especially with the SHAP values of the calculator page recovering a good part of the latter."""
+practice_robust = """**Why this is not simply accuracy versus interpretability.** Two of the scorecard's properties are robustness rather than transparency: binning caps the influence of outliers, and every feature has an explicit missing bin. A forest is not fragile here either, since tree splits only use the rank of a value and recent scikit-learn versions accept missing values. But in the forest both treatments are implicit and hard to audit, while the scorecard makes them explicit, visible in the bins and checkable by a validator. On credit data that matters more than the metric difference usually does."""
+practice_summary = "The honest summary is that a bank would build both: the scorecard is the model of record, the forest is the challenger that keeps it honest."

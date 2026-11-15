@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-10 (planning session for epic #39)
+**Last updated:** 2026-11-15 (reviewer session for PR #61)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -49,6 +49,19 @@ next section.
   a browser: switcher position and look, German texts rendered, `?lang=de`
   direct link in a real browser, highlighting of the active `page_link`
   (AppTest and a headless start only).
+- **Review of PR #53:** all acceptance criteria of #42 met except those that
+  need a browser (KaTeX, look, tooltips). Checked: 42 keys in the right groups,
+  DE/EN key and placeholder parity, formulas, project facts against README and
+  `src/bundle.py`, regulatory texts against "Regulatory context"; pytest (91),
+  black, ruff, headless start (health `ok`) and AppTest of the glossary in both
+  languages (42 expanders, 9 formulas, no placeholder left). Fixed: "hundreds of
+  trees" (the forest has 100) in both languages; two surviving mutations got
+  tests (swapped metric sources in `project_figures`; dropped lower-casing in
+  the search). Open, debatable: (1) `scorecard.in_project` states "separates
+  slightly better than the forest" as fixed text, true per README today but stale
+  after #30 if the numbers flip; (2) the search matches the raw `in_project` text
+  including `{placeholders}`; (3) `glossary.py` imports the private `_texts`;
+  (4) no test for the README link in regulatory entries.
 - **Review of PR #52 (no clear-cut findings, nothing changed in the code):**
   open, minor, debatable: (1) `init_language()` in `streamlit_app.py` is
   redundant because `t()` calls it through `current_lang()`; (2) `fmt_number`
@@ -58,7 +71,369 @@ next section.
   frontend behaviour, not checked in the review. Mutation checks: key parity,
   missing key, unknown language, DE swap, no-break space, EN percent and
   placeholder parity each make a test fail.
-- **Next:** #42 (glossary). #30 (full run) can start any time.
+- **#42 implemented** (glossary): `src/glossary.py` (`glossary_entries`,
+  `glossary_help`, `project_figures`, `GROUPS`), 42 `[glossary.<key>]` entries
+  in both locale files, `app/views/glossary.py` (search field key
+  `glossary_search`, group headings, expanders, `st.latex`), `help_text(key)` in
+  `app/ui.py`, `tests/test_glossary.py`, two smoke tests. **Open PR for #42:**
+  #53, state: reviewed, ready to merge (see "Review of PR #53"). Not verifiable without a browser:
+  KaTeX rendering of the formulas, look of the page, tooltips in a browser.
+- **Pitfalls from #42:** `group` is a group id (`data`, `models`, `quality`,
+  `calibration`, `explain`, `economics`, `regulatory`), the titles are in
+  `[glossary_groups]`. Pages use `help=help_text("<key>")`; formulas are not
+  passed through `translate` (LaTeX braces). `in_project` placeholders:
+  `auc/gini/ks_{rf,scorecard}`, `default_rate`, `accuracy_naive`, `n_train`,
+  `n_test`, `iv_top`, `iv_top_name`; a new placeholder needs an entry in
+  `project_figures`. Assumptions: 42 keys as listed in the issue (the issue's
+  "seven groups" list has 42 terms); `data_leakage.in_project` quotes the
+  historical AUC 0.9999 as text (a README fact, not a bundle value);
+  `glossary.py` imports the private `_texts` from `i18n`; the README link text
+  stays English in both languages.
+- **#43 implemented** (start page): `app/views/home.py` (problem sentence, four
+  `st.metric(border=True)` tiles for forest AUC, Gini, KS and test default rate
+  from the bundle with `num`/`pct`/`help_text`, notice, five "what I did"
+  points incl. the leakage story, guide, link buttons), `LINKS` in `app/ui.py`,
+  `[home]` and `[nav_desc]` in both locale files, two smoke tests. **Open PR
+  for #43:** #54, state: reviewed, ready to merge (see "Review of PR #54"). Headless start and a
+  1280x800 Chromium check (synthetic bundle, DE and EN): problem sentence and
+  all four tiles end at y=412, no scrolling needed. Not verifiable without a
+  browser: both themes visually, tooltips on hover, `page_link` click.
+- **Review of PR #54:** all acceptance criteria of #43 met; first screen
+  checked with Playwright at 1280x800 in light and dark, DE and EN (tiles,
+  notice and first bullets visible); README facts (0.9999 leakage story,
+  calibration, 2015-2018 window) verified; DE/EN key parity; pytest, black,
+  ruff, AppTest in both languages, headless health `ok`. Fixed: German
+  "Datenleck" (data breach) to "Data Leakage", EN "20 %" to "20%", and a test
+  for the notice (removing it was not caught). Judged acceptable: the guide
+  skips the home page. Open, minor: the guide test only asserts a superset, so
+  dropping the `key != "home"` condition is not caught. Not checked: tooltip
+  hover, `page_link` click.
+- **Pitfalls from #43:** the guide is built from `PAGES` and skips `home`; each
+  new page in `PAGES` (#32-#37) needs `nav.<key>` and `nav_desc.<key>` in both
+  locale files, otherwise the start page raises `KeyError`. The 0.9999 AUC in
+  `home.done_leakage` is a README fact quoted as text, like in the glossary.
+  The German texts use "ß" like the existing ones.
+- **#32 implemented** (applicant calculator): `app/views/calculator.py`
+  (`_input`, `_results`), registered in `PAGES` after `home` (menu order),
+  `[calculator]`, `nav.calculator`, `nav_desc.calculator` in both locale files,
+  three smoke tests, `plans/2026-11-14_calculator.md`. Inputs come from
+  `input_spec` (bounds, median, categories; only the step sizes are in the
+  page), widget keys `a_<field>` / `b_<field>` / `compare`. Per model: PD
+  (`help_text("pd")`), band of N (`help_text("score_band")`), percentile caption;
+  a toggle adds variant B (`_start_variant_b`, `on_change` of the toggle,
+  copies the `a_*` values into `b_*` and sets the other term);
+  B's PD metrics carry the difference to A as delta (`delta_color="inverse"`).
+  Hint when the models are `DIVERGENCE_BANDS` (2) bands apart. The limitation
+  notice is an `st.warning` directly under the title (bottom edge at y=289 at
+  1280x800, DE and EN). **Open PR for #32:** #55, state: reviewed, ready to merge (see "Review of PR #55").
+- **Coupled-feature fix (open point of the review of #49: resolved):**
+  `_coupled_columns` in `src/scoring.py` derives `funded_amnt`,
+  `funded_amnt_inv` (= `loan_amnt`), `fico_range_high` (= low + 4) and
+  `installment` (annuity) from the effective values for the forest vector and
+  the scorecard row, only for columns present in the defaults. Pitfall: the
+  real median installment 373.77 is a median of different loans; 12,000 at
+  12.74 % over 36 months is 402.83, so the default application is now not
+  exactly the median row.
+- **Plausibility on the real bundle** (base: 12,000 USD, 36 months, 12.74 %,
+  70,000 USD, DTI 18, FICO 690): forest/scorecard PD 18.1 %/17.9 % (band 5);
+  rate 7 %: 10.5/9.1; rate 25 %: 23.7/31.3; FICO 660: 21.0/18.2; FICO 780:
+  12.8/14.0; 60 months: 23.7/21.8; amount 35,000: 23.1/21.8; DTI 35: 21.0/21.8.
+  All in the expected direction. The forest barely reacts to income (30k: 18.2,
+  200k: 18.1) and DTI 5 (18.1): depth limit, not a bug. Extremes: good
+  (FICO 780, 7 %, DTI 5) 5.8/4.6, bad (FICO 660, 25 %, DTI 35, 60 m) 43.4/46.1.
+- **Review of PR #55:** all acceptance criteria of #32 and the Ergänzung met
+  except those that need a browser (tooltip look, Questrial; screenshots at
+  1280x800 light and dark show the notice, both PDs, bands and percentiles
+  without scrolling). Checked: coupled features for forest and scorecard (five
+  mutations on the tests all killed), DE/EN key and placeholder parity,
+  pytest (109), black, ruff, headless start (health `ok`). Fixed: the `term`
+  options are no longer translated (`format_func=str.strip`, `term_months` key
+  removed); AppTest can select by value, so the language-switch test covers
+  EN -> DE and DE -> EN. Income/DTI on the real bundle: model property (forest
+  `max_depth=10`, `min_samples_leaf=100`, income importance 0.97 %, isotonic
+  calibration gives plateaus), not a page or scoring bug; mention on the
+  model-limits page (#36). Variant B now starts as a copy of A with the other
+  term (orchestrator decision, one smoke test). Open, debatable: the percentile caption has no tooltip (no glossary entry);
+  `delta_color="inverse"` is untested (AppTest does not expose it).
+- **#33 implemented** (score explanation): `src/scoring.py` (`forest_explainer`,
+  `explain_forest`, `explain_scorecard`, `top_contributions`), explanation block
+  `_explain` in `app/views/calculator.py` below the results (variant A only:
+  tabs `explain_tabs` with `go.Waterfall` for the forest and `go.Bar` for the
+  scorecard, both via `show_chart`; explainer in `@st.cache_resource`), 23 new
+  keys in `[calculator]` (both locale files), 16 new tests, plan
+  `plans/2026-11-14_score-explanation.md`. No glossary additions (all five keys
+  existed). **Open PR for #33:** #56, state: reviewed, ready to merge (see "Review of PR #56"). Real bundle: one
+  explanation 0.038 s (median, explainer built), SHAP base + sum equals the
+  uncalibrated forest probability and intercept + contributions equals the
+  scorecard decision function (diff below 1e-15, default and high-risk input).
+  1280x800 Chromium check, light/dark, EN/DE: both charts readable, no clipped
+  labels. Not verifiable without a browser: tooltip hover, theme switch in the
+  menu.
+- **Review of PR #56:** all acceptance criteria of #33 and the Ergänzung met
+  except those that need a browser (tooltip hover, theme switch). Checked on
+  the real bundle: SHAP base + sum equals the uncalibrated forest probability
+  and intercept + contributions equals the scorecard decision function (diff
+  below 1e-15); one explanation 25-40 ms; mutations (class index, sign flip,
+  top-n remainder, missing intercept) are all killed by the tests; pytest
+  (125), black, ruff, headless start, screenshots DE light and dark. Fixed: the
+  scorecard tab said "WOE points" while the bars are log-odds contributions;
+  now "WOE contributions" and `sc_uncalibrated` says they are not points.
+  Open, debatable: chart labels use technical column names and `issue_year` is
+  an input the user cannot set (a label translation would be its own piece of
+  work).
+- **Pitfalls from #33 for #34-#37:** `bundle["scaler"].transform` returns a
+  DataFrame (SHAP and the forest take it as is). The scorecard contribution is
+  coefficient times WOE in log-odds of the uncalibrated logistic regression
+  (WOE = log good/bad, coefficients negative, so positive contribution = more
+  risk); the chart shows no scorecard points because the bundle has no points
+  scaling. SHAP values are on the raw forest score (base 0.500, not the default
+  rate); the shown PD is calibrated. Chart labels use the technical column
+  names; `issue_year` is shown as a plain year (special case in `_labels`).
+  The waterfall x axis is zoomed (does not start at 0). In AppTest,
+  `number_input.set_value` outside the min/max range is ignored silently (use
+  20.0, not 25.0, for `int_rate` on the synthetic bundle). The metric count on
+  the calculator is now results (4 or 8) plus 2 from the explanation, so tests
+  index the first metrics.
+- **Pitfalls for #33-#37:** keep category values from the data as raw option
+  texts (`format_func=str.strip` at most), so AppTest can select by value in
+  both languages.
+  In compare mode A and B stack in the results column, so the delta is below the
+  first screen. Page code runs at import, so `bundle = get_bundle()` sits at
+  module level like in `home.py`. Pages needing the scored application of the
+  calculator should read `st.session_state["a_<field>"]` (reset when leaving
+  the page, see issue #32 addendum).
+- **Not verifiable without a browser:** tooltip hover, light/dark look of the
+  page, selectbox/number input behaviour on real clicks beyond the toggle
+  (Playwright: toggle clicked, both variants render).
+- **#34 implemented** (model quality page): `app/views/performance.py`
+  (`_roc_chart`, `_calibration_chart`, `_band_chart`, `_band_table`,
+  `_monotonic_sentence`, `_report_table`), registered in `PAGES` after
+  `calculator`, `[performance]`, `nav.performance`, `nav_desc.performance` in
+  both locale files, `charged_off_metrics` in `src/evaluate.py` (precision,
+  recall, F1 of Charged Off and accuracy at a threshold, equal to the stored
+  report at 0.5, tested), new tests (4 evaluate, 6 page, 1 link; suite at 139),
+  `plans/2026-11-15_performance.md`. No glossary additions (all keys existed).
+  Also: LinkedIn and website links on the start page (#43 follow-up, own
+  commit). **Open PR for #34:** #57, state: reviewed, ready to merge (see "Review of PR #57").
+  Real bundle: forest AUC 0.720 / Gini 0.439 / KS 0.318, scorecard 0.722 /
+  0.445 / 0.324; observed default rate rises monotonically over all ten bands
+  for both models; at 0.5 the forest has precision 58.4 %, recall 7.4 %,
+  scorecard 56.5 % / 9.7 %. 1280x800 Chromium, light and dark, EN and DE:
+  charts and tables render, no exception.
+- **Pitfalls from #34 for #35-#37:** the classification table recomputes from
+  `proba_*` with a strict `> 0.5` (ties go to the repaid class like
+  `predict`); the cut-off page can reuse `charged_off_metrics(y, proba,
+  threshold)`. `st.write` has no `help=`, use `st.markdown(..., help=...)`.
+  Reference lines use the CSS name `gray` (no hex codes in `app/`). Chart
+  traces are inspectable in AppTest via
+  `json.loads(at.get("plotly_chart")[i].proto.spec)`. The page has no link to
+  the cut-off page yet (it does not exist); add a `page_link` once #35 lands.
+  The monotonic sentence is only tested on the non-monotonic synthetic bundle
+  (the "rises in every band" branch runs only on the real bundle).
+- **Review of PR #57:** all acceptance criteria of #34 and its Ergänzung met;
+  link commit 44c70a2 has the exact URLs, both labels, three-button test.
+  Checked on the real bundle: metrics equal `bundle["metrics"]`, band tables
+  (n, mean score, observed rate) monotone for both models, the 0.5 table equals
+  the stored report; pytest (140), black, ruff, AppTest in DE and EN, headless
+  health `ok`, Chromium screenshots light and dark. Fixed: calibration note no
+  longer says the ranking is unchanged (isotonic ties move AUC in the fourth
+  decimal); a test pins the quantile bins of the reliability diagram (the
+  uniform-bins mutation survived). Other mutations (strict `>`, label, dash,
+  bar, metric keys) are caught. Open, debatable: `charged_off_metrics` could be
+  `classification_report(output_dict=True)` inline (identical values on the
+  real bundle); for #35 use `precision_recall_curve` for the per-threshold
+  table. Not checked: tooltip hover.
+- **Not verifiable without a browser (#34):** tooltip hover on metrics, table
+  headers and subheaders, the theme switch in the menu.
+- **#35 implemented** (cut-off and expected loss page): `cutoff_table` in
+  `src/scoring.py` (vectorised: sorted scores, cumulative sums, `searchsorted`;
+  columns `accepted`, `rejected`, `caught`, `missed`, `rejected_good`,
+  `approval_rate`, `default_rate_accepted`, `precision`, `recall`,
+  `net_result`), `app/views/cutoff.py` registered in `PAGES` after
+  `performance`, `[cutoff]`, `nav.cutoff`, `nav_desc.cutoff` in both locale
+  files, link from the performance page note, 13 new tests (suite at 157),
+  `plans/2026-11-15_cutoff.md`. No glossary additions (all keys existed).
+  **Open PR for #35:** #58, state: reviewed, ready to merge (see "Review of PR #58"). Real bundle (loss 60%,
+  margin 10%, 12,000 USD): forest at cut-off 0.1 / 0.2 / 0.3 accepts 23,665 /
+  64,726 / 93,293 of 125,381 loans and misses 1,347 / 7,263 / 14,241 of 27,090
+  defaults; net-result optimum forest 0.15 (21.2 m USD), scorecard 0.14
+  (22.3 m USD); accepted + declined and caught + missed add up for all 101
+  cut-offs; precision and recall at 0.5 equal the stored report. 1280x800
+  Chromium, light and dark, EN and DE: no truncation after the tile layout fix.
+- **Pitfalls from #35 for #36-#37:** a loan is rejected if its score is
+  strictly above the threshold. The bundle has no per-loan amount for the test
+  set; the page uses the median `loan_amnt` of `input_spec` for every loan
+  (stated on the page). Net result = margin share x amount per accepted good
+  loan minus loss share x amount per accepted default (declined loans earn and
+  lose nothing, so the optimum equals the minimum of missed-default loss plus
+  foregone margin). Start values 60% loss and 10% margin are my choice, not from
+  data. Inputs are `select_slider` (the numbers follow the language through
+  `format_func`; keys `cutoff_model`, `cutoff_threshold`, `cutoff_loss`,
+  `cutoff_margin`). AppTest cannot set a `select_slider` by value once the
+  option texts use a decimal comma, nor re-run a page after that, so the
+  language-switch test only drives EN to DE. Metric tiles truncate long values
+  (a quarter of the width fits about 10 characters at tile size): use at most
+  three tiles per row and short labels, "16.7 million USD" needs half a row.
+  The page-level unit is millions of USD (`cutoff.million_usd`). Page links in
+  AppTest: use `at.main.get("page_link")`, the sidebar has its own.
+- **Review of PR #58:** all acceptance criteria of #35 and the Ergänzung met.
+  Checked: `cutoff_table` (sort, cumsum, `searchsorted(side="right")`, edges at
+  0 and 1), mutations `side="left"`, sign of the loss term and swapped
+  missed/caught are all caught by the tests; real bundle for both models:
+  accepted + rejected = 125,381, caught + missed = 27,090 at every threshold,
+  precision/recall at 0.5 equal the stored report; pytest (157), black, ruff,
+  headless start (health `ok`, stopped), AppTest and 1280x800 screenshots in
+  light and dark. Fixed: the performance note claimed the cut-off page shows
+  precision and recall "for every threshold" (now: the chosen one, EN + DE);
+  wrong reason in the comment of the language-switch test. Left open: DE to EN
+  switch test. A numeric `select_slider` with `format_func` is already used;
+  AppTest runs the page's `format_func` in the test process (language falls
+  back to EN), so any rerun of the DE page raises at the `st.radio`, and a plain
+  `st.slider` cannot show a decimal comma. Assumptions (12,000 USD median
+  amount, 60 % loss, 10 % margin) are labelled as illustration, nothing is
+  presented as a portfolio calculation. Not checked: tooltip hover.
+- **Not verifiable without a browser (#35):** tooltip hover, theme switch in
+  the menu, dragging the sliders.
+- **#36 implemented** (model limits page): `app/views/limits.py`, registered in
+  `PAGES` after `cutoff`, `[limits]`, `nav.limits`, `nav_desc.limits` in both
+  locale files (multi-line TOML strings, EN follows the README, DE translates),
+  two parametrised smoke tests (en/de), `plans/2026-11-15_limits.md`. Sections:
+  leakage before/after (0.9999 as text, today's AUC from the bundle), default
+  definition, horizon, PD/LGD/EAD with IFRS 9 and Switzerland in two short
+  paragraphs, population, int_rate caveat in its own bordered section, limits of
+  the calculator, what the project is not, link to the README section
+  "Regulatory context". **Open PR for #36:** #59, state: reviewed, ready to merge (see "Review of PR #59").
+- **Income/DTI finding from #32 is documented on the page** (section 7):
+  importances read from the inner forest of the bundle (real bundle: int_rate
+  26.8 %, DTI 3.9 %, annual income 0.97 %, `issue_year` 0.82 %), stated as
+  depth-limit property (values read from the bundle) plus the isotonic
+  plateaus. `issue_year` not settable in the calculator is stated as an open
+  question. The page does not say how a run without `int_rate` performs (not run,
+  no numbers in README or notebook); that needs a local retrain.
+- **Pitfalls from #36 for #37:** the importance figures come from
+  `bundle["rf"].calibrated_classifiers_[0].estimator.estimator.feature_importances_`
+  (impurity importance, `feature_names` order); texts that quote the forest depth
+  limit are in `limits.calculator_flat`; the values are placeholders read from
+  the inner forest, so they follow a rebuilt bundle. The README bullet "No
+  calibration" was stale and has been corrected in the review. The
+  page has no link from other pages yet except the start page guide (built from
+  `PAGES`); `limits.intrate_clean` links to the performance page.
+- **Review of PR #59:** all acceptance criteria of #36 and the Ergänzung met.
+  Checked every statement in EN and DE against README "Regulatory context" and
+  "Results", the glossary entries (`basel_irb`, `ifrs9`, `finma`, `model_card`,
+  `model_validation`, `pd`, `lgd`, `ead`, `target`, `data_leakage`), the
+  notebook and the real bundle (AUC 0.7196, int_rate 26.8 %, depth 10 / leaf
+  100, isotonic): no factual error, no contradiction between page, glossary and
+  README (Charged Off vs 90 dpd/UTP, 1-year vs lifetime PD, EL, IFRS 9 stages,
+  PIT vs IRB, FINMA, leakage columns, 2015-2018). Fixed: README bullet "No
+  calibration" (contradicted Results, glossary and page; now "No
+  through-the-cycle or point-in-time calibration"); `max_depth` and
+  `min_samples_leaf` in `limits.calculator_flat` are now placeholders read from
+  the bundle forest. Left open (debatable): the `zip` loop over the three
+  importance metrics could be three plain calls. Not checked: tooltip hover.
+- **Not verifiable without a browser (#36):** tooltip hover (about 12 help icons),
+  look of the bordered int_rate section in both themes below the first screen
+  (Playwright only checked that no exception shows and the first screen in dark EN).
+- **#37 implemented** (forest vs. scorecard page): `src/comparison.py`
+  (`default_min_iv`, `better_model`; the IV helpers were inlined in the review),
+  `app/views/comparison.py` (`_metrics_table`, `_metrics_chart`, `_iv_table`),
+  registered in `PAGES` after `performance` (menu: home, calculator, model
+  quality, forest vs. scorecard, cut-off, limits, glossary; the start page guide
+  follows `PAGES`), `[comparison]`, `nav.comparison`, `nav_desc.comparison` in
+  both locale files (EN follows notebook section 7, DE translates), 3 tests in
+  `tests/test_comparison.py` and 6 smoke tests (suite at 179 after the review),
+  `plans/2026-11-15_comparison.md`. No glossary additions. **Open PR for #37:**
+  #60, state: reviewed, ready to merge (see "Review of PR #60"). Real bundle: forest AUC 0.720 / Gini
+  0.439 / KS 0.318, scorecard 0.722 / 0.445 / 0.324 (same 125,381 test loans);
+  IV table has 79 candidates, top `int_rate` 0.493, `fico_range_high` and
+  `fico_range_low` 0.143, `term` 0.115; 44 features are below `min_iv` 0.02 and
+  dropped (listed in an expander); `issue_year` (IV 0.027) stays selected.
+  Headless start (health `ok`, no traceback, server stopped), AppTest EN and DE,
+  Chromium 1280x800 light and dark, EN and DE: no exception, first screen fine.
+- **Review of PR #60:** all acceptance criteria of #37 and the Ergänzung met
+  (PAGES entry, nav keys, Plotly via `show_chart()`, model colours and labels,
+  `t()` everywhere incl. headers and axis titles, tooltips for auc, gini, ks,
+  iv, woe, binning, scorecard, random_forest, IV rules of thumb from the
+  glossary, same test rows stated, conclusion chosen from the AUC ordering, no
+  hex codes). Wording is consistent with the calculator page (log-odds, no
+  points scaling). Page order is sensible. Fixed: (1) factual error in
+  `practice_robust` (EN and DE): the forest does not "handle neither by
+  construction"; tree splits are rank-based and recent scikit-learn accepts NaN,
+  the scorecard's edge is that binning makes both treatments explicit and
+  auditable; (2) `iv_overview` and `dropped_features` inlined (one-line pandas,
+  their tests removed); (3) two clumsy German phrases ("binnen", "ist aus").
+  Mutation checks (sort order, dropped mask, `better_model`) are caught by the
+  tests. Chromium 1280x800 light and dark, DE: no exception. **Open points:**
+  the notebook section 7 ("Why this is not simply accuracy versus
+  interpretability") still carries the wrong "forest handles neither by
+  construction" claim and should be corrected there (notebook not touched by
+  the review); `default_min_iv` reads the `train_scorecard` default because the
+  threshold is not exactly derivable from `iv_table` (highest dropped IV 0.0189,
+  lowest kept 0.0206); storing `min_iv` in the bundle would be the structural
+  fix; the two model cards have unequal height (cosmetic). Not checked: tooltip
+  hover.
+- **Pitfalls from #37 for #38:** `min_iv` is not in the bundle; it is read from the
+  `train_scorecard` default (`default_min_iv`), so a rebuild with another
+  threshold would make the page text wrong (store it in the bundle if that is
+  ever needed). The conclusion text is chosen by `better_model` (tie goes to the
+  scorecard) from `bundle["metrics"]`; the glossary entry `scorecard.in_project`
+  still says "separates slightly better than the forest" as fixed text (open
+  since the review of PR #53). `practice_robust` was reworded in the review
+  (see "Review of PR #60"); the notebook still has the old claim.
+  The page says "adds this much to the score" instead of the notebook's "this
+  many points" because the bundle has no points scaling. IV rules of thumb are
+  shown from `glossary.iv.how_to_read`.
+- **Not verifiable without a browser (#37):** tooltip hover (model names, section
+  headings, table column headers), the theme switch in the menu, the scroll
+  behaviour of the IV table (400 px high), the look below the first screen.
+- **#38 (deployment): prepared, waiting for the app URL.** The deployment itself
+  needs the user's Streamlit Community Cloud account. Done in the PR (part of
+  #38, not closing it): readiness checks (bundle 4.6 MB committed, no LFS; the
+  app starts from a checkout with empty `02_data/raw`; `.python-version` 3.11.9
+  and CI 3.11 agree; no `packages.txt` needed), visual check of all seven pages
+  with the real bundle, two chart fixes for 390 px (x axis titles wrapped at 28
+  characters in `style_figure`; more room for the value labels of the two
+  explanation charts), README with DE/EN calculator screenshots
+  (`docs/images/`) and the placeholder `<!-- APP_URL: ... -->` under the title.
+  Open points: the term options show "36 months" also in German (raw option
+  texts by design, see pitfalls of #33).
+- **Review of PR #61:** no blocking findings. Checked: title wrapping is the
+  minimal form (`textwrap.wrap` + `<br>`, no built-in alternative, `automargin`
+  does not wrap titles); README change surgical, placeholder is an HTML comment,
+  screenshots 22-24 KB with correct relative paths, no invented URL; checklist
+  matches Streamlit Community Cloud; 180 tests, black, ruff green; headless app
+  healthy; at 390 px (calculator, performance, cutoff, en and de)
+  `scrollWidth == innerWidth`, no exceptions, axis titles and value labels
+  visible. Nothing fixed by the reviewer. Left open as PR comments (cosmetic):
+  the wrap at 28 also makes some titles three lines at 1280 px; in DE at 390 px
+  the y label `home_ownership_MORTGAGE: 1` of the waterfall is clipped by a few
+  pixels at the left edge. #38 stays open until the app is live.
+- **Checklist for the user (deployment, about 5 minutes):**
+  1. Open https://share.streamlit.io and click "Continue with GitHub" (sign in
+     with the account that owns `FelixSchramm/credit-risk-modelling`; authorise
+     Streamlit if GitHub asks, the repository is public).
+  2. Click "Create app", then "Deploy a public app from GitHub".
+  3. Repository: `FelixSchramm/credit-risk-modelling`. Branch: `main`. Main file
+     path: `streamlit_app.py`.
+  4. Click "Advanced settings" and set **Python version 3.11**. Reason:
+     `requirements.txt` pins `ortools<9.12` (via `optbinning`), which has no
+     wheels for Python 3.13, the current default, so the install would fail.
+     Leave secrets empty (the app needs none).
+  5. Choose a subdomain (the app URL, e.g. `credit-risk-<name>`), click
+     "Deploy". The first start installs the pinned requirements and takes a few
+     minutes.
+  6. When the app shows the start page, open the URL once in a private window
+     (not logged in) to prove it is public. Click through a few pages and both
+     languages.
+  7. Send the URL to the next session.
+- **What the next session does with the URL:** replace the `APP_URL` comment
+  under the README title with a visible link (badge or "Live demo" line); set
+  the URL as "Website" in the repo's About box (`gh repo edit
+  --homepage <url>`, or the gear icon next to About); open the hosted app and
+  check all seven pages in both languages, light and dark and at a narrow
+  width, including the first page load after sleep (cold start) and the SHAP
+  explanation on the calculator; add a one-line result to this file; close #38
+  and, with it, tick the epic #39.
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:

@@ -16,6 +16,7 @@ import streamlit as st
 
 from src.bundle import load_bundle
 from src.design import style_figure
+from src.glossary import glossary_help
 from src.i18n import (
     DEFAULT_LANGUAGE,
     LANGUAGES,
@@ -30,7 +31,23 @@ DEFAULT_BUNDLE_PATH = (
 )
 
 #: All pages: key and file. Navigation, start page and smoke test read this.
-PAGES = {"home": "app/views/home.py"}
+PAGES = {
+    "home": "app/views/home.py",
+    "calculator": "app/views/calculator.py",
+    "performance": "app/views/performance.py",
+    "comparison": "app/views/comparison.py",
+    "cutoff": "app/views/cutoff.py",
+    "limits": "app/views/limits.py",
+    "glossary": "app/views/glossary.py",
+}
+
+#: External links of the start page; each key needs ``home.link_<key>`` in both
+#: locale files.
+LINKS = {
+    "github": "https://github.com/FelixSchramm/credit-risk-modelling",
+    "linkedin": "https://www.linkedin.com/in/felixschramm49",
+    "website": "https://felixschramm.github.io/website-with-distill/",
+}
 
 
 @st.cache_resource
@@ -94,6 +111,18 @@ def pct(value: float, decimals: int = 1) -> str:
     :return: The formatted percentage.
     """
     return fmt_percent(value, decimals, current_lang())
+
+
+def help_text(key: str) -> str:
+    """Return the glossary tooltip of a term in the current language.
+
+    Use it as ``st.metric(..., help=help_text("auc"))``. An unknown key raises
+    ``KeyError``, so the smoke test finds a figure without a glossary entry.
+
+    :param key: Glossary key, e.g. ``"auc"``.
+    :return: The short explanation.
+    """
+    return glossary_help(key, current_lang())
 
 
 def get_bundle() -> dict[str, object]:

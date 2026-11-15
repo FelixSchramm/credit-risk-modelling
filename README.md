@@ -2,6 +2,15 @@
 
 [![CI](https://github.com/FelixSchramm/credit-risk-modelling/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixSchramm/credit-risk-modelling/actions/workflows/ci.yml)
 
+<!-- APP_URL: add the Streamlit Community Cloud link here after deployment (#38) -->
+
+The recruiter dashboard (English and German) shows the models in use. The
+applicant calculator, as screenshots for the case that the hosted app is asleep:
+
+| English | Deutsch |
+| --- | --- |
+| ![Applicant calculator, English](docs/images/calculator_en.png) | ![Antragsteller-Rechner, Deutsch](docs/images/calculator_de.png) |
+
 A probability-of-default (PD) model on the historical LendingClub dataset
 (2007-2018Q4). The task is to estimate, at the moment of application, how likely
 a loan is to end as "Charged Off" — the question a credit risk function answers
@@ -128,6 +137,7 @@ credit-risk-modelling/
 │   ├── scoring.py                # one application to a calibrated PD (no Streamlit)
 │   ├── design.py                 # chart rules and series colours of the design CI
 │   ├── i18n.py                   # translations and number formats (no Streamlit)
+│   ├── glossary.py               # glossary entries, tooltips, project figures (no Streamlit)
 │   ├── locales/                  # en.toml and de.toml, same keys
 │   ├── ci.json                   # design tokens (copied from stock_treemap)
 │   └── evaluate.py               # ROC AUC, Gini, KS, classification report
@@ -148,6 +158,7 @@ credit-risk-modelling/
 │   ├── test_scoring.py
 │   ├── test_design.py
 │   ├── test_i18n.py
+│   ├── test_glossary.py
 │   ├── test_app_smoke.py
 │   ├── test_data_processing.py
 │   ├── test_features.py
@@ -184,6 +195,11 @@ the SIL Open Font License 1.1; the licence text is in `static/OFL-Questrial.txt`
 The dashboard is available in English (default) and German. Switch with the
 switcher at the top of the sidebar or open a page with `?lang=de`. Texts are in
 `src/locales/en.toml` and `src/locales/de.toml`.
+
+The glossary page explains every term of the dashboard in both languages (42
+entries in seven groups). Its entries are the `[glossary.<key>]` tables of the
+same two files; the short text of an entry is also the tooltip of the matching
+figure (`help_text(key)` in `app/ui.py`).
 
 ## Workflow
 
@@ -351,11 +367,12 @@ makes no claim to satisfy any regulatory requirement. Beyond the default
 definition and the horizon above, it lacks essentially everything that turns a
 classifier into a rating system:
 
-- **No calibration.** `class_weight="balanced"` shifts the predicted
-  probabilities away from the observed default rate on purpose (see "Results"),
-  so the output ranks borrowers rather than estimating a PD level — and there is
-  neither a through-the-cycle nor a point-in-time calibration on top, so it fits
-  neither definition even after recalibration.
+- **No through-the-cycle or point-in-time calibration.**
+  `class_weight="balanced"` shifts the raw probabilities away from the observed
+  default rate on purpose (see "Results"). The bundle scores are recalibrated on
+  a held-out split, so they work as probabilities, but there is neither a
+  through-the-cycle nor a point-in-time calibration on top, so they fit neither
+  definition.
 - **No rating system.** No grades, no masterscale, no margin of conservatism.
 - **No validation in the supervisory sense.** No out-of-time testing, no
   independent validation function, no annual review, no ongoing monitoring, no
