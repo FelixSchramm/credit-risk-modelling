@@ -175,10 +175,11 @@ st.title(t("performance.title"))
 st.write(t("performance.intro"))
 
 st.subheader(t("performance.metrics_title"))
-for model, column in zip(MODELS, st.columns(len(MODELS))):
-    column.markdown(f"**{t(f'performance.model_{model}')}**")
+for model in MODELS:
+    st.markdown(f"**{t(f'performance.model_{model}')}**")
     metrics = bundle["metrics"][model]
-    for term, key in (("auc", "roc_auc"), ("gini", "gini"), ("ks", "ks")):
+    terms = (("auc", "roc_auc"), ("gini", "gini"), ("ks", "ks"))
+    for column, (term, key) in zip(st.columns(len(terms)), terms):
         column.metric(
             t(f"performance.metric_{term}"),
             num(metrics[key], 3),

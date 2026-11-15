@@ -428,7 +428,7 @@ calibration_note = "Solid lines show the calibrated scores used everywhere in th
 bands_title = "Score bands"
 bands_intro = "The test loans are sorted by score and split into ten equally large bands. If the observed default rate rises from band to band, the model ranks."
 band_x = "Risk band (1 = lowest scores)"
-band_y = "Share of loans"
+band_y = "Default rate and mean score"
 band_observed = "Observed default rate"
 band_mean = "Mean score"
 col_band = "Band"

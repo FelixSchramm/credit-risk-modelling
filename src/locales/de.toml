@@ -428,7 +428,7 @@ calibration_note = "Durchgezogene Linien zeigen die kalibrierten Scores, die im 
 bands_title = "Score-Bänder"
 bands_intro = "Die Testkredite werden nach Score sortiert und in zehn gleich große Bänder geteilt. Steigt die beobachtete Ausfallrate von Band zu Band, sortiert das Modell richtig."
 band_x = "Risikoband (1 = niedrigste Scores)"
-band_y = "Anteil der Kredite"
+band_y = "Ausfallrate und mittlerer Score"
 band_observed = "Beobachtete Ausfallrate"
 band_mean = "Mittlerer Score"
 col_band = "Band"
