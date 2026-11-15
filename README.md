@@ -2,6 +2,15 @@
 
 [![CI](https://github.com/FelixSchramm/credit-risk-modelling/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixSchramm/credit-risk-modelling/actions/workflows/ci.yml)
 
+<!-- APP_URL: add the Streamlit Community Cloud link here after deployment (#38) -->
+
+The recruiter dashboard (English and German) shows the models in use. The
+applicant calculator, as screenshots for the case that the hosted app is asleep:
+
+| English | Deutsch |
+| --- | --- |
+| ![Applicant calculator, English](docs/images/calculator_en.png) | ![Antragsteller-Rechner, Deutsch](docs/images/calculator_de.png) |
+
 A probability-of-default (PD) model on the historical LendingClub dataset
 (2007-2018Q4). The task is to estimate, at the moment of application, how likely
 a loan is to end as "Charged Off" — the question a credit risk function answers

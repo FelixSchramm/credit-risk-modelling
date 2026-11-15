@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-15 (reviewer session for #37)
+**Last updated:** 2026-11-15 (reviewer session for PR #61)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -386,9 +386,54 @@ next section.
 - **Not verifiable without a browser (#37):** tooltip hover (model names, section
   headings, table column headers), the theme switch in the menu, the scroll
   behaviour of the IV table (400 px high), the look below the first screen.
-- **Next:** #38 (deployment). The deployment itself needs the user's Streamlit
-  Community Cloud account: Python 3.11 in the advanced settings, entry point
-  `streamlit_app.py`, branch `main`. #30 is done (PR #50).
+- **#38 (deployment): prepared, waiting for the app URL.** The deployment itself
+  needs the user's Streamlit Community Cloud account. Done in the PR (part of
+  #38, not closing it): readiness checks (bundle 4.6 MB committed, no LFS; the
+  app starts from a checkout with empty `02_data/raw`; `.python-version` 3.11.9
+  and CI 3.11 agree; no `packages.txt` needed), visual check of all seven pages
+  with the real bundle, two chart fixes for 390 px (x axis titles wrapped at 28
+  characters in `style_figure`; more room for the value labels of the two
+  explanation charts), README with DE/EN calculator screenshots
+  (`docs/images/`) and the placeholder `<!-- APP_URL: ... -->` under the title.
+  Open points: the term options show "36 months" also in German (raw option
+  texts by design, see pitfalls of #33).
+- **Review of PR #61:** no blocking findings. Checked: title wrapping is the
+  minimal form (`textwrap.wrap` + `<br>`, no built-in alternative, `automargin`
+  does not wrap titles); README change surgical, placeholder is an HTML comment,
+  screenshots 22-24 KB with correct relative paths, no invented URL; checklist
+  matches Streamlit Community Cloud; 180 tests, black, ruff green; headless app
+  healthy; at 390 px (calculator, performance, cutoff, en and de)
+  `scrollWidth == innerWidth`, no exceptions, axis titles and value labels
+  visible. Nothing fixed by the reviewer. Left open as PR comments (cosmetic):
+  the wrap at 28 also makes some titles three lines at 1280 px; in DE at 390 px
+  the y label `home_ownership_MORTGAGE: 1` of the waterfall is clipped by a few
+  pixels at the left edge. #38 stays open until the app is live.
+- **Checklist for the user (deployment, about 5 minutes):**
+  1. Open https://share.streamlit.io and click "Continue with GitHub" (sign in
+     with the account that owns `FelixSchramm/credit-risk-modelling`; authorise
+     Streamlit if GitHub asks, the repository is public).
+  2. Click "Create app", then "Deploy a public app from GitHub".
+  3. Repository: `FelixSchramm/credit-risk-modelling`. Branch: `main`. Main file
+     path: `streamlit_app.py`.
+  4. Click "Advanced settings" and set **Python version 3.11**. Reason:
+     `requirements.txt` pins `ortools<9.12` (via `optbinning`), which has no
+     wheels for Python 3.13, the current default, so the install would fail.
+     Leave secrets empty (the app needs none).
+  5. Choose a subdomain (the app URL, e.g. `credit-risk-<name>`), click
+     "Deploy". The first start installs the pinned requirements and takes a few
+     minutes.
+  6. When the app shows the start page, open the URL once in a private window
+     (not logged in) to prove it is public. Click through a few pages and both
+     languages.
+  7. Send the URL to the next session.
+- **What the next session does with the URL:** replace the `APP_URL` comment
+  under the README title with a visible link (badge or "Live demo" line); set
+  the URL as "Website" in the repo's About box (`gh repo edit
+  --homepage <url>`, or the gear icon next to About); open the hosted app and
+  check all seven pages in both languages, light and dark and at a narrow
+  width, including the first page load after sleep (cold start) and the SHAP
+  explanation on the calculator; add a one-line result to this file; close #38
+  and, with it, tick the epic #39.
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:
