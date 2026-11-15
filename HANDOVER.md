@@ -343,7 +343,7 @@ next section.
   both locale files (EN follows notebook section 7, DE translates), 5 tests in
   `tests/test_comparison.py` and 6 smoke tests (suite at 181),
   `plans/2026-11-15_comparison.md`. No glossary additions. **Open PR for #37:**
-  see the PR list, state: review pending. Real bundle: forest AUC 0.720 / Gini
+  #60, state: review pending. Real bundle: forest AUC 0.720 / Gini
   0.439 / KS 0.318, scorecard 0.722 / 0.445 / 0.324 (same 125,381 test loans);
   IV table has 79 candidates, top `int_rate` 0.493, `fico_range_high` and
   `fico_range_low` 0.143, `term` 0.115; 44 features are below `min_iv` 0.02 and
