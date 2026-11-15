@@ -165,13 +165,25 @@ next section.
   scorecard, both via `show_chart`; explainer in `@st.cache_resource`), 23 new
   keys in `[calculator]` (both locale files), 16 new tests, plan
   `plans/2026-11-14_score-explanation.md`. No glossary additions (all five keys
-  existed). **Open PR for #33:** #56, state: review pending. Real bundle: one
+  existed). **Open PR for #33:** #56, state: reviewed, ready to merge (see "Review of PR #56"). Real bundle: one
   explanation 0.038 s (median, explainer built), SHAP base + sum equals the
   uncalibrated forest probability and intercept + contributions equals the
   scorecard decision function (diff below 1e-15, default and high-risk input).
   1280x800 Chromium check, light/dark, EN/DE: both charts readable, no clipped
   labels. Not verifiable without a browser: tooltip hover, theme switch in the
   menu.
+- **Review of PR #56:** all acceptance criteria of #33 and the Ergänzung met
+  except those that need a browser (tooltip hover, theme switch). Checked on
+  the real bundle: SHAP base + sum equals the uncalibrated forest probability
+  and intercept + contributions equals the scorecard decision function (diff
+  below 1e-15); one explanation 25-40 ms; mutations (class index, sign flip,
+  top-n remainder, missing intercept) are all killed by the tests; pytest
+  (125), black, ruff, headless start, screenshots DE light and dark. Fixed: the
+  scorecard tab said "WOE points" while the bars are log-odds contributions;
+  now "WOE contributions" and `sc_uncalibrated` says they are not points.
+  Open, debatable: chart labels use technical column names and `issue_year` is
+  an input the user cannot set (a label translation would be its own piece of
+  work).
 - **Pitfalls from #33 for #34-#37:** `bundle["scaler"].transform` returns a
   DataFrame (SHAP and the forest take it as is). The scorecard contribution is
   coefficient times WOE in log-odds of the uncalibrated logistic regression
