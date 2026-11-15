@@ -358,11 +358,12 @@ makes no claim to satisfy any regulatory requirement. Beyond the default
 definition and the horizon above, it lacks essentially everything that turns a
 classifier into a rating system:
 
-- **No calibration.** `class_weight="balanced"` shifts the predicted
-  probabilities away from the observed default rate on purpose (see "Results"),
-  so the output ranks borrowers rather than estimating a PD level — and there is
-  neither a through-the-cycle nor a point-in-time calibration on top, so it fits
-  neither definition even after recalibration.
+- **No through-the-cycle or point-in-time calibration.**
+  `class_weight="balanced"` shifts the raw probabilities away from the observed
+  default rate on purpose (see "Results"). The bundle scores are recalibrated on
+  a held-out split, so they work as probabilities, but there is neither a
+  through-the-cycle nor a point-in-time calibration on top, so they fit neither
+  definition.
 - **No rating system.** No grades, no masterscale, no margin of conservatism.
 - **No validation in the supervisory sense.** No out-of-time testing, no
   independent validation function, no annual review, no ongoing monitoring, no
