@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-14 (worker session for #33)
+**Last updated:** 2026-11-14 (worker session for #34)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -205,7 +205,34 @@ next section.
 - **Not verifiable without a browser:** tooltip hover, light/dark look of the
   page, selectbox/number input behaviour on real clicks beyond the toggle
   (Playwright: toggle clicked, both variants render).
-- **Next:** #34. #30 is done (PR #50).
+- **#34 implemented** (model quality page): `app/views/performance.py`
+  (`_roc_chart`, `_calibration_chart`, `_band_chart`, `_band_table`,
+  `_monotonic_sentence`, `_report_table`), registered in `PAGES` after
+  `calculator`, `[performance]`, `nav.performance`, `nav_desc.performance` in
+  both locale files, `charged_off_metrics` in `src/evaluate.py` (precision,
+  recall, F1 of Charged Off and accuracy at a threshold, equal to the stored
+  report at 0.5, tested), new tests (4 evaluate, 6 page, 1 link; suite at 139),
+  `plans/2026-11-15_performance.md`. No glossary additions (all keys existed).
+  Also: LinkedIn and website links on the start page (#43 follow-up, own
+  commit). **Open PR for #34:** see the PR list, state: review pending.
+  Real bundle: forest AUC 0.720 / Gini 0.439 / KS 0.318, scorecard 0.722 /
+  0.445 / 0.324; observed default rate rises monotonically over all ten bands
+  for both models; at 0.5 the forest has precision 58.4 %, recall 7.4 %,
+  scorecard 56.5 % / 9.7 %. 1280x800 Chromium, light and dark, EN and DE:
+  charts and tables render, no exception.
+- **Pitfalls from #34 for #35-#37:** the classification table recomputes from
+  `proba_*` with a strict `> 0.5` (ties go to the repaid class like
+  `predict`); the cut-off page can reuse `charged_off_metrics(y, proba,
+  threshold)`. `st.write` has no `help=`, use `st.markdown(..., help=...)`.
+  Reference lines use the CSS name `gray` (no hex codes in `app/`). Chart
+  traces are inspectable in AppTest via
+  `json.loads(at.get("plotly_chart")[i].proto.spec)`. The page has no link to
+  the cut-off page yet (it does not exist); add a `page_link` once #35 lands.
+  The monotonic sentence is only tested on the non-monotonic synthetic bundle
+  (the "rises in every band" branch runs only on the real bundle).
+- **Not verifiable without a browser (#34):** tooltip hover on metrics, table
+  headers and subheaders, the theme switch in the menu.
+- **Next:** #35. #30 is done (PR #50).
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:
