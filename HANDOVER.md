@@ -214,7 +214,7 @@ next section.
   report at 0.5, tested), new tests (4 evaluate, 6 page, 1 link; suite at 139),
   `plans/2026-11-15_performance.md`. No glossary additions (all keys existed).
   Also: LinkedIn and website links on the start page (#43 follow-up, own
-  commit). **Open PR for #34:** #57, state: review pending.
+  commit). **Open PR for #34:** #57, state: reviewed, ready to merge (see "Review of PR #57").
   Real bundle: forest AUC 0.720 / Gini 0.439 / KS 0.318, scorecard 0.722 /
   0.445 / 0.324; observed default rate rises monotonically over all ten bands
   for both models; at 0.5 the forest has precision 58.4 %, recall 7.4 %,
@@ -230,6 +230,19 @@ next section.
   the cut-off page yet (it does not exist); add a `page_link` once #35 lands.
   The monotonic sentence is only tested on the non-monotonic synthetic bundle
   (the "rises in every band" branch runs only on the real bundle).
+- **Review of PR #57:** all acceptance criteria of #34 and its Ergänzung met;
+  link commit 44c70a2 has the exact URLs, both labels, three-button test.
+  Checked on the real bundle: metrics equal `bundle["metrics"]`, band tables
+  (n, mean score, observed rate) monotone for both models, the 0.5 table equals
+  the stored report; pytest (140), black, ruff, AppTest in DE and EN, headless
+  health `ok`, Chromium screenshots light and dark. Fixed: calibration note no
+  longer says the ranking is unchanged (isotonic ties move AUC in the fourth
+  decimal); a test pins the quantile bins of the reliability diagram (the
+  uniform-bins mutation survived). Other mutations (strict `>`, label, dash,
+  bar, metric keys) are caught. Open, debatable: `charged_off_metrics` could be
+  `classification_report(output_dict=True)` inline (identical values on the
+  real bundle); for #35 use `precision_recall_curve` for the per-threshold
+  table. Not checked: tooltip hover.
 - **Not verifiable without a browser (#34):** tooltip hover on metrics, table
   headers and subheaders, the theme switch in the menu.
 - **Next:** #35. #30 is done (PR #50).
