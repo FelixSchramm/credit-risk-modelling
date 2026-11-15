@@ -7,6 +7,7 @@ glossary = "Glossary"
 calculator = "Calculator"
 performance = "Model quality"
 cutoff = "Cut-off and loss"
+limits = "Model limits"
 
 [common]
 language = "Language"
@@ -39,6 +40,7 @@ glossary = "Every term and figure explained in plain language."
 calculator = "Enter an application and see the default probability of both models."
 performance = "How well the models rank and how right their probabilities are: ROC curve, calibration and score bands."
 cutoff = "Choose the cut-off and see what it means in loans and in money."
+limits = "What the model can and cannot do: leakage, default definition, horizon, the interest rate caveat and regulation."
 
 [glossary_page]
 title = "Glossary"
@@ -489,3 +491,49 @@ chart_best_name = "Best cut-off"
 chart_best = "Best: cut-off {threshold}, {value}"
 reading_title = "Why the cut-off is a business decision"
 reading = "The model only ranks loans. How much a missed default costs, compared with a good customer who is declined, is not in the data: the lender sets it. A lender with a high loss per default or a thin margin declines more loans and chooses a lower cut-off. A lender with a high margin or a small loss accepts more. Move the two sliders and watch the best cut-off move: the model stays the same, only the decision changes."
+
+[limits]
+title = "Model limits"
+intro = """A model whose limits its author cannot name is not usable in a bank. This page says what this model is good for and what it is not. It is the model card of the project."""
+notice = "A demonstration of method on public historical data, not a PD model that a bank could use."
+leakage_title = "1. The leakage story"
+leakage_intro = """The first version of this project reported a ROC AUC of 0.9999. In credit risk, an almost perfect AUC is a warning sign, not a success. The feature set still contained columns that are only filled once a loan has been repaid or has defaulted: `total_pymnt`, `recoveries`, `out_prncp`, `last_fico_range_*` and others. They leak the target into the features."""
+leakage_before_label = "First version (with leakage)"
+leakage_before_value = "0.9999"
+leakage_after_label = "Today (random forest, test loans)"
+leakage_text = """After removing all post-outcome columns the AUC is in the range that can be expected for a realistic PD model on LendingClub data (0.65-0.75). That is the number that can be defended. Removing the known columns does not prove that no subtle leak is left, which is why very strong single features deserve suspicion."""
+default_title = "2. The default definition is not the regulatory one"
+default_text = """The target is LendingClub's `Charged Off` status, a write-off. Basel defines default as 90 days past due or unlikeliness to pay. A write-off is a later and stricter event that a loan reaches long after it would already have counted as defaulted under the regulatory definition. The two are not interchangeable, and a model trained on one does not estimate the other. The figures here are therefore not directly comparable with Basel PDs."""
+horizon_title = "3. The horizon is not the regulatory one"
+horizon_text = """An IRB PD is a one-year probability. This model is fitted at origination against the outcome over the loan's entire 36- or 60-month term, which makes it closer to a lifetime PD than to the one-year PD used under Basel."""
+pd_title = "4. PD is only one third of the question"
+pd_text = """Expected loss is `PD x LGD x EAD`:
+
+- **PD** (probability of default): modelled here.
+- **LGD** (loss given default): not modelled. Recovery on unsecured consumer debt is a modelling problem of its own.
+- **EAD** (exposure at default): not modelled. For a fully drawn, amortising consumer loan it is close to the outstanding balance."""
+pd_ifrs = """Under IFRS 9, PD feeds the loss allowance and the staging: stage 1 uses the 12-month expected credit loss, stages 2 and 3 the lifetime loss. IFRS 9 PDs are point-in-time and forward-looking, Basel IRB PDs are long-run averages by design. One estimate cannot be both, which is why banks keep separate PD models for the two purposes. In Switzerland the standardised approach dominates, where no internal PD enters the capital calculation; internal PD models need explicit FINMA approval."""
+population_title = "5. Population"
+population_text = """The data are accepted loan applications of a US peer-to-peer platform, issued 2015-2018. Nothing has been established about how that relates to the portfolio of a Swiss bank. There is no point-in-time or through-the-cycle calibration and no validation in the supervisory sense."""
+intrate_title = "6. Caveat: the interest rate as an input"
+intrate_notice = "Whoever enters the interest rate feeds the model LendingClub's own risk assessment."
+intrate_why = """`grade` and `sub_grade` were removed from the feature set as irrelevant. But the interest rate is LendingClub's own rating in the form of a price: the platform set it according to its own risk assessment. A model that takes it as an input is partly reproducing someone else's scorecard, so its discrimination looks better than an independent assessment of the borrower would be."""
+intrate_importance = "In the random forest of this dashboard the interest rate is the strongest single feature with an importance of {share}."
+intrate_clean = """A clean run would train the same pipeline without `int_rate`, score it on the same test loans and compare ROC AUC, Gini and KS with the values on the page "Model quality". A bank building a scorecard would look at how much discriminatory power survives without it. This run has not been made, so no numbers are quoted here."""
+calculator_title = "7. Limits of the calculator"
+calculator_median = """The calculator asks for a few inputs. All other model inputs stay at the portfolio median. The result therefore compares applications with each other, all else being equal; it does not assess a real applicant."""
+calculator_flat = """The deployed forest is depth-limited (`max_depth=10`, `min_samples_leaf=100`) to keep the bundle small and explanations fast. As a result it barely reacts to annual income and debt-to-income ratio, while the scorecard does. The importances below are read from the bundle. The isotonic calibration additionally turns small differences in the score into plateaus."""
+calculator_metric_int_rate = "Importance: interest rate"
+calculator_metric_dti = "Importance: DTI"
+calculator_metric_income = "Importance: annual income"
+calculator_year = """`issue_year` is still a feature of the model, but the calculator cannot set it, so it stays at the median. It is known at origination and therefore not leakage, but as a time index it lets the model learn the vintage instead of the risk. Whether it should stay is an open question from the leakage review."""
+not_title = "8. What this project is not"
+not_text = """A learning and portfolio project on a public historical dataset. It is **not** a supervisory-approved model and makes no claim to satisfy any regulatory requirement:
+
+- **No through-the-cycle or point-in-time calibration.** The scores are recalibrated on a held-out part of the training data, so they work as probabilities, but there is no calibration to a rating philosophy on top.
+- **No rating system.** No grades, no masterscale, no margin of conservatism.
+- **No validation in the supervisory sense.** No out-of-time testing, no independent validation function, no ongoing monitoring, no override policy.
+- **No representativeness argument.** One platform, one country, one time window."""
+not_closing = "None of this makes the exercise idle: the steps are the ones a real PD project runs. It is a demonstration of method, not a PD."
+readme_text = "The regulatory background is summarised here and written out in the README."
+readme_link = "README: Regulatory context"
