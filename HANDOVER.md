@@ -302,23 +302,35 @@ next section.
   definition, horizon, PD/LGD/EAD with IFRS 9 and Switzerland in two short
   paragraphs, population, int_rate caveat in its own bordered section, limits of
   the calculator, what the project is not, link to the README section
-  "Regulatory context". **Open PR for #36:** #59, state: review pending.
+  "Regulatory context". **Open PR for #36:** #59, state: reviewed, ready to merge (see "Review of PR #59").
 - **Income/DTI finding from #32 is documented on the page** (section 7):
   importances read from the inner forest of the bundle (real bundle: int_rate
   26.8 %, DTI 3.9 %, annual income 0.97 %, `issue_year` 0.82 %), stated as
-  depth-limit property (`max_depth=10`, `min_samples_leaf=100`) plus the isotonic
+  depth-limit property (values read from the bundle) plus the isotonic
   plateaus. `issue_year` not settable in the calculator is stated as an open
   question. The page does not say how a run without `int_rate` performs (not run,
   no numbers in README or notebook); that needs a local retrain.
 - **Pitfalls from #36 for #37:** the importance figures come from
   `bundle["rf"].calibrated_classifiers_[0].estimator.estimator.feature_importances_`
   (impurity importance, `feature_names` order); texts that quote the forest depth
-  limit (`max_depth=10`, `min_samples_leaf=100`) are in
-  `limits.calculator_flat` and would go stale if #30 is rerun with other values.
-  The README bullet "No calibration" is stale against the bundle (scores are
-  recalibrated); the page says "no TTC/PIT calibration on top" instead. The
+  limit are in `limits.calculator_flat`; the values are placeholders read from
+  the inner forest, so they follow a rebuilt bundle. The README bullet "No
+  calibration" was stale and has been corrected in the review. The
   page has no link from other pages yet except the start page guide (built from
   `PAGES`); `limits.intrate_clean` links to the performance page.
+- **Review of PR #59:** all acceptance criteria of #36 and the Ergänzung met.
+  Checked every statement in EN and DE against README "Regulatory context" and
+  "Results", the glossary entries (`basel_irb`, `ifrs9`, `finma`, `model_card`,
+  `model_validation`, `pd`, `lgd`, `ead`, `target`, `data_leakage`), the
+  notebook and the real bundle (AUC 0.7196, int_rate 26.8 %, depth 10 / leaf
+  100, isotonic): no factual error, no contradiction between page, glossary and
+  README (Charged Off vs 90 dpd/UTP, 1-year vs lifetime PD, EL, IFRS 9 stages,
+  PIT vs IRB, FINMA, leakage columns, 2015-2018). Fixed: README bullet "No
+  calibration" (contradicted Results, glossary and page; now "No
+  through-the-cycle or point-in-time calibration"); `max_depth` and
+  `min_samples_leaf` in `limits.calculator_flat` are now placeholders read from
+  the bundle forest. Left open (debatable): the `zip` loop over the three
+  importance metrics could be three plain calls. Not checked: tooltip hover.
 - **Not verifiable without a browser (#36):** tooltip hover (about 12 help icons),
   look of the bordered int_rate section in both themes below the first screen
   (Playwright only checked that no exception shows and the first screen in dark EN).
