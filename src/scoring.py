@@ -257,3 +257,68 @@ def top_contributions(table: pd.DataFrame, n: int, rest_label: str) -> pd.DataFr
         {"feature": [rest_label], "contribution": [rest["contribution"].sum()]}
     )
     return pd.concat([top, summary], ignore_index=True)
+
+
+def cutoff_table(
+    y_true: np.ndarray,
+    proba: np.ndarray,
+    thresholds: np.ndarray,
+    loss_share: float,
+    margin_share: float,
+    loan_amount: float,
+) -> pd.DataFrame:
+    """Portfolio figures and a net result for every cut-off.
+
+    A loan is rejected if its score is strictly above the threshold (a tie goes
+    to the accepted part, like ``predict``). The scores are sorted once and the
+    figures of all thresholds come from cumulative sums.
+
+    The net result is an illustration of the cut-off logic, not a portfolio
+    calculation: every accepted good loan earns ``margin_share * loan_amount``,
+    every accepted default loses ``loss_share * loan_amount`` (an LGD
+    placeholder, LGD and EAD are not modelled), rejected loans earn and lose
+    nothing. One ``loan_amount`` stands for all loans because the bundle has no
+    per-loan amounts.
+
+    :param y_true: True labels (1 = Charged Off).
+    :param proba: Predicted default probabilities.
+    :param thresholds: Cut-offs to evaluate.
+    :param loss_share: Loss per accepted default as a share of the loan amount.
+    :param margin_share: Income per accepted good loan as a share of the loan amount.
+    :param loan_amount: Loan amount in USD.
+    :return: One row per threshold with ``threshold``, ``accepted``,
+        ``rejected``, ``caught`` (rejected defaults), ``missed`` (accepted
+        defaults), ``rejected_good``, ``approval_rate``, ``default_rate_accepted``
+        (NaN if nothing is accepted), ``precision`` and ``recall`` (of the
+        default class, precision 0 if nothing is rejected) and ``net_result``.
+    """
+    order = np.argsort(proba)
+    defaults_up_to = np.concatenate([[0], np.cumsum(np.asarray(y_true)[order])])
+    n_loans = len(order)
+    n_defaults = defaults_up_to[-1]
+    # Loans with a score at or below the threshold are accepted.
+    accepted = np.searchsorted(np.asarray(proba)[order], thresholds, side="right")
+    missed = defaults_up_to[accepted]
+    rejected = n_loans - accepted
+    caught = n_defaults - missed
+    rejected_good = rejected - caught
+    accepted_good = accepted - missed
+    with np.errstate(divide="ignore", invalid="ignore"):
+        precision = np.where(rejected > 0, caught / rejected, 0.0)
+        default_rate_accepted = missed / accepted
+    return pd.DataFrame(
+        {
+            "threshold": thresholds,
+            "accepted": accepted,
+            "rejected": rejected,
+            "caught": caught,
+            "missed": missed,
+            "rejected_good": rejected_good,
+            "approval_rate": accepted / n_loans,
+            "default_rate_accepted": default_rate_accepted,
+            "precision": precision,
+            "recall": caught / n_defaults,
+            "net_result": loan_amount
+            * (margin_share * accepted_good - loss_share * missed),
+        }
+    )
