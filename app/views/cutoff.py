@@ -172,15 +172,6 @@ _show(
         ("approval_rate", pct(row["approval_rate"]), "approval_rate"),
         ("accepted", num(row["accepted"]), "approval_rate"),
         ("rejected", num(row["rejected"]), "cutoff"),
-        (
-            "default_rate_accepted",
-            (
-                t("cutoff.none_accepted")
-                if math.isnan(default_rate)
-                else pct(default_rate)
-            ),
-            "base_rate",
-        ),
     ]
 )
 _show(
@@ -192,6 +183,15 @@ _show(
 )
 _show(
     [
+        (
+            "default_rate_accepted",
+            (
+                t("cutoff.none_accepted")
+                if math.isnan(default_rate)
+                else pct(default_rate)
+            ),
+            "base_rate",
+        ),
         ("precision", pct(row["precision"]), "precision"),
         ("recall", pct(row["recall"]), "recall"),
     ]
@@ -200,10 +200,15 @@ _show(
 best = curve.loc[curve["net_result"].idxmax()]
 st.subheader(t("cutoff.money_title"), help=help_text("expected_loss"))
 st.write(t("cutoff.money_intro", amount=num(loan_amount)))
+# Two tiles per row: "12.3 million USD" does not fit into a quarter of the width.
 _show(
     [
         ("net_result", _million(row["net_result"]), "expected_loss"),
         ("loan_amount", t("cutoff.usd", value=num(loan_amount)), "ead"),
+    ]
+)
+_show(
+    [
         ("best_cutoff", num(best["threshold"], 2), "cutoff"),
         ("best_net_result", _million(best["net_result"]), "expected_loss"),
     ]

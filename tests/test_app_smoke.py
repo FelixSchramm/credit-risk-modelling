@@ -368,7 +368,7 @@ def test_cutoff_page_shows_the_table_figures_with_tooltips(lang, bundle_env):
     assert shown[0] == fmt_percent(row["approval_rate"], 1, lang)
     assert shown[1] == fmt_number(row["accepted"], 0, lang)
     assert shown[2] == fmt_number(row["rejected"], 0, lang)
-    assert shown[4:7] == [
+    assert shown[3:6] == [
         fmt_number(row[key], 0, lang) for key in ("caught", "missed", "rejected_good")
     ]
     assert all(metric.help for metric in at.metric)
