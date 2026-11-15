@@ -1,13 +1,15 @@
 """Scoring layer of the dashboard: turn one application into a calibrated PD.
 
 Pure functions on the bundle from :mod:`src.bundle`; no Streamlit import, so
-everything here is covered by the tests.
+everything here is covered by the tests. Also the explanations of one score
+(SHAP for the forest, WOE contributions for the scorecard).
 """
 
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import shap
 
 from src.features import convert_emp_length
 
@@ -149,3 +151,109 @@ def band_of(proba: float, bands: pd.DataFrame) -> int:
     """
     position = np.searchsorted(bands["score_max"].to_numpy(), proba)
     return int(bands["band"].iloc[min(position, len(bands) - 1)])
+
+
+def _uncalibrated(model: object) -> object:
+    """Return the fitted model inside the calibration wrapper.
+
+    :param model: ``bundle["rf"]`` or ``bundle["scorecard"]``.
+    :return: The forest, or the WOE plus logistic regression pipeline.
+    """
+    return model.calibrated_classifiers_[0].estimator.estimator
+
+
+def forest_explainer(bundle: dict[str, object]) -> shap.TreeExplainer:
+    """Build the TreeSHAP explainer of the forest.
+
+    TreeSHAP needs the inner forest, so it explains the uncalibrated forest
+    score (``class_weight="balanced"``, around 0.5 on average), not the
+    calibrated PD that the page shows.
+
+    :param bundle: Bundle from :func:`src.bundle.build_bundle`.
+    :return: The explainer; build it once, it is slow compared to one row.
+    """
+    return shap.TreeExplainer(_uncalibrated(bundle["rf"]))
+
+
+def explain_forest(
+    user_input: dict[str, object],
+    bundle: dict[str, object],
+    explainer: shap.TreeExplainer,
+) -> tuple[pd.DataFrame, float]:
+    """Split the uncalibrated forest score of one application into SHAP values.
+
+    :param user_input: Field name to entered value.
+    :param bundle: Bundle from :func:`src.bundle.build_bundle`.
+    :param explainer: Result of :func:`forest_explainer`.
+    :return: Table with ``feature``, ``value`` (unscaled, as the user sees it)
+        and ``contribution`` (SHAP value for the default class), and the base
+        value. Base value plus all contributions is the uncalibrated forest
+        probability of default.
+    """
+    row = build_feature_vector(user_input, bundle)
+    explanation = explainer(bundle["scaler"].transform(row))
+    table = pd.DataFrame(
+        {
+            "feature": bundle["feature_names"],
+            "value": row.iloc[0].astype(float).to_numpy(),
+            "contribution": explanation.values[0, :, 1],
+        }
+    )
+    return table, float(explanation.base_values[0, 1])
+
+
+def explain_scorecard(
+    user_input: dict[str, object], bundle: dict[str, object]
+) -> tuple[pd.DataFrame, float]:
+    """Split the scorecard log-odds of one application into feature contributions.
+
+    The contribution is the logistic coefficient times the WOE of the bin the
+    application falls into (``BinningProcess`` assigns the bin). It stays in
+    log-odds of default instead of scorecard points, because the bundle has no
+    points scaling and log-odds are what the regression adds up. A positive
+    value raises the risk (the WOE is the log of good over bad, the
+    coefficients are negative).
+
+    :param user_input: Field name to entered value.
+    :param bundle: Bundle from :func:`src.bundle.build_bundle`.
+    :return: Table with ``feature``, ``value`` (raw), ``woe`` and
+        ``contribution`` for the features the scorecard kept, and the
+        intercept. Intercept plus all contributions is the uncalibrated
+        log-odds of default.
+    """
+    row = build_scorecard_row(user_input, bundle)
+    pipeline = _uncalibrated(bundle["scorecard"])
+    woe = pipeline.named_steps["woe"].transform(row, metric="woe")
+    logit = pipeline.named_steps["logit"]
+    table = pd.DataFrame(
+        {
+            "feature": woe.columns,
+            "value": row[woe.columns].iloc[0].to_numpy(),
+            "woe": woe.iloc[0].to_numpy(),
+            "contribution": logit.coef_[0] * woe.iloc[0].to_numpy(),
+        }
+    )
+    return table, float(logit.intercept_[0])
+
+
+def top_contributions(table: pd.DataFrame, n: int, rest_label: str) -> pd.DataFrame:
+    """Keep the n largest contributions and sum up the rest.
+
+    :param table: Table with a ``contribution`` column, e.g. from
+        :func:`explain_forest`.
+    :param n: Number of features to keep.
+    :param rest_label: ``feature`` text of the summed row.
+    :return: The n rows with the largest absolute contribution, largest first,
+        plus one row ``rest_label`` with the sum of all others (left out if
+        there is nothing left). The total of ``contribution`` is unchanged.
+    """
+    ordered = table.reindex(
+        table["contribution"].abs().sort_values(ascending=False).index
+    )
+    top, rest = ordered.iloc[:n], ordered.iloc[n:]
+    if rest.empty:
+        return top
+    summary = pd.DataFrame(
+        {"feature": [rest_label], "contribution": [rest["contribution"].sum()]}
+    )
+    return pd.concat([top, summary], ignore_index=True)

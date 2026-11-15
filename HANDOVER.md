@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-14 (reviewer session for PR #55)
+**Last updated:** 2026-11-14 (worker session for #33)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -158,6 +158,45 @@ next section.
   model-limits page (#36). Variant B now starts as a copy of A with the other
   term (orchestrator decision, one smoke test). Open, debatable: the percentile caption has no tooltip (no glossary entry);
   `delta_color="inverse"` is untested (AppTest does not expose it).
+- **#33 implemented** (score explanation): `src/scoring.py` (`forest_explainer`,
+  `explain_forest`, `explain_scorecard`, `top_contributions`), explanation block
+  `_explain` in `app/views/calculator.py` below the results (variant A only:
+  tabs `explain_tabs` with `go.Waterfall` for the forest and `go.Bar` for the
+  scorecard, both via `show_chart`; explainer in `@st.cache_resource`), 23 new
+  keys in `[calculator]` (both locale files), 16 new tests, plan
+  `plans/2026-11-14_score-explanation.md`. No glossary additions (all five keys
+  existed). **Open PR for #33:** #56, state: reviewed, ready to merge (see "Review of PR #56"). Real bundle: one
+  explanation 0.038 s (median, explainer built), SHAP base + sum equals the
+  uncalibrated forest probability and intercept + contributions equals the
+  scorecard decision function (diff below 1e-15, default and high-risk input).
+  1280x800 Chromium check, light/dark, EN/DE: both charts readable, no clipped
+  labels. Not verifiable without a browser: tooltip hover, theme switch in the
+  menu.
+- **Review of PR #56:** all acceptance criteria of #33 and the Ergänzung met
+  except those that need a browser (tooltip hover, theme switch). Checked on
+  the real bundle: SHAP base + sum equals the uncalibrated forest probability
+  and intercept + contributions equals the scorecard decision function (diff
+  below 1e-15); one explanation 25-40 ms; mutations (class index, sign flip,
+  top-n remainder, missing intercept) are all killed by the tests; pytest
+  (125), black, ruff, headless start, screenshots DE light and dark. Fixed: the
+  scorecard tab said "WOE points" while the bars are log-odds contributions;
+  now "WOE contributions" and `sc_uncalibrated` says they are not points.
+  Open, debatable: chart labels use technical column names and `issue_year` is
+  an input the user cannot set (a label translation would be its own piece of
+  work).
+- **Pitfalls from #33 for #34-#37:** `bundle["scaler"].transform` returns a
+  DataFrame (SHAP and the forest take it as is). The scorecard contribution is
+  coefficient times WOE in log-odds of the uncalibrated logistic regression
+  (WOE = log good/bad, coefficients negative, so positive contribution = more
+  risk); the chart shows no scorecard points because the bundle has no points
+  scaling. SHAP values are on the raw forest score (base 0.500, not the default
+  rate); the shown PD is calibrated. Chart labels use the technical column
+  names; `issue_year` is shown as a plain year (special case in `_labels`).
+  The waterfall x axis is zoomed (does not start at 0). In AppTest,
+  `number_input.set_value` outside the min/max range is ignored silently (use
+  20.0, not 25.0, for `int_rate` on the synthetic bundle). The metric count on
+  the calculator is now results (4 or 8) plus 2 from the explanation, so tests
+  index the first metrics.
 - **Pitfalls for #33-#37:** keep category values from the data as raw option
   texts (`format_func=str.strip` at most), so AppTest can select by value in
   both languages.
@@ -169,7 +208,7 @@ next section.
 - **Not verifiable without a browser:** tooltip hover, light/dark look of the
   page, selectbox/number input behaviour on real clicks beyond the toggle
   (Playwright: toggle clicked, both variants render).
-- **Next:** #33. #30 is done (PR #50).
+- **Next:** #34. #30 is done (PR #50).
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:
