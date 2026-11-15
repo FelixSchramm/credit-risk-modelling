@@ -204,8 +204,9 @@ def _waterfall(table: pd.DataFrame, base: float) -> go.Figure:
         )
     )
     # Zoom to the steps: from zero the bars would be hairlines next to a 0.5 base.
+    # The wide pad leaves room for the outside value labels on a narrow screen.
     low, high = min(base, levels.min(), total), max(base, levels.max(), total)
-    pad = (high - low) * 0.25 or 0.01
+    pad = (high - low) * 0.5 or 0.01
     fig.update_xaxes(title=t("calculator.rf_axis"), range=[low - pad, high + pad])
     fig.update_yaxes(autorange="reversed")
     fig.update_layout(margin={"t": 20})
@@ -236,9 +237,10 @@ def _contribution_bars(table: pd.DataFrame) -> go.Figure:
             hoverinfo="text",
         )
     )
-    # Room on both sides so the outside labels of the longest bars are not cut off.
+    # Room on both sides so the outside labels of the longest bars are not cut off,
+    # also on a 390 px screen where the long feature labels shrink the plot area.
     low, high = min(0, contributions.min()), max(0, contributions.max())
-    pad = (high - low) * 0.15
+    pad = (high - low) * 0.4
     fig.update_xaxes(title=t("calculator.sc_axis"), range=[low - pad, high + pad])
     fig.update_yaxes(autorange="reversed")
     fig.update_layout(margin={"t": 20})
