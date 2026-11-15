@@ -19,6 +19,7 @@ Rules that cannot be enforced in code, to be kept on every page:
 from __future__ import annotations
 
 import json
+import textwrap
 from pathlib import Path
 
 import plotly.graph_objects as go
@@ -54,7 +55,8 @@ def style_figure(fig: go.Figure, separators: str = ".,") -> go.Figure:
     """Apply the mode-independent chart rules of the design CI in place.
 
     Horizontal grid lines only, left-aligned title, legend top left without
-    frame, line width and bar corner radius from ``ci.json``.
+    frame, line width and bar corner radius from ``ci.json``. A long x axis
+    title is wrapped, because Plotly clips it at the figure edge on a phone.
 
     :param fig: Plotly figure.
     :param separators: Decimal and thousands separator, e.g. ``".,"``.
@@ -76,6 +78,9 @@ def style_figure(fig: go.Figure, separators: str = ".,") -> go.Figure:
         },
         separators=separators,
     )
+    x_title = fig.layout.xaxis.title.text
+    if x_title:
+        fig.update_xaxes(title_text="<br>".join(textwrap.wrap(x_title, 45)))
     fig.update_traces(line_width=chart["line_width_px"], selector={"type": "scatter"})
     fig.update_traces(
         marker_cornerradius=chart["bar_corner_radius_px"], selector={"type": "bar"}
