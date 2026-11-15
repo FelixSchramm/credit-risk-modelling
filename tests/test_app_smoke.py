@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from app.ui import PAGES
+from app.ui import LINKS, PAGES
 from src.bundle import load_bundle
 from src.i18n import fmt_number, fmt_percent, translate
 from src.scoring import score
@@ -126,6 +126,13 @@ def test_start_page_shows_the_demo_notice(lang, bundle_env):
     at.query_params["lang"] = lang
     at.run()
     assert [w.value for w in at.warning] == [translate("home.notice", lang)]
+
+
+def test_start_page_shows_a_button_for_every_link(bundle_env):
+    at = AppTest.from_file(ENTRY, default_timeout=30).run()
+    urls = [button.proto.url for button in at.get("link_button")]
+    assert urls == list(LINKS.values())
+    assert len(urls) == 3
 
 
 def test_start_page_guide_describes_every_other_page(bundle_env):

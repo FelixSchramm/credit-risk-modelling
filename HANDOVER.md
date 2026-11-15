@@ -108,9 +108,6 @@ next section.
   skips the home page. Open, minor: the guide test only asserts a superset, so
   dropping the `key != "home"` condition is not caught. Not checked: tooltip
   hover, `page_link` click.
-- **Open point (user):** LinkedIn and website URLs were not provided (no
-  comment on #43), so those links are left out. To add one: entry in `LINKS`
-  (`app/ui.py`) and `home.link_<key>` in both locale files.
 - **Pitfalls from #43:** the guide is built from `PAGES` and skips `home`; each
   new page in `PAGES` (#32-#37) needs `nav.<key>` and `nav_desc.<key>` in both
   locale files, otherwise the start page raises `KeyError`. The 0.9999 AUC in

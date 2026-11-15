@@ -38,9 +38,13 @@ PAGES = {
     "glossary": "app/views/glossary.py",
 }
 
-#: External links of the start page. LinkedIn and website are added here (plus
-#: ``home.link_<key>`` in both locale files) once the owner provides the URLs.
-LINKS = {"github": "https://github.com/FelixSchramm/credit-risk-modelling"}
+#: External links of the start page; each key needs ``home.link_<key>`` in both
+#: locale files.
+LINKS = {
+    "github": "https://github.com/FelixSchramm/credit-risk-modelling",
+    "linkedin": "https://www.linkedin.com/in/felixschramm49",
+    "website": "https://felixschramm.github.io/website-with-distill/",
+}
 
 
 @st.cache_resource

@@ -30,6 +30,8 @@ done_limits = "**Stated the model limits openly**, including what the data canno
 guide_title = "Where to read on"
 links_title = "Links"
 link_github = "GitHub repository"
+link_linkedin = "LinkedIn"
+link_website = "Website"
 
 [nav_desc]
 glossary = "Every term and figure explained in plain language."

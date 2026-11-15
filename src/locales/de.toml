@@ -30,6 +30,8 @@ done_limits = "**Modellgrenzen offen benannt**, auch das, was die Daten nicht ze
 guide_title = "Hier geht es weiter"
 links_title = "Links"
 link_github = "GitHub-Repository"
+link_linkedin = "LinkedIn"
+link_website = "Website"
 
 [nav_desc]
 glossary = "Alle Begriffe und Kennzahlen in einfacher Sprache erklärt."
