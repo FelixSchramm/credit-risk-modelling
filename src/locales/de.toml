@@ -7,6 +7,7 @@ glossary = "Glossar"
 calculator = "Rechner"
 performance = "Modellgüte"
 cutoff = "Cut-off und Verlust"
+limits = "Modellgrenzen"
 
 [common]
 language = "Sprache"
@@ -39,6 +40,7 @@ glossary = "Alle Begriffe und Kennzahlen in einfacher Sprache erklärt."
 calculator = "Antrag eingeben und die Ausfallwahrscheinlichkeit beider Modelle sehen."
 performance = "Wie gut die Modelle sortieren und wie richtig ihre Wahrscheinlichkeiten sind: ROC-Kurve, Kalibrierung und Score-Bänder."
 cutoff = "Cut-off wählen und sehen, was er in Krediten und in Geld bedeutet."
+limits = "Was das Modell kann und was nicht: Leakage, Default-Definition, Horizont, der Vorbehalt zum Zinssatz und die Regulatorik."
 
 [glossary_page]
 title = "Glossar"
@@ -489,3 +491,49 @@ chart_best_name = "Bester Cut-off"
 chart_best = "Optimum: Cut-off {threshold}, {value}"
 reading_title = "Warum der Cut-off eine geschäftliche Entscheidung ist"
 reading = "Das Modell sortiert die Kredite nur. Was ein verpasster Ausfall kostet, verglichen mit einem abgelehnten guten Kunden, steht nicht in den Daten: Das legt der Kreditgeber fest. Wer bei einem Ausfall viel verliert oder nur eine dünne Marge hat, lehnt mehr Kredite ab und wählt einen niedrigeren Cut-off. Wer eine hohe Marge oder einen kleinen Verlust hat, nimmt mehr an. Verschiebe die beiden Regler und beobachte, wie der beste Cut-off wandert: Das Modell bleibt gleich, nur die Entscheidung ändert sich."
+
+[limits]
+title = "Modellgrenzen"
+intro = """Ein Modell, dessen Grenzen der Autor nicht benennen kann, ist in einer Bank nicht einsetzbar. Diese Seite sagt, wofür dieses Modell taugt und wofür nicht. Sie ist die Model Card des Projekts."""
+notice = "Eine Methodendemonstration auf öffentlichen historischen Daten, kein PD-Modell, das eine Bank einsetzen könnte."
+leakage_title = "1. Die Leakage-Geschichte"
+leakage_intro = """Die erste Version dieses Projekts erreichte einen ROC AUC von 0,9999. Im Credit Risk ist ein nahezu perfekter AUC ein Warnsignal, kein Erfolg. Im Feature-Satz standen noch Spalten, die erst gefüllt werden, wenn ein Kredit zurückgezahlt wurde oder ausgefallen ist: `total_pymnt`, `recoveries`, `out_prncp`, `last_fico_range_*` und weitere. Sie tragen das Ziel in die Features."""
+leakage_before_label = "Erste Version (mit Leakage)"
+leakage_before_value = "0,9999"
+leakage_after_label = "Heute (Random Forest, Testkredite)"
+leakage_text = """Nach dem Entfernen aller Spalten, die erst nach dem Ausgang bekannt sind, liegt der AUC in dem Bereich, den man für ein realistisches PD-Modell auf LendingClub-Daten erwartet (0,65-0,75). Diese Zahl lässt sich verteidigen. Das Entfernen der bekannten Spalten beweist nicht, dass kein feineres Leck übrig ist; deshalb verdienen sehr starke Einzelmerkmale Misstrauen."""
+default_title = "2. Die Default-Definition ist nicht die aufsichtliche"
+default_text = """Das Ziel ist LendingClubs Status `Charged Off`, eine Abschreibung. Basel definiert Default als 90 Tage überfällig oder Unlikeliness to Pay. Eine Abschreibung ist ein späteres und strengeres Ereignis, das ein Kredit erst lange erreicht, nachdem er nach der aufsichtlichen Definition schon als ausgefallen galt. Beide sind nicht austauschbar, und ein Modell, das auf die eine trainiert wurde, schätzt die andere nicht. Die Zahlen hier sind deshalb nicht direkt mit Basel-PDs vergleichbar."""
+horizon_title = "3. Der Horizont ist nicht der aufsichtliche"
+horizon_text = """Eine IRB-PD ist eine Einjahreswahrscheinlichkeit. Dieses Modell wird bei der Kreditvergabe gegen den Ausgang über die gesamte Laufzeit von 36 oder 60 Monaten angepasst. Es liegt damit näher an einer Lifetime-PD als an der unter Basel üblichen Einjahres-PD."""
+pd_title = "4. Die PD ist nur ein Drittel der Frage"
+pd_text = """Der erwartete Verlust ist `PD x LGD x EAD`:
+
+- **PD** (Ausfallwahrscheinlichkeit): hier modelliert.
+- **LGD** (Verlustquote bei Ausfall): nicht modelliert. Die Verwertung unbesicherter Konsumentenkredite ist ein eigenes Modellierungsproblem.
+- **EAD** (Forderungshöhe bei Ausfall): nicht modelliert. Bei einem voll ausgezahlten, amortisierenden Konsumentenkredit liegt sie nahe am ausstehenden Saldo."""
+pd_ifrs = """Unter IFRS 9 fließt die PD in die Wertberichtigung und die Stufenzuordnung ein: Stufe 1 nutzt den erwarteten Kreditverlust über 12 Monate, die Stufen 2 und 3 den über die Restlaufzeit. IFRS-9-PDs sind stichtagsbezogen (point-in-time) und vorausschauend, Basel-IRB-PDs sind bewusst langfristige Durchschnitte. Eine Schätzung kann nicht beides sein; deshalb führen Banken getrennte PD-Modelle für beide Zwecke. In der Schweiz dominiert der Standardansatz, bei dem keine interne PD in die Kapitalberechnung eingeht; interne PD-Modelle brauchen eine ausdrückliche Bewilligung der FINMA."""
+population_title = "5. Population"
+population_text = """Die Daten sind angenommene Kreditanträge einer US-Peer-to-Peer-Plattform aus den Jahren 2015-2018. Es ist nichts darüber belegt, wie sich das zum Portfolio einer Schweizer Bank verhält. Es gibt keine Point-in-Time- oder Through-the-Cycle-Kalibrierung und keine Validierung im aufsichtlichen Sinn."""
+intrate_title = "6. Vorbehalt: der Zinssatz als Eingabe"
+intrate_notice = "Wer den Zinssatz eingibt, füttert das Modell mit der Risikoeinschätzung von LendingClub selbst."
+intrate_why = """`grade` und `sub_grade` wurden als irrelevant aus dem Feature-Satz entfernt. Aber der Zinssatz ist LendingClubs eigenes Rating in Preisform: Die Plattform hat ihn nach ihrer eigenen Risikoeinschätzung gesetzt. Ein Modell, das ihn als Eingabe nutzt, reproduziert teilweise die Scorecard eines anderen, und seine Trennschärfe sieht besser aus, als eine unabhängige Beurteilung des Kreditnehmers wäre."""
+intrate_importance = "Im Random Forest dieses Dashboards ist der Zinssatz mit einer Wichtigkeit von {share} das stärkste Einzelmerkmal."
+intrate_clean = """Ein sauberer Lauf würde dieselbe Pipeline ohne `int_rate` trainieren, auf denselben Testkrediten bewerten und ROC AUC, Gini und KS mit den Werten auf der Seite „Modellgüte“ vergleichen. Eine Bank, die eine Scorecard baut, würde prüfen, wie viel Trennschärfe ohne ihn übrig bleibt. Dieser Lauf wurde nicht gemacht, deshalb stehen hier keine Zahlen."""
+calculator_title = "7. Grenzen des Rechners"
+calculator_median = """Der Rechner fragt wenige Eingaben ab. Alle übrigen Modelleingaben bleiben auf dem Median des Portfolios. Das Ergebnis vergleicht daher Anträge miteinander, sonst gleiche Bedingungen vorausgesetzt; es beurteilt keinen echten Antragsteller."""
+calculator_flat = """Der eingesetzte Forest ist in der Tiefe begrenzt (`max_depth=10`, `min_samples_leaf=100`), damit das Bundle klein und die Erklärung schnell bleibt. Deshalb reagiert er kaum auf das Jahreseinkommen und das Verhältnis von Schulden zu Einkommen (DTI), die Scorecard dagegen schon. Die Wichtigkeiten unten sind aus dem Bundle gelesen. Die isotonische Kalibrierung macht kleine Unterschiede im Score zusätzlich zu Plateaus."""
+calculator_metric_int_rate = "Wichtigkeit: Zinssatz"
+calculator_metric_dti = "Wichtigkeit: DTI"
+calculator_metric_income = "Wichtigkeit: Jahreseinkommen"
+calculator_year = """`issue_year` ist weiterhin ein Merkmal des Modells, aber der Rechner kann es nicht setzen, es bleibt auf dem Median. Es ist bei der Kreditvergabe bekannt und damit kein Leakage, aber als Zeitindex lässt es das Modell den Jahrgang statt des Risikos lernen. Ob es bleiben soll, ist eine offene Frage aus dem Leakage-Review."""
+not_title = "8. Was dieses Projekt nicht ist"
+not_text = """Ein Lern- und Portfolio-Projekt auf einem öffentlichen historischen Datensatz. Es ist **kein** von der Aufsicht abgenommenes Modell und erhebt keinen Anspruch, eine regulatorische Anforderung zu erfüllen:
+
+- **Keine Through-the-Cycle- oder Point-in-Time-Kalibrierung.** Die Scores sind auf einem zurückgehaltenen Teil der Trainingsdaten rekalibriert und taugen daher als Wahrscheinlichkeiten, aber es gibt keine Kalibrierung auf eine Rating-Philosophie darüber.
+- **Kein Ratingsystem.** Keine Klassen, keine Masterskala, kein Konservativitätszuschlag.
+- **Keine Validierung im aufsichtlichen Sinn.** Kein Out-of-Time-Test, keine unabhängige Validierungsfunktion, kein laufendes Monitoring, keine Override-Regeln.
+- **Kein Repräsentativitätsnachweis.** Eine Plattform, ein Land, ein Zeitfenster."""
+not_closing = "Das macht die Übung nicht wertlos: Die Schritte sind die eines echten PD-Projekts. Es ist eine Methodendemonstration, keine PD."
+readme_text = "Der regulatorische Hintergrund ist hier zusammengefasst und im README ausgeschrieben."
+readme_link = "README: Regulatory context"
