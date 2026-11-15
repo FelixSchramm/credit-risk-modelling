@@ -34,6 +34,7 @@ DEFAULT_BUNDLE_PATH = (
 PAGES = {
     "home": "app/views/home.py",
     "calculator": "app/views/calculator.py",
+    "performance": "app/views/performance.py",
     "glossary": "app/views/glossary.py",
 }
 
