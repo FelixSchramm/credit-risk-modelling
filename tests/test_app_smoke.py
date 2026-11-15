@@ -446,3 +446,48 @@ def test_performance_page_links_to_the_cutoff_page(bundle_env):
     assert [(link.label, link.page) for link in links] == [
         ("Cut-off and loss", "cutoff")
     ]
+
+
+def _limits(lang):
+    at = AppTest.from_file(ENTRY, default_timeout=30)
+    at.query_params["lang"] = lang
+    at.run()
+    return at.switch_page(PAGES["limits"]).run()
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_limits_page_shows_bundle_figures_with_tooltips(lang, bundle_env):
+    bundle = load_bundle(bundle_env)
+    forest = bundle["rf"].calibrated_classifiers_[0].estimator.estimator
+    importance = dict(zip(bundle["feature_names"], forest.feature_importances_))
+    at = _limits(lang)
+    assert not at.exception
+    assert [metric.value for metric in at.metric] == [
+        translate("limits.leakage_before_value", lang),
+        fmt_number(bundle["metrics"]["rf"]["roc_auc"], 3, lang),
+        *(
+            fmt_percent(importance[feature], 1, lang)
+            for feature in ("int_rate", "dti", "annual_inc")
+        ),
+    ]
+    assert all(metric.help for metric in at.metric)
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_limits_page_has_the_int_rate_section_and_the_readme_link(lang, bundle_env):
+    bundle = load_bundle(bundle_env)
+    forest = bundle["rf"].calibrated_classifiers_[0].estimator.estimator
+    importance = dict(zip(bundle["feature_names"], forest.feature_importances_))
+    at = _limits(lang)
+    assert [warning.value for warning in at.warning] == [
+        translate("limits.notice", lang),
+        translate("limits.intrate_notice", lang),
+    ]
+    texts = [markdown.value for markdown in at.markdown]
+    share = fmt_percent(importance["int_rate"], 1, lang)
+    assert translate("limits.intrate_importance", lang, share=share) in texts
+    assert translate("limits.intrate_clean", lang) in texts
+    assert translate("limits.calculator_year", lang) in texts
+    assert [button.proto.url for button in at.get("link_button")] == [
+        LINKS["github"] + "#regulatory-context"
+    ]
