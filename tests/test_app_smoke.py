@@ -10,7 +10,8 @@ from sklearn.calibration import calibration_curve
 from streamlit.testing.v1 import AppTest
 
 from app.ui import LINKS, PAGES
-from src.bundle import load_bundle
+from src.bundle import load_bundle, save_bundle
+from src.glossary import glossary_help
 from src.i18n import fmt_number, fmt_percent, translate
 from src.scoring import cutoff_table, score
 
@@ -491,3 +492,107 @@ def test_limits_page_has_the_int_rate_section_and_the_readme_link(lang, bundle_e
     assert [button.proto.url for button in at.get("link_button")] == [
         LINKS["github"] + "#regulatory-context"
     ]
+
+
+def _comparison(lang):
+    at = AppTest.from_file(ENTRY, default_timeout=30)
+    at.query_params["lang"] = lang
+    at.run()
+    return at.switch_page(PAGES["comparison"]).run()
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_comparison_page_shows_the_bundle_metrics_and_model_labelled_bars(
+    lang, bundle_env
+):
+    bundle = load_bundle(bundle_env)
+    at = _comparison(lang)
+    assert not at.exception
+    table = at.dataframe[0].value
+    expected = [
+        [fmt_number(bundle["metrics"][model][key], 3, lang) for key in keys]
+        for model in ("rf", "scorecard")
+        for keys in [("roc_auc", "gini", "ks")]
+    ]
+    assert table.iloc[:, 1:].values.tolist() == expected
+    chart = json.loads(at.get("plotly_chart")[0].proto.spec)
+    assert [trace["name"] for trace in chart["data"]] == [
+        translate("comparison.model_rf", lang),
+        translate("comparison.model_scorecard", lang),
+    ]
+    assert chart["data"][0]["marker"]["color"] != chart["data"][1]["marker"]["color"]
+    assert chart["layout"]["xaxis"]["title"]["text"]
+    assert chart["layout"]["yaxis"]["title"]["text"]
+    intro = translate(
+        "comparison.metrics_intro", lang, n_test=fmt_number(bundle["n_test"], 0, lang)
+    )
+    assert intro in [md.value for md in at.markdown]
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_comparison_page_iv_table_is_sorted_and_names_the_dropped_features(
+    lang, bundle_env
+):
+    bundle = load_bundle(bundle_env)
+    at = _comparison(lang)
+    table = at.dataframe[1].value
+    ivs = [
+        float(v.replace(",", ".")) for v in table[translate("comparison.col_iv", lang)]
+    ]
+    assert ivs == sorted(ivs, reverse=True)
+    assert table[translate("comparison.col_selected", lang)].tolist() == (
+        bundle["iv_table"].sort_values("iv", ascending=False)["selected"].tolist()
+    )
+    dropped = bundle["iv_table"].loc[~bundle["iv_table"]["selected"], "name"]
+    assert len(dropped) > 0
+    assert all(f"`{name}`" in at.expander[0].markdown[0].value for name in dropped)
+    # The rules of thumb are shown from the glossary, not written a second time.
+    assert any(
+        translate("glossary.iv.how_to_read", lang) in md.value for md in at.markdown
+    )
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_comparison_page_has_tooltips_for_the_terms(lang, bundle_env):
+    at = _comparison(lang)
+    helps = [md.help for md in at.markdown if md.help]
+    helps += [h.help for h in at.subheader if h.help]
+    for term in ("random_forest", "scorecard", "woe", "binning", "iv"):
+        assert glossary_help(term, lang) in helps
+    columns = json.loads(at.dataframe[0].proto.columns)
+    assert [
+        columns[translate(f"comparison.col_{term}", lang)]["help"]
+        for term in ("auc", "gini", "ks")
+    ] == [glossary_help(term, lang) for term in ("auc", "gini", "ks")]
+    iv_columns = json.loads(at.dataframe[1].proto.columns)
+    assert iv_columns[translate("comparison.col_iv", lang)]["help"] == glossary_help(
+        "iv", lang
+    )
+
+
+@pytest.mark.parametrize("scorecard_ahead", [True, False])
+def test_comparison_conclusion_follows_the_auc_ordering(
+    scorecard_ahead, bundle_env, tmp_path, monkeypatch
+):
+    bundle = load_bundle(bundle_env)
+    high, low = 0.74, 0.70
+    bundle["metrics"]["rf"]["roc_auc"] = low if scorecard_ahead else high
+    bundle["metrics"]["scorecard"]["roc_auc"] = high if scorecard_ahead else low
+    path = tmp_path / "swapped.joblib"
+    save_bundle(bundle, path)
+    monkeypatch.setenv("BUNDLE_PATH", str(path))
+    at = _comparison("en")
+    assert not at.exception
+    key = "conclusion_scorecard" if scorecard_ahead else "conclusion_rf"
+    assert at.info[0].value == translate(
+        f"comparison.{key}",
+        "en",
+        auc_rf=fmt_number(bundle["metrics"]["rf"]["roc_auc"], 3, "en"),
+        auc_scorecard=fmt_number(bundle["metrics"]["scorecard"]["roc_auc"], 3, "en"),
+        gap="0.040",
+    )
+
+
+def test_comparison_page_links_to_performance_and_limits(bundle_env):
+    links = [link.proto for link in _comparison("en").main.get("page_link")]
+    assert [link.page for link in links] == ["performance", "limits"]
