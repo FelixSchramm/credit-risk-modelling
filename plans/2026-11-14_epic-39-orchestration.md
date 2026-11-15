@@ -20,7 +20,7 @@ is lost when a session ends unexpectedly.
 | Issue | Content | State |
 |---|---|---|
 | #42 | Glossary | merged (PR #53, d6cc1a0), issue closed |
-| #43 | Start page | merged (PR #54, 02d63b2); LinkedIn/website URLs from the user still pending |
+| #43 | Start page | merged (PR #54, 02d63b2); LinkedIn/website links are added in the #34 branch (own commit) |
 | #32 | Applicant calculator, incl. derived coupled features | merged (PR #55, b9aa721) |
 | #33 | Single-score explanation | merged (PR #56, 7478562) |
 | #34 | Model quality | worker running |
