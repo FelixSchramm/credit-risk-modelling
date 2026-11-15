@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-14 (worker session for #33)
+**Last updated:** 2026-11-14 (worker session for #34)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -108,9 +108,6 @@ next section.
   skips the home page. Open, minor: the guide test only asserts a superset, so
   dropping the `key != "home"` condition is not caught. Not checked: tooltip
   hover, `page_link` click.
-- **Open point (user):** LinkedIn and website URLs were not provided (no
-  comment on #43), so those links are left out. To add one: entry in `LINKS`
-  (`app/ui.py`) and `home.link_<key>` in both locale files.
 - **Pitfalls from #43:** the guide is built from `PAGES` and skips `home`; each
   new page in `PAGES` (#32-#37) needs `nav.<key>` and `nav_desc.<key>` in both
   locale files, otherwise the start page raises `KeyError`. The 0.9999 AUC in
@@ -208,7 +205,47 @@ next section.
 - **Not verifiable without a browser:** tooltip hover, light/dark look of the
   page, selectbox/number input behaviour on real clicks beyond the toggle
   (Playwright: toggle clicked, both variants render).
-- **Next:** #34. #30 is done (PR #50).
+- **#34 implemented** (model quality page): `app/views/performance.py`
+  (`_roc_chart`, `_calibration_chart`, `_band_chart`, `_band_table`,
+  `_monotonic_sentence`, `_report_table`), registered in `PAGES` after
+  `calculator`, `[performance]`, `nav.performance`, `nav_desc.performance` in
+  both locale files, `charged_off_metrics` in `src/evaluate.py` (precision,
+  recall, F1 of Charged Off and accuracy at a threshold, equal to the stored
+  report at 0.5, tested), new tests (4 evaluate, 6 page, 1 link; suite at 139),
+  `plans/2026-11-15_performance.md`. No glossary additions (all keys existed).
+  Also: LinkedIn and website links on the start page (#43 follow-up, own
+  commit). **Open PR for #34:** #57, state: reviewed, ready to merge (see "Review of PR #57").
+  Real bundle: forest AUC 0.720 / Gini 0.439 / KS 0.318, scorecard 0.722 /
+  0.445 / 0.324; observed default rate rises monotonically over all ten bands
+  for both models; at 0.5 the forest has precision 58.4 %, recall 7.4 %,
+  scorecard 56.5 % / 9.7 %. 1280x800 Chromium, light and dark, EN and DE:
+  charts and tables render, no exception.
+- **Pitfalls from #34 for #35-#37:** the classification table recomputes from
+  `proba_*` with a strict `> 0.5` (ties go to the repaid class like
+  `predict`); the cut-off page can reuse `charged_off_metrics(y, proba,
+  threshold)`. `st.write` has no `help=`, use `st.markdown(..., help=...)`.
+  Reference lines use the CSS name `gray` (no hex codes in `app/`). Chart
+  traces are inspectable in AppTest via
+  `json.loads(at.get("plotly_chart")[i].proto.spec)`. The page has no link to
+  the cut-off page yet (it does not exist); add a `page_link` once #35 lands.
+  The monotonic sentence is only tested on the non-monotonic synthetic bundle
+  (the "rises in every band" branch runs only on the real bundle).
+- **Review of PR #57:** all acceptance criteria of #34 and its Ergänzung met;
+  link commit 44c70a2 has the exact URLs, both labels, three-button test.
+  Checked on the real bundle: metrics equal `bundle["metrics"]`, band tables
+  (n, mean score, observed rate) monotone for both models, the 0.5 table equals
+  the stored report; pytest (140), black, ruff, AppTest in DE and EN, headless
+  health `ok`, Chromium screenshots light and dark. Fixed: calibration note no
+  longer says the ranking is unchanged (isotonic ties move AUC in the fourth
+  decimal); a test pins the quantile bins of the reliability diagram (the
+  uniform-bins mutation survived). Other mutations (strict `>`, label, dash,
+  bar, metric keys) are caught. Open, debatable: `charged_off_metrics` could be
+  `classification_report(output_dict=True)` inline (identical values on the
+  real bundle); for #35 use `precision_recall_curve` for the per-threshold
+  table. Not checked: tooltip hover.
+- **Not verifiable without a browser (#34):** tooltip hover on metrics, table
+  headers and subheaders, the theme switch in the menu.
+- **Next:** #35. #30 is done (PR #50).
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:

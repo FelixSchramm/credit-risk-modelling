@@ -1,12 +1,15 @@
 """Smoke tests of the Streamlit app with ``streamlit.testing.v1.AppTest``."""
 
+import base64
 import json
 from pathlib import Path
 
+import numpy as np
 import pytest
+from sklearn.calibration import calibration_curve
 from streamlit.testing.v1 import AppTest
 
-from app.ui import PAGES
+from app.ui import LINKS, PAGES
 from src.bundle import load_bundle
 from src.i18n import fmt_number, fmt_percent, translate
 from src.scoring import score
@@ -128,6 +131,13 @@ def test_start_page_shows_the_demo_notice(lang, bundle_env):
     assert [w.value for w in at.warning] == [translate("home.notice", lang)]
 
 
+def test_start_page_shows_a_button_for_every_link(bundle_env):
+    at = AppTest.from_file(ENTRY, default_timeout=30).run()
+    urls = [button.proto.url for button in at.get("link_button")]
+    assert urls == list(LINKS.values())
+    assert len(urls) == 3
+
+
 def test_start_page_guide_describes_every_other_page(bundle_env):
     at = AppTest.from_file(ENTRY, default_timeout=30).run()
     captions = [caption.value for caption in at.caption]
@@ -242,3 +252,86 @@ def test_calculator_input_survives_a_language_switch(start, target, bundle_env):
     assert at.number_input(key="a_int_rate").value == 21.5
     assert at.selectbox(key="a_term").value == " 60 months"
     assert at.title[0].value == translate("calculator.title", target)
+
+
+def _performance(lang):
+    at = AppTest.from_file(ENTRY, default_timeout=30)
+    at.query_params["lang"] = lang
+    at.run()
+    return at.switch_page(PAGES["performance"]).run()
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_performance_page_shows_the_bundle_metrics_with_tooltips(lang, bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = _performance(lang)
+    assert not at.exception
+    expected = [
+        fmt_number(bundle["metrics"][model][key], 3, lang)
+        for model in ("rf", "scorecard")
+        for key in ("roc_auc", "gini", "ks")
+    ]
+    assert [metric.value for metric in at.metric] == expected
+    assert all(metric.help for metric in at.metric)
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_performance_page_draws_roc_calibration_and_two_band_charts(lang, bundle_env):
+    at = _performance(lang)
+    charts = [json.loads(chart.proto.spec) for chart in at.get("plotly_chart")]
+    assert len(charts) == 4
+    assert len(charts[0]["data"]) == 3
+    # Per model, before and after differ in line style and label, not only in
+    # colour; the colour is the model's own.
+    lines = {
+        trace["name"]: (trace["line"]["dash"], trace["line"]["color"])
+        for trace in charts[1]["data"][1:]
+    }
+    assert len(lines) == 4
+    dashes = sorted(dash for dash, _ in lines.values())
+    assert dashes == ["dash", "dash", "solid", "solid"]
+    assert len({color for _, color in lines.values()}) == 2
+    assert all(chart["layout"]["xaxis"]["title"]["text"] for chart in charts)
+    # Monotonicity is shown by bars, not by status colours.
+    assert charts[2]["data"][0]["type"] == "bar"
+
+
+def _decode(array):
+    """Decode a plotly array, which the spec ships base64-encoded."""
+    raw = base64.b64decode(array["bdata"])
+    return np.frombuffer(raw, dtype=array["dtype"])
+
+
+def test_performance_page_plots_quantile_calibration_points(bundle_env):
+    bundle = load_bundle(bundle_env)
+    at = _performance("en")
+    trace = json.loads(at.get("plotly_chart")[1].proto.spec)["data"][-1]
+    observed, predicted = calibration_curve(
+        bundle["y_test"], bundle["proba_scorecard"], n_bins=10, strategy="quantile"
+    )
+    assert _decode(trace["x"]) == pytest.approx(predicted)
+    assert _decode(trace["y"]) == pytest.approx(observed)
+
+
+@pytest.mark.parametrize("lang", ["en", "de"])
+def test_performance_page_states_monotonicity_and_the_threshold_caveat(
+    lang, bundle_env
+):
+    bundle = load_bundle(bundle_env)
+    at = _performance(lang)
+    texts = [markdown.value for markdown in at.markdown]
+    for model in ("rf", "scorecard"):
+        name = translate(f"performance.model_{model}", lang)
+        rates = bundle[f"bands_{model}"]["default_rate"].tolist()
+        reversals = [i + 1 for i in range(9) if rates[i + 1] <= rates[i]]
+        if reversals:
+            expected = translate(
+                "performance.monotonic_no", lang, model=name, band=reversals[0]
+            )
+        else:
+            expected = translate("performance.monotonic_yes", lang, model=name)
+        assert expected in texts
+    assert [info.value for info in at.info] == [
+        translate("performance.report_threshold_note", lang)
+    ]
+    assert len(at.dataframe) == 3

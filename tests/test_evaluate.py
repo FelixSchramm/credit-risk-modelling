@@ -2,8 +2,9 @@
 
 import numpy as np
 import pandas as pd
+import pytest
 
-from src.evaluate import evaluate_model
+from src.evaluate import charged_off_metrics, evaluate_model
 
 
 class FixedProbaModel:
@@ -81,3 +82,40 @@ def test_metrics_are_positional_for_a_non_zero_based_index():
     result = evaluate_model(FixedProbaModel([0.1, 0.6, 0.4, 0.9]), x_test, y_test)
     assert result["roc_auc"] == 0.75
     assert result["ks"] == 0.5
+
+
+def test_charged_off_metrics_match_hand_computed_values():
+    y_true = np.array([1, 1, 1, 0, 0, 0])
+    y_proba = np.array([0.9, 0.6, 0.2, 0.7, 0.1, 0.1])
+    result = charged_off_metrics(y_true, y_proba)
+    # Flagged: rows 0, 1, 3 -> TP 2, FP 1, FN 1, TN 2.
+    assert result["precision"] == pytest.approx(2 / 3)
+    assert result["recall"] == pytest.approx(2 / 3)
+    assert result["f1"] == pytest.approx(2 / 3)
+    assert result["accuracy"] == pytest.approx(4 / 6)
+
+
+def test_charged_off_metrics_threshold_changes_recall():
+    y_true = np.array([1, 1, 0, 0])
+    y_proba = np.array([0.4, 0.3, 0.2, 0.1])
+    assert charged_off_metrics(y_true, y_proba)["recall"] == 0
+    assert charged_off_metrics(y_true, y_proba, 0.25)["recall"] == 1
+
+
+def test_charged_off_metrics_without_flagged_loans_gives_zero_precision():
+    result = charged_off_metrics(np.array([1, 0]), np.array([0.1, 0.1]))
+    assert result["precision"] == 0
+
+
+def test_charged_off_metrics_equal_the_stored_report(bundle):
+    for model in ("rf", "scorecard"):
+        result = charged_off_metrics(bundle["y_test"], bundle[f"proba_{model}"])
+        charged_off_line = next(
+            line
+            for line in bundle["metrics"][model]["report"].splitlines()
+            if line.strip().startswith("Charged Off")
+        )
+        precision, recall, f1 = charged_off_line.split()[-4:-1]
+        assert f"{result['precision']:.2f}" == precision
+        assert f"{result['recall']:.2f}" == recall
+        assert f"{result['f1']:.2f}" == f1
