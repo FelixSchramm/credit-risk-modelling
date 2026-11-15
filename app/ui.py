@@ -36,6 +36,7 @@ PAGES = {
     "calculator": "app/views/calculator.py",
     "performance": "app/views/performance.py",
     "cutoff": "app/views/cutoff.py",
+    "limits": "app/views/limits.py",
     "glossary": "app/views/glossary.py",
 }
 

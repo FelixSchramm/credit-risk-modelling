@@ -512,7 +512,8 @@ pd_text = """Expected loss is `PD x LGD x EAD`:
 - **PD** (probability of default): modelled here.
 - **LGD** (loss given default): not modelled. Recovery on unsecured consumer debt is a modelling problem of its own.
 - **EAD** (exposure at default): not modelled. For a fully drawn, amortising consumer loan it is close to the outstanding balance."""
-pd_ifrs = """Under IFRS 9, PD feeds the loss allowance and the staging: stage 1 uses the 12-month expected credit loss, stages 2 and 3 the lifetime loss. IFRS 9 PDs are point-in-time and forward-looking, Basel IRB PDs are long-run averages by design. One estimate cannot be both, which is why banks keep separate PD models for the two purposes. In Switzerland the standardised approach dominates, where no internal PD enters the capital calculation; internal PD models need explicit FINMA approval."""
+pd_ifrs = """Under IFRS 9, PD feeds the loss allowance and the staging: stage 1 uses the 12-month expected credit loss, stages 2 and 3 the lifetime loss. IFRS 9 PDs are point-in-time and forward-looking, Basel IRB PDs are long-run averages by design. One estimate cannot be both, which is why banks keep separate PD models for the two purposes."""
+pd_swiss = """In Switzerland the standardised approach dominates, where no internal PD enters the capital calculation; internal PD models need explicit FINMA approval."""
 population_title = "5. Population"
 population_text = """The data are accepted loan applications of a US peer-to-peer platform, issued 2015-2018. Nothing has been established about how that relates to the portfolio of a Swiss bank. There is no point-in-time or through-the-cycle calibration and no validation in the supervisory sense."""
 intrate_title = "6. Caveat: the interest rate as an input"
