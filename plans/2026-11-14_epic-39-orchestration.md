@@ -22,8 +22,8 @@ is lost when a session ends unexpectedly.
 | #42 | Glossary | merged (PR #53, d6cc1a0), issue closed |
 | #43 | Start page | merged (PR #54, 02d63b2); LinkedIn/website URLs from the user still pending |
 | #32 | Applicant calculator, incl. derived coupled features | merged (PR #55, b9aa721) |
-| #33 | Single-score explanation | PR #56, review running |
-| #34 | Model quality | open |
+| #33 | Single-score explanation | merged (PR #56, 7478562) |
+| #34 | Model quality | worker running |
 | #35 | Cut-off and expected loss | open |
 | #36 | Model card | open |
 | #37 | Random forest vs. scorecard | open |
