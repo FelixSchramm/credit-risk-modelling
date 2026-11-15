@@ -4,7 +4,7 @@ Living handover document for the autonomous session chain
 (see CLAUDE.md, section "Autonomous session protocol").
 Update after every completed unit of work and before every handover.
 
-**Last updated:** 2026-11-15 (worker session for #36)
+**Last updated:** 2026-11-15 (worker session for #37)
 **Chain status:** The relay for issues #2-#13 is finished and merged into
 `main` (PR #44). **Epic #39 (recruiter dashboard) is in progress**, see the
 next section.
@@ -334,7 +334,40 @@ next section.
 - **Not verifiable without a browser (#36):** tooltip hover (about 12 help icons),
   look of the bordered int_rate section in both themes below the first screen
   (Playwright only checked that no exception shows and the first screen in dark EN).
-- **Next:** #37. #30 is done (PR #50).
+- **#37 implemented** (forest vs. scorecard page): `src/comparison.py`
+  (`iv_overview`, `dropped_features`, `default_min_iv`, `better_model`),
+  `app/views/comparison.py` (`_metrics_table`, `_metrics_chart`, `_iv_table`),
+  registered in `PAGES` after `performance` (menu: home, calculator, model
+  quality, forest vs. scorecard, cut-off, limits, glossary; the start page guide
+  follows `PAGES`), `[comparison]`, `nav.comparison`, `nav_desc.comparison` in
+  both locale files (EN follows notebook section 7, DE translates), 5 tests in
+  `tests/test_comparison.py` and 6 smoke tests (suite at 181),
+  `plans/2026-11-15_comparison.md`. No glossary additions. **Open PR for #37:**
+  see the PR list, state: review pending. Real bundle: forest AUC 0.720 / Gini
+  0.439 / KS 0.318, scorecard 0.722 / 0.445 / 0.324 (same 125,381 test loans);
+  IV table has 79 candidates, top `int_rate` 0.493, `fico_range_high` and
+  `fico_range_low` 0.143, `term` 0.115; 44 features are below `min_iv` 0.02 and
+  dropped (listed in an expander); `issue_year` (IV 0.027) stays selected.
+  Headless start (health `ok`, no traceback, server stopped), AppTest EN and DE,
+  Chromium 1280x800 light and dark, EN and DE: no exception, first screen fine.
+- **Pitfalls from #37 for #38:** `min_iv` is not in the bundle; it is read from the
+  `train_scorecard` default (`default_min_iv`), so a rebuild with another
+  threshold would make the page text wrong (store it in the bundle if that is
+  ever needed). The conclusion text is chosen by `better_model` (tie goes to the
+  scorecard) from `bundle["metrics"]`; the glossary entry `scorecard.in_project`
+  still says "separates slightly better than the forest" as fixed text (open
+  since the review of PR #53). `practice_robust` copies the notebook claim that
+  the forest handles neither outliers nor missing values "by construction"; that
+  is debatable for trees and should be softened in notebook and page together.
+  The page says "adds this much to the score" instead of the notebook's "this
+  many points" because the bundle has no points scaling. IV rules of thumb are
+  shown from `glossary.iv.how_to_read`.
+- **Not verifiable without a browser (#37):** tooltip hover (model names, section
+  headings, table column headers), the theme switch in the menu, the scroll
+  behaviour of the IV table (400 px high), the look below the first screen.
+- **Next:** #38 (deployment). The deployment itself needs the user's Streamlit
+  Community Cloud account: Python 3.11 in the advanced settings, entry point
+  `streamlit_app.py`, branch `main`. #30 is done (PR #50).
 - **Pitfalls from #41:** the built-in navigation is drawn above all sidebar
   content, so `streamlit_app.py` uses `st.navigation(position="hidden")` and
   draws the menu with `st.sidebar.page_link` below the switcher (assumption:
