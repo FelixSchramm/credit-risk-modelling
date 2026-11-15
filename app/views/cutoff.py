@@ -209,3 +209,6 @@ _show(
     ]
 )
 show_chart(_net_result_chart(model, curve, threshold, best))
+
+st.subheader(t("cutoff.reading_title"))
+st.write(t("cutoff.reading"))
