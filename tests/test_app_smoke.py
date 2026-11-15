@@ -425,8 +425,8 @@ def test_cutoff_page_marks_the_optimum_on_a_single_axis(lang, bundle_env):
 
 
 def test_cutoff_page_inputs_survive_a_language_switch(bundle_env):
-    # Only EN -> DE: AppTest cannot set a select_slider by value once the option
-    # texts use a decimal comma, so the reverse direction cannot be driven.
+    # Only EN -> DE: AppTest runs the page's format_func in the test process,
+    # where the language falls back to EN, so reruns on the DE page raise.
     at = _cutoff("en")
     at.select_slider(key="cutoff_threshold").set_value(0.35).run()
     at.select_slider(key="cutoff_loss").set_value(0.8).run()
